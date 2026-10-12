@@ -1,0 +1,12 @@
+plugins {
+    id 'spring-common-conventions'
+}
+
+group = 'kh.eco.istad'
+
+dependencies {
+    api 'kh.eco.istad:istad-common-domain'
+
+    implementation 'org.springframework.boot:spring-boot-starter-webmvc'
+    implementation 'org.springframework:spring-tx'
+}

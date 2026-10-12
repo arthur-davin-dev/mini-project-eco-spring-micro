@@ -1,0 +1,26 @@
+server:
+  port: 8082
+
+scalar:
+  enabled: true
+  url: /v3/api-docs
+
+springdoc:
+  api-docs:
+    enabled: true
+#  swagger-ui:
+#    enabled: true
+
+spring:
+  application:
+    name: business-service
+  mongodb:
+    host: localhost
+    port: 2026
+    username: mongod
+    password: mongod
+    database: business_db
+    authentication-database: admin
+  data:
+    mongodb:
+      auto-index-creation: true

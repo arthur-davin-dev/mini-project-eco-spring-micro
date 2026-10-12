@@ -1,0 +1,9 @@
+plugins {
+    id 'spring-common-conventions'
+}
+
+dependencies {
+    api project(':order-service-domain:order-application-service')
+    implementation 'kh.eco.istad:istad-common-restapi'
+    implementation 'org.springframework.boot:spring-boot-starter-webmvc'
+}

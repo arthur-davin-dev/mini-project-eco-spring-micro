@@ -1,0 +1,16 @@
+plugins {
+    id 'spring-boot-common-conventions'
+}
+
+dependencies {
+    implementation project(':order-service-domain:order-domain-core')
+    implementation project(':order-service-domain:order-application-service')
+    implementation project(':order-service-persistence')
+    implementation project(':order-service-restapi')
+
+    implementation 'kh.eco.istad:istad-common-restapi'
+
+    implementation 'org.springframework.boot:spring-boot-starter-webmvc'
+    implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:3.0.2'
+    implementation 'org.springdoc:springdoc-openapi-starter-webmvc-scalar:3.0.2'
+}

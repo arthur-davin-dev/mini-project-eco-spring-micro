@@ -1,0 +1,88 @@
+#
+#services:
+#  postgres:
+#    image: postgres:17
+#    container_name: istad-mini-micro-postgres
+#    restart: unless-stopped
+#    environment:
+#      POSTGRES_DB: order_db
+#      POSTGRES_USER: postgres
+#      POSTGRES_PASSWORD: postgres
+#    ports:
+#      - "5433:5432"
+#    volumes:
+#      - istad_micro_postgres_data:/var/lib/postgresql/data
+#    healthcheck:
+#      test: ["CMD-SHELL", "pg_isready -U postgres -d istad_mini_micro"]
+#      interval: 5s
+#      timeout: 5s
+#      retries: 10
+#    networks:
+#      - ite-net
+#
+#  mongo:
+#    image: mongo:7
+#    container_name: istad-mini-micro-mongo
+#    restart: unless-stopped
+#    ports:
+#      - "2026:27017"
+#    environment:
+#      MONGO_INITDB_ROOT_USERNAME: mongod
+#      MONGO_INITDB_ROOT_PASSWORD: mongod
+#    volumes:
+#      - istad_micro_mongo_data:/data/db
+#    networks:
+#      - ite-net
+#
+#volumes:
+#  istad_micro_postgres_data:
+#  istad_micro_mongo_data:
+#
+#networks:
+#  ite-net:
+#    external: true
+
+
+
+services:
+  postgres:
+    image: postgres:17
+    container_name: istad-mini-micro-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: order_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5433:5432"
+    volumes:
+      - istad_micro_postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d order_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    networks:
+      - ite-net
+
+  mongo:
+    image: mongo:7
+    container_name: istad-mini-micro-mongo
+    restart: unless-stopped
+    ports:
+      - "2026:27017"
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: mongod
+      MONGO_INITDB_ROOT_PASSWORD: mongod
+    volumes:
+      - istad_micro_mongo_data:/data/db
+    networks:
+      - ite-net
+
+volumes:
+  istad_micro_postgres_data:
+  istad_micro_mongo_data:
+
+networks:
+  ite-net:
+    external: true

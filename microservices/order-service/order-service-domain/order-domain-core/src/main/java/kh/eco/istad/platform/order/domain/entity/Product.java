@@ -1,0 +1,34 @@
+package kh.eco.istad.platform.order.domain.entity;
+
+import kh.eco.istad.common.domain.entity.BaseEntity;
+import kh.eco.istad.common.domain.valueobject.Money;
+import kh.eco.istad.platform.order.domain.valueobject.ProductId;
+
+public class Product extends BaseEntity<ProductId> {
+
+    private String name;
+    private Money price;
+
+    public Product(ProductId id){
+        super.setId(id);
+    }
+
+    public void updateWithConfirmedNameAndPrice(String name, Money price) {
+        this.name = name;
+        this.price = price;
+    }
+
+    public Product(ProductId id, String name, Money price){
+        super.setId(id);
+        this.name = name;
+        this.price = price;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public Money getPrice() {
+        return price;
+    }
+}

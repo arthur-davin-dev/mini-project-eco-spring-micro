@@ -1,0 +1,20 @@
+pluginManagement {
+    includeBuild('../../build-logic')
+
+    repositories {
+        gradlePluginPortal()
+        mavenCentral()
+    }
+}
+
+includeBuild '../../istad-common'
+
+dependencyResolutionManagement {
+    repositories {
+        mavenCentral()
+    }
+}
+
+rootProject.name = 'payment-service'
+
+include 'payment-service-domain:payment-domain-core'
