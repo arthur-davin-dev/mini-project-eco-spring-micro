@@ -9,6 +9,7 @@ import kh.eco.istad.platform.business.domain.valueobject.BusinessContact;
 import kh.eco.istad.platform.business.domain.valueobject.BusinessName;
 import kh.eco.istad.platform.business.domain.valueobject.OrderApprovalId;
 import kh.eco.istad.platform.business.domain.valueobject.OrderApprovalStatus;
+import kh.eco.istad.platform.business.domain.valueobject.ProductId;
 
 import java.util.List;
 import java.util.UUID;
@@ -18,6 +19,7 @@ public class Business extends AggregateRoot<BusinessId> {
     private final BusinessName businessName;
     private final BusinessContact businessContact;
     private final OrderDetail orderDetail;
+    private final List<Product> products;
 
     private OrderApproval orderApproval;
     private boolean active;
@@ -34,11 +36,22 @@ public class Business extends AggregateRoot<BusinessId> {
         if (businessContact == null) {
             throw new BusinessDomainException("Business contact is required!");
         }
+        for (Product product : products) {
+            if (product.getName() == null || product.getName().isBlank()) throw new BusinessDomainException("Product name is required!");
+            if (product.getPrice() == null || !product.getPrice().isGreaterThanZero()) throw new BusinessDomainException("Product price must be greater than zero!");
+            if (product.getQuantity() < 0) throw new BusinessDomainException("Product quantity must not be negative!");
+        }
     }
 
     public void initializeBusiness() {
         super.setId(new BusinessId(UUID.randomUUID()));
         active = true;
+        for (Product product : products) product.setId(new ProductId(UUID.randomUUID()));
+    }
+
+    public void deactivate() {
+        if (!active) throw new BusinessDomainException("Business is already inactive");
+        active = false;
     }
 
     public void validateOrder(List<String> failureMessages) {
@@ -95,6 +108,8 @@ public class Business extends AggregateRoot<BusinessId> {
         return active;
     }
 
+    public List<Product> getProducts() { return products; }
+
     // ---------- Builder ----------
 
     private Business(Builder builder) {
@@ -102,6 +117,7 @@ public class Business extends AggregateRoot<BusinessId> {
         businessName = builder.businessName;
         businessContact = builder.businessContact;
         orderDetail = builder.orderDetail;
+        products = builder.products == null ? List.of() : List.copyOf(builder.products);
         orderApproval = builder.orderApproval;
         active = builder.active;
     }
@@ -115,6 +131,7 @@ public class Business extends AggregateRoot<BusinessId> {
         private BusinessName businessName;
         private BusinessContact businessContact;
         private OrderDetail orderDetail;
+        private List<Product> products = List.of();
         private OrderApproval orderApproval;
         private boolean active;
 
@@ -140,6 +157,8 @@ public class Business extends AggregateRoot<BusinessId> {
             orderDetail = val;
             return this;
         }
+
+        public Builder products(List<Product> val) { products = val; return this; }
 
         public Builder orderApproval(OrderApproval val) {
             orderApproval = val;

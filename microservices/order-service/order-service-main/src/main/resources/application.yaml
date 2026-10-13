@@ -1,28 +1,3 @@
-#server:
-#  port: 8081
-#
-#scalar:
-#  enabled: true
-#  url: /v3/api-docs
-#
-#spring:
-#  application:
-#    name: order-service
-#  datasource:
-#    url: ${ORDER_DB_URL:jdbc:postgresql://localhost:5433/order_db}
-#    username: ${ORDER_DB_USERNAME:postgres}
-#    password: ${ORDER_DB_PASSWORD:postgres}
-#  jpa:
-#    hibernate:
-#      ddl-auto: update
-#    open-in-view: false
-#    show-sql: false
-#    defer-datasource-initialization: true
-#  sql:
-#    init:
-#      mode: always
-
-
 server:
   port: 8081
 
@@ -34,11 +9,14 @@ springdoc:
   api-docs:
     enabled: true
   swagger-ui:
-    enabled: false
+    enabled: true
 
 services:
   customer:
     base-url: http://localhost:8083
+    timeout-ms: 3000
+  business:
+    base-url: http://localhost:8082
     timeout-ms: 3000
 
 spring:
@@ -53,7 +31,3 @@ spring:
       ddl-auto: update
     open-in-view: false
     show-sql: true
-    defer-datasource-initialization: true
-  sql:
-    init:
-      mode: always

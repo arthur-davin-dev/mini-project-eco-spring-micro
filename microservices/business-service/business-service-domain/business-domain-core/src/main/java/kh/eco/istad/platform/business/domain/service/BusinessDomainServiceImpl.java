@@ -5,6 +5,7 @@ import kh.eco.istad.platform.business.domain.event.BusinessRegisteredEvent;
 import kh.eco.istad.platform.business.domain.event.OrderApprovalEvent;
 import kh.eco.istad.platform.business.domain.event.OrderApprovedEvent;
 import kh.eco.istad.platform.business.domain.event.OrderRejectedEvent;
+import kh.eco.istad.platform.business.domain.event.BusinessDeactivatedEvent;
 import kh.eco.istad.platform.business.domain.valueobject.OrderApprovalStatus;
 
 import java.time.ZoneId;
@@ -35,5 +36,11 @@ public class BusinessDomainServiceImpl implements BusinessDomainService {
         business.constructOrderApproval(OrderApprovalStatus.REJECTED);
         return new OrderRejectedEvent(
                 business.getOrderApproval(), business.getId(), failureMessages, ZonedDateTime.now(UTC));
+    }
+
+    @Override
+    public BusinessDeactivatedEvent deactivateBusiness(Business business) {
+        business.deactivate();
+        return new BusinessDeactivatedEvent(business, ZonedDateTime.now(UTC));
     }
 }
