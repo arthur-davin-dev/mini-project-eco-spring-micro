@@ -1,19 +1,37 @@
-#
 #services:
 #  postgres:
 #    image: postgres:17
 #    container_name: istad-mini-micro-postgres
 #    restart: unless-stopped
 #    environment:
-#      POSTGRES_DB: order_db
-#      POSTGRES_USER: postgres
-#      POSTGRES_PASSWORD: postgres
+#      POSTGRES_DB: ${ORDER_DB_NAME:-order_db}
+#      POSTGRES_USER: ${ORDER_DB_USERNAME:-postgres}
+#      POSTGRES_PASSWORD: ${ORDER_DB_PASSWORD:-postgres}
 #    ports:
-#      - "5433:5432"
+#      - "${ORDER_DB_PORT:-5433}:5432"
 #    volumes:
 #      - istad_micro_postgres_data:/var/lib/postgresql/data
 #    healthcheck:
-#      test: ["CMD-SHELL", "pg_isready -U postgres -d istad_mini_micro"]
+#      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+#      interval: 5s
+#      timeout: 5s
+#      retries: 10
+#    networks:
+#      - ite-net
+#
+#  customer-postgres:
+#    image: postgres:17
+#    restart: unless-stopped
+#    environment:
+#      POSTGRES_DB: ${CUSTOMER_DB_NAME:-customer_db}
+#      POSTGRES_USER: ${CUSTOMER_DB_USERNAME:-postgres}
+#      POSTGRES_PASSWORD: ${CUSTOMER_DB_PASSWORD:-postgres}
+#    ports:
+#      - "${CUSTOMER_DB_PORT:-5434}:5432"
+#    volumes:
+#      - istad_micro_customer_postgres_data:/var/lib/postgresql/data
+#    healthcheck:
+#      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
 #      interval: 5s
 #      timeout: 5s
 #      retries: 10
@@ -25,10 +43,10 @@
 #    container_name: istad-mini-micro-mongo
 #    restart: unless-stopped
 #    ports:
-#      - "2026:27017"
+#      - "${BUSINESS_MONGODB_PORT:-2026}:27017"
 #    environment:
-#      MONGO_INITDB_ROOT_USERNAME: mongod
-#      MONGO_INITDB_ROOT_PASSWORD: mongod
+#      MONGO_INITDB_ROOT_USERNAME: ${BUSINESS_MONGODB_USERNAME:-mongod}
+#      MONGO_INITDB_ROOT_PASSWORD: ${BUSINESS_MONGODB_PASSWORD:-mongod}
 #    volumes:
 #      - istad_micro_mongo_data:/data/db
 #    networks:
@@ -36,6 +54,7 @@
 #
 #volumes:
 #  istad_micro_postgres_data:
+#  istad_micro_customer_postgres_data:
 #  istad_micro_mongo_data:
 #
 #networks:
@@ -45,20 +64,40 @@
 
 
 services:
-  postgres:
+  order-postgres:
     image: postgres:17
     container_name: istad-mini-micro-postgres
     restart: unless-stopped
     environment:
-      POSTGRES_DB: order_db
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: ${ORDER_DB_NAME:-order_db}
+      POSTGRES_USER: ${ORDER_DB_USERNAME:-postgres}
+      POSTGRES_PASSWORD: ${ORDER_DB_PASSWORD:-postgres}
     ports:
-      - "5433:5432"
+      - "${ORDER_DB_PORT:-5433}:5432"
     volumes:
       - istad_micro_postgres_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres -d order_db"]
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    networks:
+      - ite-net
+
+  customer-postgres:
+    image: postgres:17
+    container_name: istad-micro-customer-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${CUSTOMER_DB_NAME:-customer_db}
+      POSTGRES_USER: ${CUSTOMER_DB_USERNAME:-postgres}
+      POSTGRES_PASSWORD: ${CUSTOMER_DB_PASSWORD:-postgres}
+    ports:
+      - "${CUSTOMER_DB_PORT:-5434}:5432"
+    volumes:
+      - istad_micro_customer_postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
       interval: 5s
       timeout: 5s
       retries: 10
@@ -70,10 +109,10 @@ services:
     container_name: istad-mini-micro-mongo
     restart: unless-stopped
     ports:
-      - "2026:27017"
+      - "${BUSINESS_MONGODB_PORT:-2026}:27017"
     environment:
-      MONGO_INITDB_ROOT_USERNAME: mongod
-      MONGO_INITDB_ROOT_PASSWORD: mongod
+      MONGO_INITDB_ROOT_USERNAME: ${BUSINESS_MONGODB_USERNAME:-mongod}
+      MONGO_INITDB_ROOT_PASSWORD: ${BUSINESS_MONGODB_PASSWORD:-mongod}
     volumes:
       - istad_micro_mongo_data:/data/db
     networks:
@@ -81,6 +120,7 @@ services:
 
 volumes:
   istad_micro_postgres_data:
+  istad_micro_customer_postgres_data:
   istad_micro_mongo_data:
 
 networks:

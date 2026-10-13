@@ -1,0 +1,26 @@
+
+server:
+  port: 8083
+
+scalar:
+  enabled: true
+  url: /v3/api-docs
+
+springdoc:
+  api-docs:
+    enabled: true
+
+spring:
+  application:
+    name: customer-service
+
+  datasource:
+    url: ${CUSTOMER_DB_URL:jdbc:postgresql://localhost:5434/customer_db}
+    username: ${CUSTOMER_DB_USERNAME:postgres}
+    password: ${CUSTOMER_DB_PASSWORD:postgres}
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+    open-in-view: false
+    show-sql: true

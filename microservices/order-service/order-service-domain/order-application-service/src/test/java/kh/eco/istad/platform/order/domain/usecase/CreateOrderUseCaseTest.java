@@ -10,6 +10,7 @@ import kh.eco.istad.platform.order.domain.dto.OrderItemCommand;
 import kh.eco.istad.platform.order.domain.entity.Business;
 import kh.eco.istad.platform.order.domain.entity.Customer;
 import kh.eco.istad.platform.order.domain.entity.Product;
+import kh.eco.istad.platform.order.domain.exception.OrderDomainException;
 import kh.eco.istad.platform.order.domain.mapper.OrderDataMapper;
 import kh.eco.istad.platform.order.domain.port.out.BusinessRepository;
 import kh.eco.istad.platform.order.domain.port.out.CustomerRepository;
@@ -33,7 +34,7 @@ class CreateOrderUseCaseTest {
     private static final UUID BUSINESS = UUID.randomUUID();
     private static final UUID PRODUCT = UUID.randomUUID();
 
-    private final CustomerRepository customers = id -> Optional.of(new Customer(id));
+    private final CustomerRepository customers = id -> Optional.of(new Customer(id, true));
     private final BusinessRepository businesses = id -> Optional.of(new Business(
             id,
             List.of(new Product(new ProductId(PRODUCT), "Burger", new Money(new BigDecimal("5.00")))),
@@ -69,6 +70,14 @@ class CreateOrderUseCaseTest {
 
         assertThrows(ResourceNotFoundException.class,
                 () -> useCase(none, businesses).execute(command()));
+    }
+
+    @Test
+    void inactiveCustomerIsRejected() {
+        CustomerRepository inactive = id -> Optional.of(new Customer(id, false));
+
+        assertThrows(OrderDomainException.class,
+                () -> useCase(inactive, businesses).execute(command()));
     }
 
     @Test

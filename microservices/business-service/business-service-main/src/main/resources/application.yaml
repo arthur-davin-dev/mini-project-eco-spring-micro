@@ -15,12 +15,7 @@ spring:
   application:
     name: business-service
   mongodb:
-    host: localhost
-    port: 2026
-    username: mongod
-    password: mongod
-    database: business_db
-    authentication-database: admin
+    uri: ${BUSINESS_MONGODB_URI:mongodb://mongod:mongod@localhost:2026/business_db?authSource=admin}
   data:
     mongodb:
       auto-index-creation: true

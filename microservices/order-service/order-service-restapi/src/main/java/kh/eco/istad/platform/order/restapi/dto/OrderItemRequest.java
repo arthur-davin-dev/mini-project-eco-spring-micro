@@ -8,6 +8,7 @@ import java.util.UUID;
 
 public record OrderItemRequest(
         @NotNull(message = "productId is required") UUID productId,
+        @NotNull(message = "quantity is required")
         @Positive(message = "quantity must be greater than 0") Integer quantity,
         @NotNull(message = "price is required") @Positive(message = "price must be greater than 0") BigDecimal price,
         @NotNull(message = "subTotal is required") @Positive(message = "subTotal must be greater than 0") BigDecimal subTotal

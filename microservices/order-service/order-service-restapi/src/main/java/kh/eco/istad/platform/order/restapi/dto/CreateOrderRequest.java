@@ -14,6 +14,7 @@ public record CreateOrderRequest(
         @NotNull(message = "businessId is required") UUID businessId,
         @NotNull(message = "address is required") @Valid AddressRequest address,
         @NotNull(message = "price is required") @Positive(message = "price must be greater than 0") BigDecimal price,
-        @NotEmpty(message = "items must not be empty") @Valid List<OrderItemRequest> items
+        @NotEmpty(message = "items must not be empty")
+        List<@NotNull(message = "items must not contain null entries") @Valid OrderItemRequest> items
 ) {
 }

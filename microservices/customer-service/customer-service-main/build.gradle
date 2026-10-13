@@ -1,0 +1,37 @@
+//plugins {
+//    id 'spring-boot-common-conventions'
+//}
+//
+//dependencies {
+//    implementation project(':customer-service-domain:customer-domain-core')
+//    implementation project(':customer-service-domain:customer-application-service')
+//    implementation project(':customer-service-message')
+//    implementation project(':customer-service-persistence')
+//    implementation project(':customer-service-restapi')
+//
+//    implementation 'org.springframework.boot:spring-boot-starter-webmvc'
+//    implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:3.0.2'
+//    implementation 'org.springdoc:springdoc-openapi-starter-webmvc-scalar:3.0.2'
+//}
+
+
+plugins {
+    id 'spring-boot-common-conventions'
+}
+
+dependencies {
+    implementation project(':customer-service-domain:customer-domain-core')
+    implementation project(':customer-service-domain:customer-application-service')
+    implementation project(':customer-service-persistence')
+    implementation project(':customer-service-restapi')
+
+    implementation 'kh.eco.istad:istad-common-restapi'
+
+    implementation 'org.springframework.boot:spring-boot-starter-webmvc'
+    implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:3.0.2'
+    implementation 'org.springdoc:springdoc-openapi-starter-webmvc-scalar:3.0.2'
+}
+
+tasks.named('bootRun') {
+    jvmArgs '--enable-native-access=ALL-UNNAMED'
+}
