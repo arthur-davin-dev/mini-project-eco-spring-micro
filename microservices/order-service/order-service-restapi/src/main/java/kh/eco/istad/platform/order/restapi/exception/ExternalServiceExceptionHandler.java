@@ -2,6 +2,7 @@ package kh.eco.istad.platform.order.restapi.exception;
 
 import kh.eco.istad.common.restapi.exception.ApiError;
 import kh.eco.istad.platform.order.domain.exception.ExternalServiceException;
+import kh.eco.istad.platform.order.domain.exception.PaymentRejectedException;
 import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
 import org.springframework.http.HttpStatus;
@@ -15,6 +16,12 @@ import java.util.Map;
 @RestControllerAdvice
 @Order(Ordered.HIGHEST_PRECEDENCE)
 public class ExternalServiceExceptionHandler {
+
+    @ExceptionHandler(PaymentRejectedException.class)
+    public ResponseEntity<ApiError> rejected(PaymentRejectedException ex) {
+        return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY)
+                .body(new ApiError(HttpStatus.UNPROCESSABLE_ENTITY.value(), ex.getMessage(), Map.of(), Instant.now()));
+    }
 
     @ExceptionHandler(ExternalServiceException.class)
     public ResponseEntity<ApiError> unavailable(ExternalServiceException ex) {

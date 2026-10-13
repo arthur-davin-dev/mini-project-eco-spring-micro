@@ -41,6 +41,9 @@ public class OrderEntity {
     @Column(nullable = false)
     private UUID trackingId;
 
+    @Column(name = "idempotency_key", unique = true, length = 128)
+    private String idempotencyKey;
+
     @Column(nullable = false, precision = 19, scale = 2)
     private BigDecimal price;
 

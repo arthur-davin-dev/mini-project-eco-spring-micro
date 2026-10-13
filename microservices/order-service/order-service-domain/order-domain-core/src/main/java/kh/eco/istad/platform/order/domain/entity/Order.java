@@ -20,7 +20,7 @@ public class Order extends AggregateRoot<OrderId> {
     private final CustomerId customerId;
     private final BusinessId businessId;
     private final StreetAddress deliveryAddress;
-    private final Money price;
+    private Money price;
     private final List<OrderItem> items;
 
     private TrackingId trackingId;
@@ -40,6 +40,14 @@ public class Order extends AggregateRoot<OrderId> {
         trackingId = new TrackingId(UUID.randomUUID());
         orderStatus = OrderStatus.PENDING;
         items.forEach(item -> item.initializeOrderItem(getId(), new OrderItemId(UUID.randomUUID())));
+    }
+
+    public void calculatePriceFromItems() {
+        Money total = Money.ZERO;
+        for (OrderItem item : items) {
+            total = total.add(item.getSubTotal());
+        }
+        price = total;
     }
 
     public void pay() {

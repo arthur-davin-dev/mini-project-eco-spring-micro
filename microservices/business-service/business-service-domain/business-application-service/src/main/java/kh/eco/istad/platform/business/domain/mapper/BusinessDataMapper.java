@@ -19,7 +19,8 @@ public class BusinessDataMapper {
                 .businessName(new BusinessName(command.legalName(), command.displayName()))
                 .businessContact(new BusinessContact(command.email(), command.phoneNumber()))
                 .products(command.products() == null ? List.of() : command.products().stream()
-                        .map(p -> new Product(null, p.name(), new Money(p.price()), p.quantity(), p.quantity() > 0)).toList())
+                        .map(p -> new Product
+                                (null, p.name(), new Money(p.price()), p.quantity(), p.quantity() > 0)).toList())
                 .build();
     }
 
@@ -32,16 +33,27 @@ public class BusinessDataMapper {
                 business.getBusinessContact().phoneNumber(), business.isActive(), message, productResults(business));
     }
 
-    public kh.eco.istad.platform.business.domain.dto.BusinessResult toBusinessResult(Business business) {
-        return new kh.eco.istad.platform.business.domain.dto.BusinessResult(business.getId().value(),
+    public BusinessResult toBusinessResult(Business business) {
+        return new BusinessResult(business.getId().value(),
                 business.getBusinessName().legalName(), business.getBusinessName().displayName(),
                 business.getBusinessContact().email(), business.getBusinessContact().phoneNumber(),
-                business.isActive(), business.getProducts().stream().map(p -> new BusinessResult.ProductResult(
-                        p.getId().value(), p.getName(), p.getPrice().amount(), p.getQuantity(), p.isAvailable())).toList());
+                business.isActive(), business.getProducts().stream().
+                map(p -> new BusinessResult.ProductResult(
+                        p.getId().value(),
+                        p.getName(),
+                        p.getPrice().amount(),
+                        p.getQuantity(),
+                        p.isAvailable())).toList());
     }
 
     private List<RegisterBusinessResult.ProductResult> productResults(Business business) {
-        return business.getProducts().stream().map(p -> new RegisterBusinessResult.ProductResult(
-                p.getId().value(), p.getName(), p.getPrice().amount(), p.getQuantity(), p.isAvailable())).toList();
+        return business.getProducts().
+                stream().
+                map(p -> new RegisterBusinessResult.ProductResult(
+                        p.getId().value(),
+                        p.getName(),
+                        p.getPrice().amount(),
+                        p.getQuantity(),
+                        p.isAvailable())).toList();
     }
 }

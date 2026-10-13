@@ -1,72 +1,24 @@
-#services:
-#  postgres:
-#    image: postgres:17
-#    container_name: istad-mini-micro-postgres
-#    restart: unless-stopped
-#    environment:
-#      POSTGRES_DB: ${ORDER_DB_NAME:-order_db}
-#      POSTGRES_USER: ${ORDER_DB_USERNAME:-postgres}
-#      POSTGRES_PASSWORD: ${ORDER_DB_PASSWORD:-postgres}
-#    ports:
-#      - "${ORDER_DB_PORT:-5433}:5432"
-#    volumes:
-#      - istad_micro_postgres_data:/var/lib/postgresql/data
-#    healthcheck:
-#      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
-#      interval: 5s
-#      timeout: 5s
-#      retries: 10
-#    networks:
-#      - ite-net
-#
-#  customer-postgres:
-#    image: postgres:17
-#    restart: unless-stopped
-#    environment:
-#      POSTGRES_DB: ${CUSTOMER_DB_NAME:-customer_db}
-#      POSTGRES_USER: ${CUSTOMER_DB_USERNAME:-postgres}
-#      POSTGRES_PASSWORD: ${CUSTOMER_DB_PASSWORD:-postgres}
-#    ports:
-#      - "${CUSTOMER_DB_PORT:-5434}:5432"
-#    volumes:
-#      - istad_micro_customer_postgres_data:/var/lib/postgresql/data
-#    healthcheck:
-#      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
-#      interval: 5s
-#      timeout: 5s
-#      retries: 10
-#    networks:
-#      - ite-net
-#
-#  mongo:
-#    image: mongo:7
-#    container_name: istad-mini-micro-mongo
-#    restart: unless-stopped
-#    ports:
-#      - "${BUSINESS_MONGODB_PORT:-2026}:27017"
-#    environment:
-#      MONGO_INITDB_ROOT_USERNAME: ${BUSINESS_MONGODB_USERNAME:-mongod}
-#      MONGO_INITDB_ROOT_PASSWORD: ${BUSINESS_MONGODB_PASSWORD:-mongod}
-#    volumes:
-#      - istad_micro_mongo_data:/data/db
-#    networks:
-#      - ite-net
-#
-#volumes:
-#  istad_micro_postgres_data:
-#  istad_micro_customer_postgres_data:
-#  istad_micro_mongo_data:
-#
-#networks:
-#  ite-net:
-#    external: true
-
-
-
 services:
+  payment-postgres:
+    image: postgres:17
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${PAYMENT_DB_NAME:-payment_db}
+      POSTGRES_USER: ${PAYMENT_DB_USERNAME:-postgres}
+      POSTGRES_PASSWORD: ${PAYMENT_DB_PASSWORD:-postgres}
+    ports:
+      - "${PAYMENT_DB_PORT:-5435}:5432"
+    volumes:
+      - istad_micro_payment_postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    networks: [ite-net]
+
   order-postgres:
     image: postgres:17
-    container_name: istad-mini-micro-postgres
     restart: unless-stopped
     environment:
       POSTGRES_DB: ${ORDER_DB_NAME:-order_db}
@@ -81,12 +33,10 @@ services:
       interval: 5s
       timeout: 5s
       retries: 10
-    networks:
-      - ite-net
+    networks: [ite-net]
 
   customer-postgres:
     image: postgres:17
-    container_name: istad-micro-customer-postgres
     restart: unless-stopped
     environment:
       POSTGRES_DB: ${CUSTOMER_DB_NAME:-customer_db}
@@ -101,12 +51,10 @@ services:
       interval: 5s
       timeout: 5s
       retries: 10
-    networks:
-      - ite-net
+    networks: [ite-net]
 
   mongo:
     image: mongo:7
-    container_name: istad-mini-micro-mongo
     restart: unless-stopped
     ports:
       - "${BUSINESS_MONGODB_PORT:-2026}:27017"
@@ -115,14 +63,129 @@ services:
       MONGO_INITDB_ROOT_PASSWORD: ${BUSINESS_MONGODB_PASSWORD:-mongod}
     volumes:
       - istad_micro_mongo_data:/data/db
-    networks:
-      - ite-net
+    healthcheck:
+      test:
+        - CMD-SHELL
+        - mongosh --quiet --username "$${MONGO_INITDB_ROOT_USERNAME}" --password "$${MONGO_INITDB_ROOT_PASSWORD}" --authenticationDatabase admin --eval "db.adminCommand('ping').ok" | grep -q 1
+      interval: 5s
+      timeout: 5s
+      retries: 15
+    networks: [ite-net]
+
+  customer-service:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        SERVICE_PROJECT: microservices/customer-service
+        BOOT_MODULE: customer-service-main
+        ARTIFACT_PATH: microservices/customer-service/customer-service-main/build/libs
+    restart: unless-stopped
+    ports: ["${CUSTOMER_SERVICE_PORT:-8083}:8083"]
+    environment:
+      CUSTOMER_DB_URL: jdbc:postgresql://customer-postgres:5432/${CUSTOMER_DB_NAME:-customer_db}
+      CUSTOMER_DB_USERNAME: ${CUSTOMER_DB_USERNAME:-postgres}
+      CUSTOMER_DB_PASSWORD: ${CUSTOMER_DB_PASSWORD:-postgres}
+    depends_on:
+      customer-postgres:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsS http://localhost:8083/actuator/health >/dev/null"]
+      interval: 10s
+      timeout: 5s
+      retries: 15
+      start_period: 60s
+    networks: [ite-net]
+
+  business-service:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        SERVICE_PROJECT: microservices/business-service
+        BOOT_MODULE: business-service-main
+        ARTIFACT_PATH: microservices/business-service/business-service-main/build/libs
+    restart: unless-stopped
+    ports: ["${BUSINESS_SERVICE_PORT:-8082}:8082"]
+    environment:
+      BUSINESS_MONGODB_URI: mongodb://${BUSINESS_MONGODB_USERNAME:-mongod}:${BUSINESS_MONGODB_PASSWORD:-mongod}@mongo:27017/business_db?authSource=admin
+    depends_on:
+      mongo:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsS http://localhost:8082/actuator/health >/dev/null"]
+      interval: 10s
+      timeout: 5s
+      retries: 15
+      start_period: 60s
+    networks: [ite-net]
+
+  payment-service:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        SERVICE_PROJECT: microservices/payment-service
+        BOOT_MODULE: payment-service-main
+        ARTIFACT_PATH: microservices/payment-service/payment-service-main/build/libs
+    restart: unless-stopped
+    ports: ["${PAYMENT_SERVICE_PORT:-8084}:8084"]
+    environment:
+      PAYMENT_SERVICE_PORT: 8084
+      PAYMENT_DB_URL: jdbc:postgresql://payment-postgres:5432/${PAYMENT_DB_NAME:-payment_db}
+      PAYMENT_DB_USERNAME: ${PAYMENT_DB_USERNAME:-postgres}
+      PAYMENT_DB_PASSWORD: ${PAYMENT_DB_PASSWORD:-postgres}
+    depends_on:
+      payment-postgres:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsS http://localhost:8084/actuator/health >/dev/null"]
+      interval: 10s
+      timeout: 5s
+      retries: 15
+      start_period: 60s
+    networks: [ite-net]
+
+  order-service:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        SERVICE_PROJECT: microservices/order-service
+        BOOT_MODULE: order-service-main
+        ARTIFACT_PATH: microservices/order-service/order-service-main/build/libs
+    restart: unless-stopped
+    ports: ["${ORDER_SERVICE_PORT:-8081}:8081"]
+    environment:
+      ORDER_DB_URL: jdbc:postgresql://order-postgres:5432/${ORDER_DB_NAME:-order_db}
+      ORDER_DB_USERNAME: ${ORDER_DB_USERNAME:-postgres}
+      ORDER_DB_PASSWORD: ${ORDER_DB_PASSWORD:-postgres}
+      CUSTOMER_SERVICE_URL: http://customer-service:8083
+      BUSINESS_SERVICE_URL: http://business-service:8082
+      PAYMENT_SERVICE_URL: http://payment-service:8084
+    depends_on:
+      order-postgres:
+        condition: service_healthy
+      customer-service:
+        condition: service_healthy
+      business-service:
+        condition: service_healthy
+      payment-service:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsS http://localhost:8081/actuator/health >/dev/null"]
+      interval: 10s
+      timeout: 5s
+      retries: 15
+      start_period: 60s
+    networks: [ite-net]
 
 volumes:
+  istad_micro_payment_postgres_data:
   istad_micro_postgres_data:
   istad_micro_customer_postgres_data:
   istad_micro_mongo_data:
 
 networks:
   ite-net:
-    external: true
+    driver: bridge

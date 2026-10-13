@@ -12,10 +12,26 @@ import java.util.UUID;
 
 @Service
 public class DeactivateBusinessUseCase {
-    private final BusinessRepository repository; private final BusinessDomainService domainService; private final BusinessDataMapper mapper;
-    public DeactivateBusinessUseCase(BusinessRepository repository, BusinessDomainService domainService, BusinessDataMapper mapper) { this.repository = repository; this.domainService = domainService; this.mapper = mapper; }
+    private final BusinessRepository repository;
+    private final BusinessDomainService domainService;
+    private final BusinessDataMapper mapper;
+    public DeactivateBusinessUseCase(
+            BusinessRepository repository,
+            BusinessDomainService domainService,
+            BusinessDataMapper mapper
+    )
+    {
+        this.repository = repository;
+        this.domainService = domainService;
+        this.mapper = mapper;
+    }
     public Mono<BusinessResult> execute(UUID id) {
-        return repository.findById(new BusinessId(id)).switchIfEmpty(Mono.error(new ResourceNotFoundException("Business " + id + " not found")))
-                .flatMap(business -> { domainService.deactivateBusiness(business); return repository.save(business); }).map(mapper::toBusinessResult);
+        return repository.findById(
+                new BusinessId(id)).switchIfEmpty(Mono.error(
+                        new ResourceNotFoundException("Business " + id + " not found")))
+                .flatMap(business -> {
+                    domainService.deactivateBusiness(business);
+                    return repository.save(business);
+                }).map(mapper::toBusinessResult);
     }
 }

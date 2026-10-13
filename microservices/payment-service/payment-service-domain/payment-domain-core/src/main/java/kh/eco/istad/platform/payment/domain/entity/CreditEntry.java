@@ -17,11 +17,22 @@ public class CreditEntry extends AggregateRoot<CreditEntryId> {
     }
 
     public void addCreditAmount(Money amount) {
+        requirePositive(amount);
         totalCreditAmount = totalCreditAmount.add(amount);
     }
 
     public void subtractCreditAmount(Money amount) {
+        requirePositive(amount);
+        if (amount.isGreaterThan(totalCreditAmount)) {
+            throw new IllegalArgumentException("Credit balance cannot become negative");
+        }
         totalCreditAmount = totalCreditAmount.subtract(amount);
+    }
+
+    private void requirePositive(Money amount) {
+        if (amount == null || !amount.isGreaterThanZero()) {
+            throw new IllegalArgumentException("Credit change must be greater than zero");
+        }
     }
 
     public CustomerId getCustomerId() {

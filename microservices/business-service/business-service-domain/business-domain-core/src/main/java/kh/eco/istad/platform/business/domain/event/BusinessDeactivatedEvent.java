@@ -5,4 +5,8 @@ import kh.eco.istad.platform.business.domain.entity.Business;
 
 import java.time.ZonedDateTime;
 
-public record BusinessDeactivatedEvent(Business business, ZonedDateTime deactivatedAt) implements DomainEvent<Business> { }
+public record BusinessDeactivatedEvent(
+        Business business,
+        ZonedDateTime deactivatedAt
+)
+        implements DomainEvent<Business> { }

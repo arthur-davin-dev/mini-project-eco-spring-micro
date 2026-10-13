@@ -29,23 +29,22 @@ public class PaymentDomainServiceImpl implements PaymentDomainService {
             List<String> failureMessages
     ) {
         payment.validatePayment(failureMessages);
-        payment.initializePayment();
-
         if (failureMessages.isEmpty()) {
+            payment.initializePayment();
             validateCreditEntry(payment, creditEntry, failureMessages);
         }
         // Only touch the credit when everything so far is valid, so a failed payment changes nothing.
         if (failureMessages.isEmpty()) {
-            creditEntry.subtractCreditAmount(payment.getPrice());
-            addCreditHistory(payment, creditHistories, TransactionType.DEBIT);
             validateCreditHistory(creditEntry, creditHistories, failureMessages);
         }
 
         if (failureMessages.isEmpty()) {
+            creditEntry.subtractCreditAmount(payment.getPrice());
+            addCreditHistory(payment, creditHistories, TransactionType.DEBIT);
             payment.updateStatus(PaymentStatus.COMPLETED);
             return new PaymentCompletedEvent(payment, ZonedDateTime.now(UTC), failureMessages);
         }
-        payment.updateStatus(PaymentStatus.FAILED);
+        if (payment.getPaymentStatus() == null) payment.updateStatus(PaymentStatus.FAILED);
         return new PaymentFailedEvent(payment, ZonedDateTime.now(UTC), failureMessages);
     }
 
@@ -57,22 +56,32 @@ public class PaymentDomainServiceImpl implements PaymentDomainService {
             List<String> failureMessages
     ) {
         payment.validatePayment(failureMessages);
+        if (payment.getPaymentStatus() != PaymentStatus.COMPLETED) {
+            failureMessages.add("Only a completed payment can be cancelled");
+        }
 
         if (failureMessages.isEmpty()) {
-            creditEntry.addCreditAmount(payment.getPrice());
-            addCreditHistory(payment, creditHistories, TransactionType.CREDIT);
             validateCreditHistory(creditEntry, creditHistories, failureMessages);
         }
 
         if (failureMessages.isEmpty()) {
+            creditEntry.addCreditAmount(payment.getPrice());
+            addCreditHistory(payment, creditHistories, TransactionType.CREDIT);
             payment.updateStatus(PaymentStatus.CANCELLED);
             return new PaymentCancelledEvent(payment, ZonedDateTime.now(UTC), failureMessages);
         }
-        payment.updateStatus(PaymentStatus.FAILED);
         return new PaymentFailedEvent(payment, ZonedDateTime.now(UTC), failureMessages);
     }
 
     private void validateCreditEntry(Payment payment, CreditEntry creditEntry, List<String> failureMessages) {
+        if (creditEntry == null) {
+            failureMessages.add("Customer credit account does not exist");
+            return;
+        }
+        if (!payment.getCustomerId().equals(creditEntry.getCustomerId())) {
+            failureMessages.add("Credit account does not belong to the payment customer");
+            return;
+        }
         if (payment.getPrice().isGreaterThan(creditEntry.getTotalCreditAmount())) {
             failureMessages.add("Customer with id=" + payment.getCustomerId().value()
                     + " doesn't have enough credit for payment!");

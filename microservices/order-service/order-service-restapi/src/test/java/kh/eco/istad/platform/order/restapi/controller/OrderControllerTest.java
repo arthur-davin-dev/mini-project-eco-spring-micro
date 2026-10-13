@@ -49,6 +49,7 @@ class OrderControllerTest {
                 .thenReturn(new CreateOrderResult(orderId, trackingId, OrderStatus.PENDING, "Order created successfully"));
 
         mockMvc.perform(post("/api/orders")
+                        .header("Idempotency-Key", UUID.randomUUID().toString())
                         .contentType(APPLICATION_JSON)
                         .content(validOrderJson()))
                 .andExpect(status().isCreated())
@@ -62,6 +63,7 @@ class OrderControllerTest {
         String request = validOrderJson().replace("\"quantity\": 2, ", "");
 
         mockMvc.perform(post("/api/orders")
+                        .header("Idempotency-Key", UUID.randomUUID().toString())
                         .contentType(APPLICATION_JSON)
                         .content(request))
                 .andExpect(status().isBadRequest())

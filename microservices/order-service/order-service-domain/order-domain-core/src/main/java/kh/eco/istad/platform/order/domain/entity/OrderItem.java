@@ -10,8 +10,13 @@ public class OrderItem extends BaseEntity<OrderItemId> {
     private OrderId orderId;
     private final Product product;
     private final int quantity;
-    private final Money price;
-    private final Money subTotal;
+    private Money price;
+    private Money subTotal;
+
+    public void updatePriceFromCatalog(Money confirmedPrice) {
+        price = confirmedPrice;
+        subTotal = confirmedPrice.multiply(quantity);
+    }
 
     // package-private: only Order may initialize its items
     void initializeOrderItem(OrderId orderId, OrderItemId orderItemId) {
@@ -19,7 +24,7 @@ public class OrderItem extends BaseEntity<OrderItemId> {
         super.setId(orderItemId);
     }
 
-    boolean isPriceValid() {
+    public boolean isPriceValid() {
         return product != null
                 && price != null
                 && subTotal != null

@@ -54,7 +54,6 @@ class PaymentDomainServiceTest {
         List<CreditHistory> histories = new ArrayList<>(List.of(history("100.00", TransactionType.CREDIT)));
         List<String> failures = new ArrayList<>();
         Payment payment = payment("30.00");
-
         PaymentEvent event = service.validateAndInitiatePayment(payment, entry, histories, failures);
 
         assertInstanceOf(PaymentCompletedEvent.class, event);
@@ -113,6 +112,8 @@ class PaymentDomainServiceTest {
                 history("30.00", TransactionType.DEBIT)));
         List<String> failures = new ArrayList<>();
         Payment payment = payment("30.00");
+        payment.initializePayment();
+        payment.updateStatus(PaymentStatus.COMPLETED);
 
         PaymentEvent event = service.validateAndCancelPayment(payment, entry, histories, failures);
 
@@ -120,5 +121,22 @@ class PaymentDomainServiceTest {
         assertEquals(PaymentStatus.CANCELLED, payment.getPaymentStatus());
         assertEquals(money("100.00"), entry.getTotalCreditAmount());
         assertEquals(3, histories.size());
+    }
+
+    @Test
+    void cancellingAnUnpaidPaymentDoesNotChangeCredit() {
+        CreditEntry entry = creditEntry("70.00");
+        List<CreditHistory> histories = new ArrayList<>(List.of(
+                history("100.00", TransactionType.CREDIT), history("30.00", TransactionType.DEBIT)));
+        List<String> failures = new ArrayList<>();
+        Payment payment = payment("30.00");
+        payment.initializePayment();
+        payment.updateStatus(PaymentStatus.FAILED);
+
+        PaymentEvent event = service.validateAndCancelPayment(payment, entry, histories, failures);
+
+        assertInstanceOf(PaymentFailedEvent.class, event);
+        assertEquals(money("70.00"), entry.getTotalCreditAmount());
+        assertEquals(2, histories.size());
     }
 }

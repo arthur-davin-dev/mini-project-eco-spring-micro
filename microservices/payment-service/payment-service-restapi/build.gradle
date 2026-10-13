@@ -1,0 +1,6 @@
+plugins { id 'spring-common-conventions' }
+dependencies {
+    api project(':payment-service-domain:payment-application-service')
+    implementation 'kh.eco.istad:istad-common-restapi'
+    implementation 'org.springframework.boot:spring-boot-starter-webmvc'
+}

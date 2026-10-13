@@ -46,7 +46,8 @@ public class Business extends AggregateRoot<BusinessId> {
     public void initializeBusiness() {
         super.setId(new BusinessId(UUID.randomUUID()));
         active = true;
-        for (Product product : products) product.setId(new ProductId(UUID.randomUUID()));
+        for (Product product : products)
+            product.setId(new ProductId(UUID.randomUUID()));
     }
 
     public void deactivate() {

@@ -9,6 +9,7 @@ import kh.eco.istad.platform.payment.domain.valueobject.PaymentStatus;
 
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
+import java.time.ZoneOffset;
 import java.util.List;
 import java.util.UUID;
 
@@ -34,11 +35,20 @@ public class Payment extends AggregateRoot<PaymentId> {
     }
 
     public void initializePayment() {
+        if (orderId == null || customerId == null || price == null) {
+            throw new IllegalStateException("Payment requires an order, customer, and amount");
+        }
+        if (getId() != null) throw new IllegalStateException("Payment is already initialized");
         super.setId(new PaymentId(UUID.randomUUID()));
-        createdAt = ZonedDateTime.now(ZoneId.of("UTC"));
+        createdAt = ZonedDateTime.now(ZoneOffset.UTC);
     }
 
     public void updateStatus(PaymentStatus paymentStatus) {
+        if (paymentStatus == null) throw new IllegalArgumentException("Payment status is required");
+        if (this.paymentStatus != null && !(this.paymentStatus == PaymentStatus.COMPLETED
+                && paymentStatus == PaymentStatus.CANCELLED)) {
+            throw new IllegalStateException("Invalid payment status transition");
+        }
         this.paymentStatus = paymentStatus;
     }
 

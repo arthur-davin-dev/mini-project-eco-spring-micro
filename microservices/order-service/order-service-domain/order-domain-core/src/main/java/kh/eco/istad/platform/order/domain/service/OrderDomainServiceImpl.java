@@ -21,6 +21,7 @@ public class OrderDomainServiceImpl implements OrderDomainService {
     public OrderCreatedEvent validateAndInitiateOrder(Order order, Business business) {
         validateBusiness(order, business);
         setOrderProductInformation(order, business);
+        order.calculatePriceFromItems();
         order.validateOrder();
         order.initializeOrder();
         return new OrderCreatedEvent(order, ZonedDateTime.now(UTC));
@@ -68,6 +69,11 @@ public class OrderDomainServiceImpl implements OrderDomainService {
                             "Product " + item.getProduct().getId().value() + " is not sold by this business!"));
             item.getProduct().updateWithConfirmedNameAndPrice(
                     catalogProduct.getName(), catalogProduct.getPrice());
+            if (!item.isPriceValid()) {
+                throw new OrderDomainException("Submitted price does not match catalog price for product "
+                        + item.getProduct().getId().value());
+            }
+            item.updatePriceFromCatalog(catalogProduct.getPrice());
         }
     }
 }
