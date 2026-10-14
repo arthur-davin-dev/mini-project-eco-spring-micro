@@ -1,3 +1,5 @@
+test-integration.sh
+Dockerfile
 docs
 .gradle
 .env
@@ -44,3 +46,6 @@ bin/
 ### Mac OS ###
 .DS_Store
 docs/
+
+test-integration.sh
+Dockerfile
