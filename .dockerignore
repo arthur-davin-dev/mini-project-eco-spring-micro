@@ -1,9 +1,0 @@
-.git
-.gradle
-**/build
-.idea
-.aws
-.codex
-.agents
-.env*
-*.iml
