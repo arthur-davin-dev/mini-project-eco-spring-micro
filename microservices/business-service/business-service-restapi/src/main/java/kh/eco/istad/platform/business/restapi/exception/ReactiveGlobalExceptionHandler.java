@@ -1,6 +1,7 @@
 package kh.eco.istad.platform.business.restapi.exception;
 
 import kh.eco.istad.common.domain.exception.ResourceNotFoundException;
+import kh.eco.istad.common.domain.exception.ConflictException;
 import kh.eco.istad.platform.business.domain.exception.BusinessAlreadyExistsException;
 import kh.eco.istad.platform.business.domain.exception.BusinessDomainException;
 import org.slf4j.Logger;
@@ -50,6 +51,16 @@ public class ReactiveGlobalExceptionHandler {
     @ExceptionHandler(BusinessDomainException.class)
     public ResponseEntity<ApiError> domain(BusinessDomainException ex) {
         return response(HttpStatus.UNPROCESSABLE_ENTITY, ex.getMessage());
+    }
+
+    @ExceptionHandler(ConflictException.class)
+    public ResponseEntity<ApiError> conflict(ConflictException ex) {
+        return response(HttpStatus.CONFLICT, ex.getMessage());
+    }
+
+    @ExceptionHandler(IllegalArgumentException.class)
+    public ResponseEntity<ApiError> invalidArgument(IllegalArgumentException ex) {
+        return response(HttpStatus.BAD_REQUEST, ex.getMessage() == null ? "Invalid request" : ex.getMessage());
     }
 
     @ExceptionHandler(DuplicateKeyException.class)

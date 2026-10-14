@@ -2,6 +2,8 @@ package kh.eco.istad.platform.payment.domain.usecase;
 
 import kh.eco.istad.common.domain.exception.ResourceNotFoundException;
 import kh.eco.istad.common.domain.valueobject.Money;
+import kh.eco.istad.platform.payment.domain.dto.CreditRecord;
+import kh.eco.istad.platform.payment.domain.dto.PaymentRecord;
 import kh.eco.istad.platform.payment.domain.port.out.PaymentStore;
 import org.springframework.stereotype.Service;
 
@@ -16,10 +18,17 @@ public class PaymentUseCases {
         this.store = store;
     }
 
-    public PaymentStore.PaymentRecord initiate(UUID customerId, UUID orderId, Money amount, String key) {
+    public PaymentRecord initiate(
+            UUID customerId,
+            UUID orderId,
+            Money amount,
+            String key
+    ) {
         requirePositive(amount);
         if (customerId == null || orderId == null)
             throw new IllegalArgumentException("Customer and order are required");
+        if (key != null && (key.isBlank() || key.length() > 128))
+            throw new IllegalArgumentException("Idempotency key must contain 1 to 128 characters");
         return store.pay(customerId, orderId, amount, key);
     }
 
@@ -31,28 +40,39 @@ public class PaymentUseCases {
     }
 
     public Money balance(UUID customerId) {
+        requireCustomer(customerId);
         return store.balance(customerId);
     }
 
     public Money topUp(UUID customerId, Money amount, UUID operationId) {
+        requireCustomer(customerId);
+        if (operationId == null) throw new IllegalArgumentException("Idempotency key is required");
         requirePositive(amount);
         return store.addCredit(customerId, amount, operationId);
     }
 
-    public PaymentStore.PaymentRecord payment(UUID id) {
+    public PaymentRecord payment(UUID id) {
+        if (id == null) throw new IllegalArgumentException("Payment id is required");
         return store.find(id).orElseThrow(() -> new ResourceNotFoundException("Payment not found"));
     }
 
-    public PaymentStore.PaymentRecord byOrder(UUID id) {
+    public PaymentRecord byOrder(UUID id) {
+        if (id == null) throw new IllegalArgumentException("Order id is required");
         return store.findByOrder(id).orElseThrow(() -> new ResourceNotFoundException("Payment not found"));
     }
 
-    public PaymentStore.PaymentRecord cancel(UUID id) {
+    public PaymentRecord cancel(UUID id) {
+        if (id == null) throw new IllegalArgumentException("Payment id is required");
         return store.cancel(id);
     }
 
-    public List<PaymentStore.CreditRecord> history(UUID id) {
+    public List<CreditRecord> history(UUID id) {
+        requireCustomer(id);
         return store.history(id);
+    }
+
+    private void requireCustomer(UUID customerId) {
+        if (customerId == null) throw new IllegalArgumentException("Customer is required");
     }
 
     private void requirePositive(Money amount) {

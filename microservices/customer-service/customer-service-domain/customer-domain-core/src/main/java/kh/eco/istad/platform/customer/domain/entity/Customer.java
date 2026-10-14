@@ -2,6 +2,7 @@ package kh.eco.istad.platform.customer.domain.entity;
 
 import kh.eco.istad.common.domain.entity.AggregateRoot;
 import kh.eco.istad.common.domain.valueobject.CustomerId;
+import kh.eco.istad.common.domain.exception.ConflictException;
 import kh.eco.istad.platform.customer.domain.exception.CustomerDomainException;
 import kh.eco.istad.platform.customer.domain.valueobject.CustomerStatus;
 import kh.eco.istad.platform.customer.domain.valueobject.Email;
@@ -28,7 +29,7 @@ public class Customer extends AggregateRoot<CustomerId> {
 
     public void updateCustomer(String familyName, String givenName, Email email, PhoneNumber phoneNumber) {
         if (status != CustomerStatus.ACTIVE) {
-            throw new CustomerDomainException("Only an active customer can be updated");
+            throw new ConflictException("Only an active customer can be updated");
         }
         if (isBlank(familyName) || isBlank(givenName) || email == null || phoneNumber == null) {
             throw new CustomerDomainException("Customer update fields must not be blank");
@@ -41,7 +42,7 @@ public class Customer extends AggregateRoot<CustomerId> {
 
     public void deactivateCustomer() {
         if (status != CustomerStatus.ACTIVE) {
-            throw new CustomerDomainException("Could not deactivate because customer status is not active");
+            throw new ConflictException("Could not deactivate because customer status is not active");
         }
         status = CustomerStatus.INACTIVE;
     }
@@ -51,7 +52,7 @@ public class Customer extends AggregateRoot<CustomerId> {
             throw new CustomerDomainException("Customer id must be null");
         }
         if (status != null) {
-            throw new CustomerDomainException("Customer status must be null");
+            throw new ConflictException("Customer is already initialized");
         }
         if (isBlank(username)) {
             throw new CustomerDomainException("Username must not be blank");

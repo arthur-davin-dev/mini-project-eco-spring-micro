@@ -8,6 +8,7 @@ import kh.eco.istad.platform.order.domain.event.OrderCancelledEvent;
 import kh.eco.istad.platform.order.domain.event.OrderCreatedEvent;
 import kh.eco.istad.platform.order.domain.event.OrderPaidEvent;
 import kh.eco.istad.platform.order.domain.exception.OrderDomainException;
+import kh.eco.istad.common.domain.exception.ConflictException;
 
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
@@ -22,7 +23,6 @@ public class OrderDomainServiceImpl implements OrderDomainService {
         validateBusiness(order, business);
         setOrderProductInformation(order, business);
         order.calculatePriceFromItems();
-        order.validateOrder();
         order.initializeOrder();
         return new OrderCreatedEvent(order, ZonedDateTime.now(UTC));
     }
@@ -51,7 +51,7 @@ public class OrderDomainServiceImpl implements OrderDomainService {
 
     private void validateBusiness(Order order, Business business) {
         if (business == null || !business.isActive()) {
-            throw new OrderDomainException("Business is currently not active!");
+            throw new ConflictException("Business is currently not active");
         }
         if (!business.getId().equals(order.getBusinessId())) {
             throw new OrderDomainException("Order does not belong to this business!");

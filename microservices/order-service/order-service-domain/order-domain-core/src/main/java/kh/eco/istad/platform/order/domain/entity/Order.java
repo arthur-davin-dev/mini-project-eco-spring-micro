@@ -6,6 +6,7 @@ import kh.eco.istad.common.domain.valueobject.CustomerId;
 import kh.eco.istad.common.domain.valueobject.Money;
 import kh.eco.istad.common.domain.valueobject.OrderId;
 import kh.eco.istad.common.domain.valueobject.OrderStatus;
+import kh.eco.istad.common.domain.exception.ConflictException;
 import kh.eco.istad.platform.order.domain.exception.OrderDomainException;
 import kh.eco.istad.platform.order.domain.valueobject.OrderItemId;
 import kh.eco.istad.platform.order.domain.valueobject.StreetAddress;
@@ -36,6 +37,7 @@ public class Order extends AggregateRoot<OrderId> {
     }
 
     public void initializeOrder() {
+        validateOrder();
         super.setId(new OrderId(UUID.randomUUID()));
         trackingId = new TrackingId(UUID.randomUUID());
         orderStatus = OrderStatus.PENDING;
@@ -43,8 +45,14 @@ public class Order extends AggregateRoot<OrderId> {
     }
 
     public void calculatePriceFromItems() {
+        if (items.isEmpty()) {
+            throw new OrderDomainException("Order must contain at least one item!");
+        }
         Money total = Money.ZERO;
         for (OrderItem item : items) {
+            if (item == null || item.getSubTotal() == null) {
+                throw new OrderDomainException("Order items must have a calculated subtotal");
+            }
             total = total.add(item.getSubTotal());
         }
         price = total;
@@ -52,21 +60,21 @@ public class Order extends AggregateRoot<OrderId> {
 
     public void pay() {
         if (orderStatus != OrderStatus.PENDING) {
-            throw new OrderDomainException("Order is not in correct state for pay operation!");
+            throw new ConflictException("Order is not in correct state for pay operation");
         }
         orderStatus = OrderStatus.PAID;
     }
 
     public void approve() {
         if (orderStatus != OrderStatus.PAID) {
-            throw new OrderDomainException("Order is not in correct state for approve operation!");
+            throw new ConflictException("Order is not in correct state for approve operation");
         }
         orderStatus = OrderStatus.APPROVED;
     }
 
     public void initCancel(List<String> messages) {
         if (orderStatus != OrderStatus.PAID) {
-            throw new OrderDomainException("Order is not in correct state for initCancel operation!");
+            throw new ConflictException("Order is not in correct state for initCancel operation");
         }
         orderStatus = OrderStatus.CANCELLING;
         updateFailureMessages(messages);
@@ -74,7 +82,7 @@ public class Order extends AggregateRoot<OrderId> {
 
     public void cancel(List<String> messages) {
         if (!(orderStatus == OrderStatus.PENDING || orderStatus == OrderStatus.CANCELLING)) {
-            throw new OrderDomainException("Order is not in correct state for cancel operation!");
+            throw new ConflictException("Order is not in correct state for cancel operation");
         }
         orderStatus = OrderStatus.CANCELLED;
         updateFailureMessages(messages);
@@ -84,12 +92,17 @@ public class Order extends AggregateRoot<OrderId> {
         if (messages == null) {
             return;
         }
-        failureMessages.addAll(messages.stream().filter(message -> !message.isEmpty()).toList());
+        failureMessages.addAll(messages.stream()
+                .filter(message -> message != null && !message.isBlank())
+                .toList());
     }
 
     private void validateInitialOrder() {
         if (orderStatus != null || getId() != null) {
-            throw new OrderDomainException("Order is not in correct state for initialization!");
+            throw new ConflictException("Order is not in correct state for initialization");
+        }
+        if (customerId == null || businessId == null || deliveryAddress == null) {
+            throw new OrderDomainException("Customer, business, and delivery address are required");
         }
     }
 
@@ -105,9 +118,9 @@ public class Order extends AggregateRoot<OrderId> {
         }
         Money itemsTotal = Money.ZERO;
         for (OrderItem item : items) {
-            if (!item.isPriceValid()) {
-                throw new OrderDomainException("Order item price: " + item.getPrice().amount()
-                        + " is not valid for product " + item.getProduct().getId().value());
+            if (item == null || !item.isPriceValid()) {
+                if (item == null) throw new OrderDomainException("Order must not contain a null item");
+                throw new OrderDomainException("Order item contains invalid product, quantity, price, or subtotal data");
             }
             itemsTotal = itemsTotal.add(item.getSubTotal());
         }
@@ -136,7 +149,7 @@ public class Order extends AggregateRoot<OrderId> {
     }
 
     public List<OrderItem> getItems() {
-        return items;
+        return List.copyOf(items);
     }
 
     public TrackingId getTrackingId() {
@@ -148,7 +161,7 @@ public class Order extends AggregateRoot<OrderId> {
     }
 
     public List<String> getFailureMessages() {
-        return failureMessages;
+        return List.copyOf(failureMessages);
     }
 
     // ---------- Builder ----------
@@ -159,7 +172,7 @@ public class Order extends AggregateRoot<OrderId> {
         businessId = builder.businessId;
         deliveryAddress = builder.deliveryAddress;
         price = builder.price;
-        items = builder.items == null ? new ArrayList<>() : builder.items;
+        items = builder.items == null ? new ArrayList<>() : new ArrayList<>(builder.items);
         trackingId = builder.trackingId;
         orderStatus = builder.orderStatus;
         failureMessages = builder.failureMessages == null
@@ -210,7 +223,7 @@ public class Order extends AggregateRoot<OrderId> {
         }
 
         public Builder items(List<OrderItem> val) {
-            items = val;
+            items = val == null ? null : new ArrayList<>(val);
             return this;
         }
 

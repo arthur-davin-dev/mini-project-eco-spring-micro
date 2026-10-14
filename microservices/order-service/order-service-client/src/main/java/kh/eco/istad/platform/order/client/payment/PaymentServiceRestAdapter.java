@@ -5,6 +5,7 @@ import kh.eco.istad.platform.order.domain.exception.ExternalServiceException;
 import kh.eco.istad.platform.order.domain.exception.PaymentRejectedException;
 import kh.eco.istad.platform.order.domain.port.out.PaymentGateway;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.http.HttpStatusCode;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClient;
 import org.springframework.web.client.RestClientException;
@@ -28,14 +29,19 @@ public class PaymentServiceRestAdapter implements PaymentGateway {
     }
 
     @Override
-    public PaymentResult pay(UUID customerId, UUID orderId, Money amount, String idempotencyKey) {
+    public PaymentResult pay(
+            UUID customerId,
+            UUID orderId,
+            Money amount,
+            String idempotencyKey
+    ) {
         try {
             PaymentPayload payload = restClient.post()
                     .uri("/api/v1/payments")
                     .header("Idempotency-Key", idempotencyKey)
                     .body(new InitiatePaymentRequest(customerId, orderId, amount.amount()))
                     .retrieve()
-                    .onStatus(status -> status.is4xxClientError(),
+                    .onStatus(HttpStatusCode::is4xxClientError,
                             (request, response) -> {
                                 String fallback = "Payment service rejected the payment (HTTP "
                                         + response.getStatusCode().value() + ")";
@@ -59,10 +65,20 @@ public class PaymentServiceRestAdapter implements PaymentGateway {
         }
     }
 
-    private record InitiatePaymentRequest(UUID customerId, UUID orderId, BigDecimal amount) {
+    private record InitiatePaymentRequest(
+            UUID customerId,
+            UUID orderId,
+            BigDecimal amount
+    ) {
     }
 
-    private record PaymentPayload(UUID paymentId, UUID orderId, UUID customerId, BigDecimal amount,
-                                  String status, Instant createdAt) {
+    private record PaymentPayload(
+            UUID paymentId,
+            UUID orderId,
+            UUID customerId,
+            BigDecimal amount,
+            String status,
+            Instant createdAt
+    ) {
     }
 }

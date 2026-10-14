@@ -2,14 +2,18 @@ package kh.eco.istad.platform.payment.restapi.controller;
 
 import jakarta.validation.Valid;
 import kh.eco.istad.common.domain.valueobject.Money;
-import kh.eco.istad.platform.payment.domain.port.out.PaymentStore;
+import kh.eco.istad.platform.payment.domain.dto.CreditRecord;
 import kh.eco.istad.platform.payment.domain.usecase.PaymentUseCases;
-import kh.eco.istad.platform.payment.restapi.dto.*;
+import kh.eco.istad.platform.payment.restapi.dto.AmountRequest;
+import kh.eco.istad.platform.payment.restapi.dto.CreateAccountRequest;
+import kh.eco.istad.platform.payment.restapi.dto.InitiatePaymentRequest;
+import kh.eco.istad.platform.payment.restapi.dto.PaymentView;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
-import java.math.BigDecimal;
-import java.util.*;
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/v1")
@@ -50,7 +54,12 @@ public class PaymentController {
     @ResponseStatus(HttpStatus.CREATED)
     public Map<String, Object> create(@Valid @RequestBody CreateAccountRequest r) {
         useCases.createAccount(r.customerId(), new Money(r.initialCredit()));
-        return Map.of("customerId", r.customerId(), "balance", r.initialCredit());
+        return Map.of(
+                "customerId",
+                r.customerId(),
+                "balance",
+                r.initialCredit()
+        );
     }
 
     @GetMapping("/credits/accounts/{customerId}")
@@ -60,23 +69,17 @@ public class PaymentController {
 
     @PostMapping("/credits/accounts/{customerId}/top-ups")
     public Map<String, Object> topUp(@PathVariable("customerId") UUID customerId, @Valid @RequestBody AmountRequest r, @RequestHeader(value = "Idempotency-Key") UUID operationId) {
-        Money balance = useCases.topUp(customerId, new Money(r.amount()), operationId);
+        Money balance = useCases.topUp(
+                customerId,
+                new Money(r.amount()),
+                operationId
+        );
         return Map.of("customerId", customerId, "balance", balance.amount());
     }
 
     @GetMapping("/credits/accounts/{customerId}/history")
-    public List<PaymentStore.CreditRecord> history(@PathVariable("customerId") UUID customerId) {
+    public List<CreditRecord> history(@PathVariable("customerId") UUID customerId) {
         return useCases.history(customerId);
     }
 
-    public record CreateAccountRequest(@jakarta.validation.constraints.NotNull UUID customerId,
-                                       @jakarta.validation.constraints.NotNull @jakarta.validation.constraints.DecimalMin("0.00") BigDecimal initialCredit) {
-    }
-
-    public record PaymentView(UUID paymentId, UUID orderId, UUID customerId, BigDecimal amount, String status,
-                              java.time.Instant createdAt) {
-        static PaymentView from(PaymentStore.PaymentRecord r) {
-            return new PaymentView(r.id().value(), r.orderId().value(), r.customerId().value(), r.amount().amount(), r.status().name(), r.createdAt());
-        }
-    }
 }

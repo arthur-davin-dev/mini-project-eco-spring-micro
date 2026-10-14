@@ -2,6 +2,7 @@ package kh.eco.istad.common.restapi.exception;
 
 import jakarta.validation.ConstraintViolationException;
 import kh.eco.istad.common.domain.exception.DomainException;
+import kh.eco.istad.common.domain.exception.ConflictException;
 import kh.eco.istad.common.domain.exception.ResourceNotFoundException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -61,6 +62,11 @@ public class GlobalExceptionHandler {
         return response(HttpStatus.NOT_FOUND, ex.getMessage());
     }
 
+    @ExceptionHandler(ConflictException.class)
+    public ResponseEntity<ApiError> conflict(ConflictException ex) {
+        return response(HttpStatus.CONFLICT, ex.getMessage());
+    }
+
     @ExceptionHandler(NoResourceFoundException.class)
     public ResponseEntity<ApiError> noStaticResource(NoResourceFoundException ex) {
         return response(HttpStatus.NOT_FOUND, "Resource not found");
@@ -69,6 +75,11 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(DomainException.class)
     public ResponseEntity<ApiError> domain(DomainException ex) {
         return response(HttpStatus.UNPROCESSABLE_ENTITY, ex.getMessage());
+    }
+
+    @ExceptionHandler(IllegalArgumentException.class)
+    public ResponseEntity<ApiError> invalidArgument(IllegalArgumentException ex) {
+        return response(HttpStatus.BAD_REQUEST, ex.getMessage() == null ? "Invalid request" : ex.getMessage());
     }
 
     @ExceptionHandler(DataIntegrityViolationException.class)

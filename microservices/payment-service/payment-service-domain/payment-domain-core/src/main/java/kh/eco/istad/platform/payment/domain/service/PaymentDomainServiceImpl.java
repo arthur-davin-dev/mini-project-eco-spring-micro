@@ -1,6 +1,8 @@
 package kh.eco.istad.platform.payment.domain.service;
 
 import kh.eco.istad.common.domain.valueobject.Money;
+import kh.eco.istad.common.domain.exception.ConflictException;
+import kh.eco.istad.platform.payment.domain.exception.PaymentDomainException;
 import kh.eco.istad.platform.payment.domain.entity.CreditEntry;
 import kh.eco.istad.platform.payment.domain.entity.CreditHistory;
 import kh.eco.istad.platform.payment.domain.entity.Payment;
@@ -28,6 +30,7 @@ public class PaymentDomainServiceImpl implements PaymentDomainService {
             List<CreditHistory> creditHistories,
             List<String> failureMessages
     ) {
+        requireArguments(payment, creditHistories, failureMessages);
         payment.validatePayment(failureMessages);
         if (failureMessages.isEmpty()) {
             payment.initializePayment();
@@ -55,10 +58,14 @@ public class PaymentDomainServiceImpl implements PaymentDomainService {
             List<CreditHistory> creditHistories,
             List<String> failureMessages
     ) {
+        requireArguments(payment, creditHistories, failureMessages);
         payment.validatePayment(failureMessages);
         if (payment.getPaymentStatus() != PaymentStatus.COMPLETED) {
-            failureMessages.add("Only a completed payment can be cancelled");
+            throw new ConflictException("Only a completed payment can be cancelled");
         }
+        if (creditEntry == null) failureMessages.add("Customer credit account does not exist");
+        else if (payment.getCustomerId() == null || !payment.getCustomerId().equals(creditEntry.getCustomerId()))
+            failureMessages.add("Credit account does not belong to the payment customer");
 
         if (failureMessages.isEmpty()) {
             validateCreditHistory(creditEntry, creditHistories, failureMessages);
@@ -113,9 +120,20 @@ public class PaymentDomainServiceImpl implements PaymentDomainService {
     }
 
     private Money sumByType(List<CreditHistory> creditHistories, TransactionType type) {
+        if (creditHistories.stream().anyMatch(history -> history == null
+                || history.getAmount() == null || !history.getAmount().isGreaterThanZero()
+                || history.getTransactionType() == null)) {
+            throw new PaymentDomainException("Credit history contains invalid entries");
+        }
         return creditHistories.stream()
                 .filter(history -> history.getTransactionType() == type)
                 .map(CreditHistory::getAmount)
                 .reduce(Money.ZERO, Money::add);
+    }
+
+    private void requireArguments(Payment payment, List<CreditHistory> histories, List<String> failures) {
+        if (payment == null) throw new IllegalArgumentException("Payment is required");
+        if (histories == null) throw new IllegalArgumentException("Credit history is required");
+        if (failures == null) throw new IllegalArgumentException("Failure messages are required");
     }
 }

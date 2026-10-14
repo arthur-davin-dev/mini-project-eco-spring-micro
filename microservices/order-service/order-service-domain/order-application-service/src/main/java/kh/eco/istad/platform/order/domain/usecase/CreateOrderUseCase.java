@@ -1,6 +1,7 @@
 package kh.eco.istad.platform.order.domain.usecase;
 
 import kh.eco.istad.common.domain.exception.ResourceNotFoundException;
+import kh.eco.istad.common.domain.exception.ConflictException;
 import kh.eco.istad.common.domain.valueobject.BusinessId;
 import kh.eco.istad.common.domain.valueobject.CustomerId;
 import kh.eco.istad.common.domain.valueobject.OrderStatus;
@@ -44,6 +45,7 @@ public class CreateOrderUseCase {
     }
 
     public CreateOrderResult execute(CreateOrderCommand command) {
+        if (command == null) throw new IllegalArgumentException("Order details are required");
         String requestKey = command.idempotencyKey();
         if (requestKey == null || requestKey.isBlank() || requestKey.length() > 128) {
             throw new IllegalArgumentException("Idempotency-Key header must contain 1 to 128 characters");
@@ -69,7 +71,7 @@ public class CreateOrderUseCase {
             return orderDataMapper.toResult(order, "Order already paid");
         }
         if (order.getOrderStatus() != OrderStatus.PENDING) {
-            throw new IllegalStateException("Order is not in a payable state");
+            throw new ConflictException("Order is not in a payable state");
         }
 
         PaymentResult payment = paymentGateway.pay(order.getCustomerId().value(), order.getId().value(),

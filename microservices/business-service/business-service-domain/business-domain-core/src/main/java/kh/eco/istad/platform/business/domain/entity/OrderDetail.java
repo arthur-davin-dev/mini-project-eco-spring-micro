@@ -6,6 +6,7 @@ import kh.eco.istad.common.domain.valueobject.OrderId;
 import kh.eco.istad.common.domain.valueobject.OrderStatus;
 
 import java.util.List;
+import kh.eco.istad.platform.business.domain.exception.BusinessDomainException;
 
 public class OrderDetail extends BaseEntity<OrderId> {
 
@@ -14,10 +15,14 @@ public class OrderDetail extends BaseEntity<OrderId> {
     private final List<Product> products;
 
     public OrderDetail(OrderId id, OrderStatus orderStatus, Money totalAmount, List<Product> products) {
+        if (id == null || orderStatus == null || totalAmount == null || totalAmount.amount().signum() < 0
+                || products == null || products.isEmpty() || products.stream().anyMatch(java.util.Objects::isNull)) {
+            throw new BusinessDomainException("Order details require an id, status, non-negative total, and products");
+        }
         super.setId(id);
         this.orderStatus = orderStatus;
         this.totalAmount = totalAmount;
-        this.products = products;
+        this.products = List.copyOf(products);
     }
 
     public OrderStatus getOrderStatus() {

@@ -1,11 +1,18 @@
 package kh.eco.istad.platform.payment.persistence.entity;
 
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.UUID;
 
+@Getter
+@Setter
+@AllArgsConstructor
 @Entity
 @Table(name = "credit_transactions", uniqueConstraints = @UniqueConstraint(name = "uk_credit_transaction_operation", columnNames = "operation_id"))
 public class CreditTransactionEntity {
@@ -37,31 +44,4 @@ public class CreditTransactionEntity {
         this.createdAt = Instant.now();
     }
 
-    public UUID getId() {
-        return id;
-    }
-
-    public UUID getCustomerId() {
-        return customerId;
-    }
-
-    public UUID getPaymentId() {
-        return paymentId;
-    }
-
-    public UUID getOperationId() {
-        return operationId;
-    }
-
-    public BigDecimal getAmount() {
-        return amount;
-    }
-
-    public String getType() {
-        return type;
-    }
-
-    public Instant getCreatedAt() {
-        return createdAt;
-    }
 }

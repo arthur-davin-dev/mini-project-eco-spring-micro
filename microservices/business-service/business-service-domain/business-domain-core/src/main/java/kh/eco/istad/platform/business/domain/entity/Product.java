@@ -3,6 +3,7 @@ package kh.eco.istad.platform.business.domain.entity;
 import kh.eco.istad.common.domain.entity.BaseEntity;
 import kh.eco.istad.common.domain.valueobject.Money;
 import kh.eco.istad.platform.business.domain.valueobject.ProductId;
+import kh.eco.istad.platform.business.domain.exception.BusinessDomainException;
 
 public class Product extends BaseEntity<ProductId> {
 
@@ -12,6 +13,10 @@ public class Product extends BaseEntity<ProductId> {
     private final boolean available;
 
     public Product(ProductId id, String name, Money price, int quantity, boolean available) {
+        if (name == null || name.isBlank()) throw new BusinessDomainException("Product name is required");
+        if (price == null || !price.isGreaterThanZero())
+            throw new BusinessDomainException("Product price must be greater than zero");
+        if (quantity < 0) throw new BusinessDomainException("Product quantity must not be negative");
         super.setId(id);
         this.name = name;
         this.price = price;

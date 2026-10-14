@@ -29,6 +29,7 @@ public class RegisterBusinessUseCase {
 
     public Mono<RegisterBusinessResult> execute(RegisterBusinessCommand command) {
         return Mono.defer(() -> {
+            if (command == null) throw new IllegalArgumentException("Business details are required");
             Business business = mapper.toBusiness(command);
             String email = business.getBusinessContact().email();
 

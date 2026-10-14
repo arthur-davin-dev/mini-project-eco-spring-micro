@@ -27,6 +27,7 @@ public class InitiateCustomerUseCase {
 
     @Transactional
     public CustomerResult execute(InitiateCustomerCommand command) {
+        if (command == null) throw new IllegalArgumentException("Customer details are required");
         Customer customer = mapper.toCustomer(command);
 
         if (customerRepository.existsByUsername(customer.getUsername())) {

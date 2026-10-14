@@ -1,6 +1,7 @@
 package kh.eco.istad.platform.customer.domain.service;
 
 import kh.eco.istad.platform.customer.domain.entity.Customer;
+import kh.eco.istad.common.domain.exception.ConflictException;
 import kh.eco.istad.platform.customer.domain.event.CustomerInitiatedEvent;
 import kh.eco.istad.platform.customer.domain.exception.CustomerDomainException;
 import kh.eco.istad.platform.customer.domain.valueobject.CustomerStatus;
@@ -35,7 +36,7 @@ public class CustomerDomainServiceTest {
         service.deactivateCustomer(customer);
 
         assertEquals(CustomerStatus.INACTIVE, customer.getStatus());
-        assertThrows(CustomerDomainException.class, () -> service.deactivateCustomer(customer));
+        assertThrows(ConflictException.class, () -> service.deactivateCustomer(customer));
     }
 
     private Customer validCustomer() {

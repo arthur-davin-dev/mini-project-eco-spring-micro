@@ -3,4 +3,7 @@ dependencies {
     api project(':payment-service-domain:payment-application-service')
     implementation 'kh.eco.istad:istad-common-restapi'
     implementation 'org.springframework.boot:spring-boot-starter-webmvc'
+
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 }

@@ -1,11 +1,14 @@
 package kh.eco.istad.platform.payment.persistence.entity;
 
 import jakarta.persistence.*;
+import lombok.Getter;
+import lombok.Setter;
 
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.UUID;
 
+@Getter
 @Entity
 @Table(name = "payments", uniqueConstraints = {@UniqueConstraint(name = "uk_payment_order", columnNames = "order_id"), @UniqueConstraint(name = "uk_payment_idempotency", columnNames = "idempotency_key")})
 public class PaymentEntity {
@@ -17,6 +20,7 @@ public class PaymentEntity {
     private UUID customerId;
     @Column(nullable = false, precision = 19, scale = 2)
     private BigDecimal amount;
+    @Setter
     @Column(nullable = false, length = 20)
     private String status;
     @Column(name = "idempotency_key", length = 128)
@@ -37,35 +41,4 @@ public class PaymentEntity {
         this.createdAt = Instant.now();
     }
 
-    public UUID getId() {
-        return id;
-    }
-
-    public UUID getOrderId() {
-        return orderId;
-    }
-
-    public UUID getCustomerId() {
-        return customerId;
-    }
-
-    public BigDecimal getAmount() {
-        return amount;
-    }
-
-    public String getStatus() {
-        return status;
-    }
-
-    public String getIdempotencyKey() {
-        return idempotencyKey;
-    }
-
-    public Instant getCreatedAt() {
-        return createdAt;
-    }
-
-    public void setStatus(String status) {
-        this.status = status;
-    }
 }

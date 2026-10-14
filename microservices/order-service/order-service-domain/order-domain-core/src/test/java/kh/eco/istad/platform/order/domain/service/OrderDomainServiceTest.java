@@ -1,6 +1,7 @@
 package kh.eco.istad.platform.order.domain.service;
 
 import kh.eco.istad.common.domain.valueobject.BusinessId;
+import kh.eco.istad.common.domain.exception.ConflictException;
 import kh.eco.istad.common.domain.valueobject.CustomerId;
 import kh.eco.istad.common.domain.valueobject.Money;
 import kh.eco.istad.common.domain.valueobject.OrderStatus;
@@ -21,6 +22,7 @@ import java.util.UUID;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertNotSame;
 
 class OrderDomainServiceTest {
 
@@ -77,7 +79,7 @@ class OrderDomainServiceTest {
     void inactiveBusinessIsRejected() {
         Order order = order("5.00");
 
-        assertThrows(OrderDomainException.class,
+        assertThrows(ConflictException.class,
                 () -> service.validateAndInitiateOrder(order, business(false)));
     }
 
@@ -90,7 +92,17 @@ class OrderDomainServiceTest {
         service.approveOrder(order);
 
         assertEquals(OrderStatus.APPROVED, order.getOrderStatus());
-        assertThrows(OrderDomainException.class,
+        assertThrows(ConflictException.class,
                 () -> service.cancelOrder(order, List.of("too late")));
+    }
+
+    @Test
+    void orderItemCollectionCannotBeChangedFromOutsideAggregate() {
+        Order order = order("5.00");
+        List<OrderItem> exposedItems = order.getItems();
+
+        assertNotSame(exposedItems, order.getItems());
+        assertThrows(UnsupportedOperationException.class, exposedItems::clear);
+        assertEquals(1, order.getItems().size());
     }
 }

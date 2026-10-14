@@ -23,6 +23,7 @@ public class GetCustomerUseCase {
 
     @Transactional(readOnly = true)
     public CustomerResult execute(UUID customerId) {
+        if (customerId == null) throw new IllegalArgumentException("Customer id is required");
         return customerRepository.findById(new CustomerId(customerId))
                 .map(mapper::toResult)
                 .orElseThrow(() -> new ResourceNotFoundException("Customer " + customerId + " not found"));

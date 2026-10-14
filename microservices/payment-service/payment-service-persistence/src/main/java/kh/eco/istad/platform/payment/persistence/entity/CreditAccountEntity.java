@@ -1,10 +1,16 @@
 package kh.eco.istad.platform.payment.persistence.entity;
 
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 import java.math.BigDecimal;
 import java.util.UUID;
-
+@Getter
+@Setter
+@AllArgsConstructor
 @Entity
 @Table(name = "credit_accounts", uniqueConstraints = @UniqueConstraint(name = "uk_credit_account_customer", columnNames = "customer_id"))
 public class CreditAccountEntity {
@@ -26,19 +32,4 @@ public class CreditAccountEntity {
         this.balance = balance;
     }
 
-    public UUID getId() {
-        return id;
-    }
-
-    public UUID getCustomerId() {
-        return customerId;
-    }
-
-    public BigDecimal getBalance() {
-        return balance;
-    }
-
-    public void setBalance(BigDecimal balance) {
-        this.balance = balance;
-    }
 }

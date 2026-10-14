@@ -17,8 +17,8 @@ dependencyResolutionManagement {
 //includeBuild() ប្រើនៅពេលអ្នកមាន Gradle build មួយទៀត ដែលមាន settings.gradle របស់វាផ្ទាល់។
 rootProject.name = 'customer-service'
 
-include 'customer-service-main'
 //include() — ប្រើសម្រាប់ Module នៅក្នុង Project ដូចគ្នា
+include 'customer-service-main'
 include 'customer-service-domain:customer-domain-core'
 include 'customer-service-domain:customer-application-service'
 include 'customer-service-restapi'

@@ -26,6 +26,7 @@ public class DeactivateBusinessUseCase {
         this.mapper = mapper;
     }
     public Mono<BusinessResult> execute(UUID id) {
+        if (id == null) return Mono.error(new IllegalArgumentException("Business id is required"));
         return repository.findById(
                 new BusinessId(id)).switchIfEmpty(Mono.error(
                         new ResourceNotFoundException("Business " + id + " not found")))

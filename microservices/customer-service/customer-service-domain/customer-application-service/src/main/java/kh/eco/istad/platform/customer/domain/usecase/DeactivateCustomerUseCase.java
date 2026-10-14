@@ -29,6 +29,7 @@ public class DeactivateCustomerUseCase {
 
     @Transactional
     public CustomerResult execute(UUID customerId) {
+        if (customerId == null) throw new IllegalArgumentException("Customer id is required");
         Customer customer = customerRepository.findById(new CustomerId(customerId))
                 .orElseThrow(() -> new ResourceNotFoundException("Customer " + customerId + " not found"));
 

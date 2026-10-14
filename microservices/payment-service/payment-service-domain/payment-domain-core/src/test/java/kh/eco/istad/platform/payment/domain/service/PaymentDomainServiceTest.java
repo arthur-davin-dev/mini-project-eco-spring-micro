@@ -3,9 +3,11 @@ package kh.eco.istad.platform.payment.domain.service;
 import kh.eco.istad.common.domain.valueobject.CustomerId;
 import kh.eco.istad.common.domain.valueobject.Money;
 import kh.eco.istad.common.domain.valueobject.OrderId;
+import kh.eco.istad.common.domain.exception.ConflictException;
 import kh.eco.istad.platform.payment.domain.entity.CreditEntry;
 import kh.eco.istad.platform.payment.domain.entity.CreditHistory;
 import kh.eco.istad.platform.payment.domain.entity.Payment;
+import kh.eco.istad.platform.payment.domain.exception.PaymentDomainException;
 import kh.eco.istad.platform.payment.domain.event.PaymentCancelledEvent;
 import kh.eco.istad.platform.payment.domain.event.PaymentCompletedEvent;
 import kh.eco.istad.platform.payment.domain.event.PaymentEvent;
@@ -26,6 +28,7 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 class PaymentDomainServiceTest {
 
@@ -124,7 +127,7 @@ class PaymentDomainServiceTest {
     }
 
     @Test
-    void cancellingAnUnpaidPaymentDoesNotChangeCredit() {
+    void cancellingAnUnpaidPaymentIsAConflictAndDoesNotChangeCredit() {
         CreditEntry entry = creditEntry("70.00");
         List<CreditHistory> histories = new ArrayList<>(List.of(
                 history("100.00", TransactionType.CREDIT), history("30.00", TransactionType.DEBIT)));
@@ -133,10 +136,28 @@ class PaymentDomainServiceTest {
         payment.initializePayment();
         payment.updateStatus(PaymentStatus.FAILED);
 
-        PaymentEvent event = service.validateAndCancelPayment(payment, entry, histories, failures);
-
-        assertInstanceOf(PaymentFailedEvent.class, event);
+        assertThrows(ConflictException.class,
+                () -> service.validateAndCancelPayment(payment, entry, histories, failures));
         assertEquals(money("70.00"), entry.getTotalCreditAmount());
         assertEquals(2, histories.size());
+    }
+
+    @Test
+    void creditEntryRejectsOverdraft() {
+        CreditEntry entry = creditEntry("10.00");
+
+        assertThrows(PaymentDomainException.class, () -> entry.subtractCreditAmount(money("10.01")));
+        assertEquals(money("10.00"), entry.getTotalCreditAmount());
+    }
+
+    @Test
+    void paymentRejectsProhibitedStatusTransition() {
+        Payment payment = payment("10.00");
+        payment.initializePayment();
+        payment.updateStatus(PaymentStatus.COMPLETED);
+        payment.updateStatus(PaymentStatus.CANCELLED);
+
+        assertThrows(ConflictException.class, () -> payment.updateStatus(PaymentStatus.COMPLETED));
+        assertEquals(PaymentStatus.CANCELLED, payment.getPaymentStatus());
     }
 }

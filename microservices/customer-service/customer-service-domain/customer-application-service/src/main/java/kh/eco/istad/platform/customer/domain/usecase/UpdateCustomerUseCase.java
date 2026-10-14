@@ -31,6 +31,8 @@ public class UpdateCustomerUseCase {
 
     @Transactional
     public CustomerResult execute(UpdateCustomerCommand command) {
+        if (command == null || command.customerId() == null)
+            throw new IllegalArgumentException("Customer id and update details are required");
         Customer customer = customerRepository.findById(new CustomerId(command.customerId()))
                 .orElseThrow(() -> new ResourceNotFoundException(
                         "Customer " + command.customerId() + " not found"));

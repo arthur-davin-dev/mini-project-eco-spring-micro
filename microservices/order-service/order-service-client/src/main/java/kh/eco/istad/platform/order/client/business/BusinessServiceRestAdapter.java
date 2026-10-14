@@ -14,13 +14,18 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestClient;
 import org.springframework.web.client.RestClientException;
+
 import java.util.Optional;
 
 @Component
 public class BusinessServiceRestAdapter implements BusinessRepository {
     private static final Logger log = LoggerFactory.getLogger(BusinessServiceRestAdapter.class);
     private final RestClient restClient;
-    public BusinessServiceRestAdapter(@Qualifier("businessRestClient") RestClient restClient) { this.restClient = restClient; }
+
+    public BusinessServiceRestAdapter(@Qualifier("businessRestClient") RestClient restClient) {
+        this.restClient = restClient;
+    }
+
     @Override
     public Optional<Business> findBusiness(BusinessId businessId) {
         try {

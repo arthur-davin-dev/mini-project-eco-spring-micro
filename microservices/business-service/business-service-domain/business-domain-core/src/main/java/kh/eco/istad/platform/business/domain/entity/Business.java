@@ -4,6 +4,7 @@ import kh.eco.istad.common.domain.entity.AggregateRoot;
 import kh.eco.istad.common.domain.valueobject.BusinessId;
 import kh.eco.istad.common.domain.valueobject.Money;
 import kh.eco.istad.common.domain.valueobject.OrderStatus;
+import kh.eco.istad.common.domain.exception.ConflictException;
 import kh.eco.istad.platform.business.domain.exception.BusinessDomainException;
 import kh.eco.istad.platform.business.domain.valueobject.BusinessContact;
 import kh.eco.istad.platform.business.domain.valueobject.BusinessName;
@@ -28,18 +29,13 @@ public class Business extends AggregateRoot<BusinessId> {
 
     public void validateBusiness() {
         if (getId() != null) {
-            throw new BusinessDomainException("Business is not in correct state for initialization!");
+            throw new ConflictException("Business is already initialized");
         }
         if (businessName == null) {
             throw new BusinessDomainException("Business name is required!");
         }
         if (businessContact == null) {
             throw new BusinessDomainException("Business contact is required!");
-        }
-        for (Product product : products) {
-            if (product.getName() == null || product.getName().isBlank()) throw new BusinessDomainException("Product name is required!");
-            if (product.getPrice() == null || !product.getPrice().isGreaterThanZero()) throw new BusinessDomainException("Product price must be greater than zero!");
-            if (product.getQuantity() < 0) throw new BusinessDomainException("Product quantity must not be negative!");
         }
     }
 
@@ -51,11 +47,13 @@ public class Business extends AggregateRoot<BusinessId> {
     }
 
     public void deactivate() {
-        if (!active) throw new BusinessDomainException("Business is already inactive");
+        if (!active) throw new ConflictException("Business is already inactive");
         active = false;
     }
 
     public void validateOrder(List<String> failureMessages) {
+        if (failureMessages == null) throw new BusinessDomainException("Failure messages are required");
+        if (getId() == null) throw new BusinessDomainException("Business must be initialized before validating an order");
         if (!active) {
             failureMessages.add("Business " + getId().value() + " is not active");
         }
@@ -82,6 +80,9 @@ public class Business extends AggregateRoot<BusinessId> {
     public void constructOrderApproval(OrderApprovalStatus status) {
         if (orderDetail == null) {
             throw new BusinessDomainException("Cannot construct an approval without an order");
+        }
+        if (getId() == null || status == null) {
+            throw new BusinessDomainException("Business and approval status are required");
         }
         this.orderApproval = new OrderApproval(
                 new OrderApprovalId(UUID.randomUUID()), getId(), orderDetail.getId(), status);

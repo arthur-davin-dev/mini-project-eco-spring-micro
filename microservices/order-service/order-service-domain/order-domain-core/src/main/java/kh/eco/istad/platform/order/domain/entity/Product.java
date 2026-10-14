@@ -1,7 +1,9 @@
+
 package kh.eco.istad.platform.order.domain.entity;
 
 import kh.eco.istad.common.domain.entity.BaseEntity;
 import kh.eco.istad.common.domain.valueobject.Money;
+import kh.eco.istad.platform.order.domain.exception.OrderDomainException;
 import kh.eco.istad.platform.order.domain.valueobject.ProductId;
 
 public class Product extends BaseEntity<ProductId> {
@@ -14,6 +16,9 @@ public class Product extends BaseEntity<ProductId> {
     }
 
     public void updateWithConfirmedNameAndPrice(String name, Money price) {
+        if (name == null || name.isBlank() || price == null || !price.isGreaterThanZero()) {
+            throw new OrderDomainException("Confirmed product name and positive price are required");
+        }
         this.name = name;
         this.price = price;
     }

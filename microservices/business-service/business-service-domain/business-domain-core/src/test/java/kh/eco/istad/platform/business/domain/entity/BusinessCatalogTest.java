@@ -1,6 +1,7 @@
 package kh.eco.istad.platform.business.domain.entity;
 
 import kh.eco.istad.common.domain.valueobject.Money;
+import kh.eco.istad.common.domain.exception.ConflictException;
 import kh.eco.istad.platform.business.domain.exception.BusinessDomainException;
 import kh.eco.istad.platform.business.domain.service.BusinessDomainServiceImpl;
 import kh.eco.istad.platform.business.domain.valueobject.BusinessContact;
@@ -35,6 +36,6 @@ class BusinessCatalogTest {
         new BusinessDomainServiceImpl().validateAndInitiateBusiness(b);
         assertNotNull(new BusinessDomainServiceImpl().deactivateBusiness(b));
         assertFalse(b.isActive());
-        assertThrows(BusinessDomainException.class, () -> b.deactivate());
+        assertThrows(ConflictException.class, () -> b.deactivate());
     }
 }
