@@ -12,6 +12,7 @@ import kh.eco.istad.platform.business.persistence.document.BusinessDocument;
 import kh.eco.istad.platform.business.persistence.repository.BusinessMongoRepository;
 import org.springframework.stereotype.Component;
 import reactor.core.publisher.Mono;
+import reactor.core.publisher.Flux;
 
 import java.util.List;
 
@@ -39,7 +40,26 @@ public class BusinessRepositoryAdapter implements BusinessRepository {
         return mongoRepository.findById(businessId).map(this::toDomain);
     }
 
-    private BusinessDocument toDocument(Business business) {
+    @Override
+    public Flux<Business> findAll() {
+        return mongoRepository.findAll().map(this::toDomain);
+    }
+
+//    private BusinessDocument toDocument(Business business) {
+//        return BusinessDocument.builder()
+//                .id(business.getId())
+//                .legalName(business.getBusinessName().legalName())
+//                .displayName(business.getBusinessName().displayName())
+//                .email(business.getBusinessContact().email())
+//                .phoneNumber(business.getBusinessContact().phoneNumber())
+//                .active(business.isActive())
+//                .products(business.getProducts().stream().map(product -> ProductDocument.builder()
+//                        .id(product.getId()).name(product.getName()).price(product.getPrice().amount())
+//                        .quantity(product.getQuantity()).available(product.isAvailable()).build()).toList())
+//                .build();
+//    }
+
+    private BusinessDocument toDocument(Business business){
         return BusinessDocument.builder()
                 .id(business.getId())
                 .legalName(business.getBusinessName().legalName())
@@ -47,21 +67,48 @@ public class BusinessRepositoryAdapter implements BusinessRepository {
                 .email(business.getBusinessContact().email())
                 .phoneNumber(business.getBusinessContact().phoneNumber())
                 .active(business.isActive())
-                .products(business.getProducts().stream().map(product -> ProductDocument.builder()
-                        .id(product.getId()).name(product.getName()).price(product.getPrice().amount())
-                        .quantity(product.getQuantity()).available(product.isAvailable()).build()).toList())
+                .products(business.getProducts().stream()
+                        .map(product -> ProductDocument.builder()
+                                .id(product.getId())
+                                .name(product.getName())
+                                .price(product.getPrice().amount())
+                                .quantity(product.getQuantity())
+                                .available(product.isAvailable())
+                                .build()
+                        ).toList()
+                )
                 .build();
     }
 
-    private Business toDomain(BusinessDocument document) {
+//    private Business toDomain(BusinessDocument document) {
+//        return Business.builder()
+//                .id(document.getId())
+//                .businessName(new BusinessName(document.getLegalName(), document.getDisplayName()))
+//                .businessContact(new BusinessContact(document.getEmail(), document.getPhoneNumber()))
+//                .active(document.isActive())
+//                .products(document.getProducts() == null ? List.of() : document.getProducts().stream().map(product ->
+//                        new Product(product.getId(), product.getName(),
+//                                new Money(product.getPrice()), product.getQuantity(), product.isAvailable())).toList())
+//                .build();
+//    }
+
+    private Business toDomain(BusinessDocument document){
         return Business.builder()
                 .id(document.getId())
-                .businessName(new BusinessName(document.getLegalName(), document.getDisplayName()))
-                .businessContact(new BusinessContact(document.getEmail(), document.getPhoneNumber()))
+                .businessName(new BusinessName(document.getLegalName(),document.getDisplayName()))
+                .businessContact(new BusinessContact(document.getEmail(),document.getPhoneNumber()))
                 .active(document.isActive())
-                .products(document.getProducts() == null ? List.of() : document.getProducts().stream().map(product ->
-                        new Product(product.getId(), product.getName(),
-                                new Money(product.getPrice()), product.getQuantity(), product.isAvailable())).toList())
+                .products(document.getProducts() == null ? List.of(): document.getProducts()
+                        .stream()
+                        .map(product->
+                                new Product(
+                                        product.getId(),
+                                        product.getName(),
+                                        new Money(product.getPrice()),
+                                        product.getQuantity(),
+                                        product.isAvailable()
+                                        )).toList()
+                )
                 .build();
     }
 }

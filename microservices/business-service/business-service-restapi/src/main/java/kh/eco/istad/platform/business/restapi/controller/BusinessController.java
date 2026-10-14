@@ -4,10 +4,12 @@ import jakarta.validation.Valid;
 import kh.eco.istad.platform.business.domain.usecase.RegisterBusinessUseCase;
 import kh.eco.istad.platform.business.domain.usecase.GetBusinessUseCase;
 import kh.eco.istad.platform.business.domain.usecase.DeactivateBusinessUseCase;
+import kh.eco.istad.platform.business.domain.usecase.GetAllBusinessesUseCase;
 import kh.eco.istad.platform.business.restapi.dto.BusinessResponse;
 import kh.eco.istad.platform.business.restapi.dto.RegisterBusinessRequest;
 import kh.eco.istad.platform.business.restapi.dto.RegisterBusinessResponse;
 import kh.eco.istad.platform.business.restapi.mapper.BusinessWebMapper;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -20,27 +22,39 @@ import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import java.util.UUID;
 import reactor.core.publisher.Mono;
+import reactor.core.publisher.Flux;
 
 @RestController
 @RequestMapping("/api/businesses")
+
 public class BusinessController {
 
     private final RegisterBusinessUseCase registerBusinessUseCase;
     private final BusinessWebMapper mapper;
     private final GetBusinessUseCase getBusinessUseCase;
     private final DeactivateBusinessUseCase deactivateBusinessUseCase;
+    private final GetAllBusinessesUseCase getAllBusinessesUseCase;
 
     @Autowired
-    public BusinessController(RegisterBusinessUseCase registerBusinessUseCase, GetBusinessUseCase getBusinessUseCase,
-                              DeactivateBusinessUseCase deactivateBusinessUseCase, BusinessWebMapper mapper) {
+    public BusinessController(
+            RegisterBusinessUseCase registerBusinessUseCase,
+            GetBusinessUseCase getBusinessUseCase,
+            DeactivateBusinessUseCase deactivateBusinessUseCase,
+            GetAllBusinessesUseCase getAllBusinessesUseCase,
+            BusinessWebMapper mapper
+    ) {
         this.registerBusinessUseCase = registerBusinessUseCase;
         this.getBusinessUseCase = getBusinessUseCase;
         this.deactivateBusinessUseCase = deactivateBusinessUseCase;
+        this.getAllBusinessesUseCase = getAllBusinessesUseCase;
         this.mapper = mapper;
     }
 
-    public BusinessController(RegisterBusinessUseCase registerBusinessUseCase, BusinessWebMapper mapper) {
-        this(registerBusinessUseCase, null, null, mapper);
+    public BusinessController(
+            RegisterBusinessUseCase registerBusinessUseCase,
+            BusinessWebMapper mapper
+    ) {
+        this(registerBusinessUseCase, null, null, null, mapper);
     }
 
     @PostMapping
@@ -53,6 +67,11 @@ public class BusinessController {
     @GetMapping("/{id}")
     public Mono<BusinessResponse> getBusiness(@PathVariable("id") UUID id) {
         return getBusinessUseCase.execute(id).map(mapper::toResponse);
+    }
+
+    @GetMapping
+    public Flux<BusinessResponse> getAllBusinesses() {
+        return getAllBusinessesUseCase.execute().map(mapper::toResponse);
     }
 
     @PatchMapping("/{id}/deactivate")

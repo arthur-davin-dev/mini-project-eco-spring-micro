@@ -5,6 +5,7 @@ import kh.eco.istad.platform.business.domain.dto.RegisterBusinessResult;
 import kh.eco.istad.platform.business.domain.usecase.RegisterBusinessUseCase;
 import kh.eco.istad.platform.business.domain.usecase.GetBusinessUseCase;
 import kh.eco.istad.platform.business.domain.usecase.DeactivateBusinessUseCase;
+import kh.eco.istad.platform.business.domain.usecase.GetAllBusinessesUseCase;
 import kh.eco.istad.platform.business.restapi.exception.ReactiveGlobalExceptionHandler;
 import kh.eco.istad.platform.business.restapi.mapper.BusinessWebMapper;
 import org.junit.jupiter.api.Test;
@@ -45,6 +46,9 @@ class BusinessControllerTest {
 
     @MockitoBean
     private DeactivateBusinessUseCase deactivateBusinessUseCase;
+
+    @MockitoBean
+    private GetAllBusinessesUseCase getAllBusinessesUseCase;
 
     @Test
     void registersBusinessAndReturnsCreated() {

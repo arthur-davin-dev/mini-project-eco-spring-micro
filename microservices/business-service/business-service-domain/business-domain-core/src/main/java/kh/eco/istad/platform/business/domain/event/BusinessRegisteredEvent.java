@@ -5,6 +5,9 @@ import kh.eco.istad.platform.business.domain.entity.Business;
 
 import java.time.ZonedDateTime;
 
-public record BusinessRegisteredEvent(Business business, ZonedDateTime createdAt)
+public record BusinessRegisteredEvent(
+        Business business,
+        ZonedDateTime createdAt
+)
         implements DomainEvent<Business> {
 }
