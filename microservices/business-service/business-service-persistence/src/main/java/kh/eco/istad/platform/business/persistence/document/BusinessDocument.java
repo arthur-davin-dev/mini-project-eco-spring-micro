@@ -1,5 +1,6 @@
 package kh.eco.istad.platform.business.persistence.document;
 
+import kh.eco.istad.common.domain.valueobject.BusinessId;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -20,7 +21,7 @@ import java.util.List;
 public class BusinessDocument {
 
     @Id
-    private String id;
+    private BusinessId id;
 
     private String legalName;
 

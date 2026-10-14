@@ -36,20 +36,31 @@ public class RestClientConfig {
     public RestClient businessRestClient(
             @Value("${services.business.base-url}") String baseUrl,
             @Value("${services.business.timeout-ms:3000}") int timeoutMs) {
-        HttpClient httpClient = HttpClient.newBuilder().connectTimeout(Duration.ofMillis(timeoutMs)).build();
+        HttpClient httpClient = HttpClient.newBuilder()
+                .connectTimeout(Duration.ofMillis(timeoutMs))
+                .build();
         JdkClientHttpRequestFactory requestFactory = new JdkClientHttpRequestFactory(httpClient);
         requestFactory.setReadTimeout(Duration.ofMillis(timeoutMs));
-        return RestClient.builder().baseUrl(baseUrl).requestFactory(requestFactory).build();
+        return RestClient.builder()
+                .baseUrl(baseUrl)
+                .requestFactory(requestFactory)
+                .build();
     }
 
     @Bean
     @Qualifier("paymentRestClient")
     public RestClient paymentRestClient(
             @Value("${services.payment.base-url}") String baseUrl,
-            @Value("${services.payment.timeout-ms:3000}") int timeoutMs) {
-        HttpClient httpClient = HttpClient.newBuilder().connectTimeout(Duration.ofMillis(timeoutMs)).build();
+            @Value("${services.payment.timeout-ms:3000}") int timeoutMs
+    ) {
+        HttpClient httpClient = HttpClient.newBuilder()
+                .connectTimeout(Duration.ofMillis(timeoutMs))
+                .build();
         JdkClientHttpRequestFactory requestFactory = new JdkClientHttpRequestFactory(httpClient);
         requestFactory.setReadTimeout(Duration.ofMillis(timeoutMs));
-        return RestClient.builder().baseUrl(baseUrl).requestFactory(requestFactory).build();
+        return RestClient.builder()
+                .baseUrl(baseUrl)
+                .requestFactory(requestFactory)
+                .build();
     }
 }

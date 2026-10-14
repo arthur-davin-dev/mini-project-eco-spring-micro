@@ -1,5 +1,6 @@
 package kh.eco.istad.platform.business.persistence.document;
 
+import kh.eco.istad.platform.business.domain.valueobject.ProductId;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -13,7 +14,7 @@ import java.math.BigDecimal;
 @AllArgsConstructor
 @Builder
 public class ProductDocument {
-    private String id;
+    private ProductId id;
     private String name;
     private BigDecimal price;
     private int quantity;

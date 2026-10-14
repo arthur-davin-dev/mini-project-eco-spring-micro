@@ -57,9 +57,9 @@ class BusinessRepositoryAdapterTest {
 
         ArgumentCaptor<BusinessDocument> documentCaptor = ArgumentCaptor.forClass(BusinessDocument.class);
         verify(mongoRepository).save(documentCaptor.capture());
-        assertEquals(businessId.toString(), documentCaptor.getValue().getId());
+        assertEquals(new BusinessId(businessId), documentCaptor.getValue().getId());
         assertEquals("hello@angkorburger.com", documentCaptor.getValue().getEmail());
         assertEquals(new BigDecimal("1.25"), documentCaptor.getValue().getProducts().getFirst().getPrice());
-        assertEquals(business.getProducts().getFirst().getId().value().toString(), documentCaptor.getValue().getProducts().getFirst().getId());
+        assertEquals(business.getProducts().getFirst().getId(), documentCaptor.getValue().getProducts().getFirst().getId());
     }
 }

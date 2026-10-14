@@ -19,26 +19,72 @@ import java.util.Optional;
 
 @Component
 public class BusinessServiceRestAdapter implements BusinessRepository {
-    private static final Logger log = LoggerFactory.getLogger(BusinessServiceRestAdapter.class);
+//    private static final Logger log = LoggerFactory.getLogger(BusinessServiceRestAdapter.class);
+//    private final RestClient restClient;
+//
+//    public BusinessServiceRestAdapter(@Qualifier("businessRestClient") RestClient restClient) {
+//        this.restClient = restClient;
+//    }
+
+    private static final Logger log = LoggerFactory.getLogger(
+            BusinessServiceRestAdapter.class
+    );
     private final RestClient restClient;
 
-    public BusinessServiceRestAdapter(@Qualifier("businessRestClient") RestClient restClient) {
+    public BusinessServiceRestAdapter(
+            @Qualifier("businessRestClient")
+            RestClient restClient
+    ){
         this.restClient = restClient;
     }
 
     @Override
     public Optional<Business> findBusiness(BusinessId businessId) {
         try {
-            BusinessServicePayload payload = restClient.get().uri("/api/businesses/{id}", businessId.value())
+            BusinessServicePayload payload = restClient.get().uri("/api//businesses/{id}",businessId.value())
                     .retrieve().body(BusinessServicePayload.class);
-            if (payload == null) return Optional.empty();
-            return Optional.of(new Business(businessId, payload.products().stream().filter(BusinessServicePayload.ProductPayload::available)
-                    .map(p -> new Product(new ProductId(p.productId()), p.name(), new Money(p.price()))).toList(), payload.active()));
-        } catch (HttpClientErrorException.NotFound ex) {
+            if (payload == null)
+                return Optional.empty();
+            return Optional.of(new Business(businessId,payload.products()
+                    .stream()
+                    .filter(BusinessServicePayload.ProductPayload::available)
+                    .map(p->new Product(
+                            new ProductId(p.productId()),
+                            p.name(),
+                            new Money(p.price()))).toList(),
+                            payload.active()));
+        }catch (HttpClientErrorException.NotFound ex){
             return Optional.empty();
-        } catch (RestClientException ex) {
+        }catch (RestClientException ex){
             log.error("Call to business-service failed", ex);
-            throw new ExternalServiceException("Business service is unavailable", ex);
+            throw new ExternalServiceException(
+                    "Business is unavailable", ex
+            );
         }
     }
+
+//
+//    @Override
+//    public Optional<Business> findBusiness(BusinessId businessId) {
+//        try {
+//            BusinessServicePayload payload = restClient.get().uri("/api/businesses/{id}", businessId.value())
+//                    .retrieve().body(BusinessServicePayload.class);
+//            if (payload == null) return Optional.empty();
+//            return Optional.of(new Business(
+//                    businessId,
+//                    payload.products()
+//                            .stream()
+//                            .filter(BusinessServicePayload.ProductPayload::available)
+//                    .map(p -> new Product(
+//                            new ProductId(p.productId()),
+//                            p.name(),
+//                            new Money(p.price()))).toList(),
+//                    payload.active()));
+//        } catch (HttpClientErrorException.NotFound ex) {
+//            return Optional.empty();
+//        } catch (RestClientException ex) {
+//            log.error("Call to business-service failed", ex);
+//            throw new ExternalServiceException("Business service is unavailable", ex);
+//        }
+//    }
 }
