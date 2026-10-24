@@ -12,6 +12,8 @@ java {
 dependencyManagement {
     imports {
         mavenBom 'org.springframework.boot:spring-boot-dependencies:4.1.1'
+        // Spring Cloud 2025.1.x (Oakwood) supports Spring Boot 4.0.x and 4.1.x
+        mavenBom 'org.springframework.cloud:spring-cloud-dependencies:2025.1.2'
     }
 }
 

@@ -1,0 +1,28 @@
+server:
+  port: 8761
+
+spring:
+  application:
+    name: eureka-server
+
+eureka:
+  instance:
+    hostname: localhost
+  client:
+    # A standalone server must not register with / fetch from itself.
+    register-with-eureka: false
+    fetch-registry: false
+    service-url:
+      defaultZone: http://${eureka.instance.hostname}:${server.port}/eureka/
+  server:
+    # false => a dead instance is removed quickly so the
+    # effect is visible in the dashboard. Use true (default) in production.
+    enable-self-preservation: ${EUREKA_SELF_PRESERVATION:false}
+    # How often the server scans for expired leases (default 60000 ms).
+    eviction-interval-timer-in-ms: ${EUREKA_EVICTION_INTERVAL_MS:5000}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info

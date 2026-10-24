@@ -60,7 +60,7 @@ public class PaymentServiceRestAdapter implements PaymentGateway {
             throw ex;
         } catch (ExternalServiceException ex) {
             throw ex;
-        } catch (RestClientException ex) {
+        } catch (RestClientException | IllegalStateException ex) {
             throw new ExternalServiceException("Payment service is unavailable", ex);
         }
     }

@@ -5,7 +5,7 @@ management:
   endpoints:
     web:
       exposure:
-        include: health
+        include: health,info
   endpoint:
     health:
       probes:
@@ -31,3 +31,7 @@ springdoc:
 scalar:
   enabled: true
   url: /v3/api-docs
+
+eureka:
+  client:
+    enabled: false

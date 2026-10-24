@@ -1,0 +1,14 @@
+eureka:
+  client:
+    enabled: true
+    service-url:
+
+      defaultZone: ${spring.application.name}:${server.port}
+    healthcheck:
+      enabled: true
+    registry-fetch-interval-seconds: 5
+  instance:
+    prefer-ip-address: true
+    instance-id: ${spring.application.name}:${server.port}
+    lease-renewal-interval-in-seconds: 5
+    lease-expiration-duration-in-seconds: 10

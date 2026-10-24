@@ -1,12 +1,12 @@
 
 server:
-  port: 8083
+  port: ${CUSTOMER_SERVICE_PORT:8083}
 
 management:
   endpoints:
     web:
       exposure:
-        include: health
+        include: health,info
   endpoint:
     health:
       probes:
@@ -34,3 +34,7 @@ spring:
       ddl-auto: update
     open-in-view: false
     show-sql: true
+
+eureka:
+  client:
+    enabled: false
