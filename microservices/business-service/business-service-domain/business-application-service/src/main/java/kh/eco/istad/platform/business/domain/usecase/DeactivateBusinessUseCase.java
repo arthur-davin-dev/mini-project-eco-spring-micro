@@ -25,14 +25,26 @@ public class DeactivateBusinessUseCase {
         this.domainService = domainService;
         this.mapper = mapper;
     }
-    public Mono<BusinessResult> execute(UUID id) {
-        if (id == null) return Mono.error(new IllegalArgumentException("Business id is required"));
+//    public Mono<BusinessResult> execute(UUID id) {
+//        if (id == null) return Mono.error(new IllegalArgumentException("Business id is required"));
+//        return repository.findById(
+//                new BusinessId(id)).switchIfEmpty(Mono.error(
+//                        new ResourceNotFoundException("Business " + id + " not found")))
+//                .flatMap(business -> {
+//                    domainService.deactivateBusiness(business);
+//                    return repository.save(business);
+//                }).map(mapper::toBusinessResult);
+//    }
+
+    public Mono<BusinessResult> execute(UUID id){
+        if(id == null) return Mono.error(new IllegalAccessException("Business id is required"));
         return repository.findById(
-                new BusinessId(id)).switchIfEmpty(Mono.error(
-                        new ResourceNotFoundException("Business " + id + " not found")))
-                .flatMap(business -> {
-                    domainService.deactivateBusiness(business);
-                    return repository.save(business);
-                }).map(mapper::toBusinessResult);
+                new BusinessId(id)
+        ).switchIfEmpty(Mono.error(
+                new ResourceNotFoundException("Business "+ id+ "not found")
+        )).flatMap(business -> {
+            domainService.deactivateBusiness(business);
+            return repository.save(business);
+        }).map(mapper::toBusinessResult);
     }
 }

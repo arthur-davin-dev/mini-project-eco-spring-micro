@@ -11,7 +11,7 @@ public record Money(BigDecimal amount) {
         if (amount == null){
             throw new DomainException("Money amount must not be null");
         }
-        amount = amount.setScale(2, RoundingMode.HALF_UP);
+        amount = amount.setScale(2, RoundingMode.HALF_EVEN);
     }
 
     public boolean isGreaterThanZero(){
