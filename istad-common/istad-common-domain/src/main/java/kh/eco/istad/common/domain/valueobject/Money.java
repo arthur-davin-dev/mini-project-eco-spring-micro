@@ -39,6 +39,7 @@ package kh.eco.istad.common.domain.valueobject;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.util.Objects;
 
 public record Money(
         BigDecimal amount
@@ -75,5 +76,18 @@ public record Money(
 
     private BigDecimal setScale(BigDecimal inputAmount) {
         return inputAmount.setScale(2, RoundingMode.HALF_EVEN);
+    }
+
+    @Override
+    public boolean equals(Object other) {
+        if (this == other) return true;
+        if (!(other instanceof Money money)) return false;
+        return amount == null ? money.amount == null
+                : money.amount != null && amount.compareTo(money.amount) == 0;
+    }
+
+    @Override
+    public int hashCode() {
+        return amount == null ? 0 : Objects.hash(amount.stripTrailingZeros());
     }
 }

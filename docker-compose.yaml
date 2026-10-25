@@ -63,13 +63,31 @@ services:
       MONGO_INITDB_ROOT_PASSWORD: ${BUSINESS_MONGODB_PASSWORD:-mongod}
     volumes:
       - istad_micro_mongo_data:/data/db
-#    healthcheck:
-#      test:
-#        - CMD-SHELL
-#        - mongosh --quiet --username "$${MONGO_INITDB_ROOT_USERNAME}" --password "$${MONGO_INITDB_ROOT_PASSWORD}" --authenticationDatabase admin --eval "db.adminCommand('ping').ok" | grep -q 1
-#      interval: 5s
-#      timeout: 5s
-#      retries: 15
+    healthcheck:
+      test:
+        - CMD-SHELL
+        - mongosh --quiet --username "$${MONGO_INITDB_ROOT_USERNAME}" --password "$${MONGO_INITDB_ROOT_PASSWORD}" --authenticationDatabase admin --eval "db.adminCommand('ping').ok" | grep -q 1
+      interval: 5s
+      timeout: 5s
+      retries: 15
+    networks: [ite-net]
+
+  eureka-server:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        SERVICE_PROJECT: microservices/eureka-server
+        BOOT_MODULE: eureka-server
+        ARTIFACT_PATH: microservices/eureka-server/build/libs
+    restart: unless-stopped
+    ports: ["${EUREKA_SERVER_PORT:-8761}:8761"]
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsS http://localhost:8761/actuator/health >/dev/null"]
+      interval: 10s
+      timeout: 5s
+      retries: 15
+      start_period: 30s
     networks: [ite-net]
 
   customer-service:
@@ -83,11 +101,15 @@ services:
     restart: unless-stopped
     ports: ["${CUSTOMER_SERVICE_PORT:-8083}:8083"]
     environment:
+      SPRING_PROFILES_ACTIVE: eureka
+      EUREKA_SERVER_URL: http://eureka-server:8761/eureka/
       CUSTOMER_DB_URL: jdbc:postgresql://customer-postgres:5432/${CUSTOMER_DB_NAME:-customer_db}
       CUSTOMER_DB_USERNAME: ${CUSTOMER_DB_USERNAME:-postgres}
       CUSTOMER_DB_PASSWORD: ${CUSTOMER_DB_PASSWORD:-postgres}
     depends_on:
       customer-postgres:
+        condition: service_healthy
+      eureka-server:
         condition: service_healthy
     healthcheck:
       test: ["CMD-SHELL", "curl -fsS http://localhost:8083/actuator/health >/dev/null"]
@@ -108,9 +130,13 @@ services:
     restart: unless-stopped
     ports: ["${BUSINESS_SERVICE_PORT:-8082}:8082"]
     environment:
+      SPRING_PROFILES_ACTIVE: eureka
+      EUREKA_SERVER_URL: http://eureka-server:8761/eureka/
       BUSINESS_MONGODB_URI: mongodb://${BUSINESS_MONGODB_USERNAME:-mongod}:${BUSINESS_MONGODB_PASSWORD:-mongod}@mongo:27017/business_db?authSource=admin
     depends_on:
       mongo:
+        condition: service_healthy
+      eureka-server:
         condition: service_healthy
     healthcheck:
       test: ["CMD-SHELL", "curl -fsS http://localhost:8082/actuator/health >/dev/null"]
@@ -131,12 +157,16 @@ services:
     restart: unless-stopped
     ports: ["${PAYMENT_SERVICE_PORT:-8084}:8084"]
     environment:
+      SPRING_PROFILES_ACTIVE: eureka
+      EUREKA_SERVER_URL: http://eureka-server:8761/eureka/
       PAYMENT_SERVICE_PORT: 8084
       PAYMENT_DB_URL: jdbc:postgresql://payment-postgres:5432/${PAYMENT_DB_NAME:-payment_db}
       PAYMENT_DB_USERNAME: ${PAYMENT_DB_USERNAME:-postgres}
       PAYMENT_DB_PASSWORD: ${PAYMENT_DB_PASSWORD:-postgres}
     depends_on:
       payment-postgres:
+        condition: service_healthy
+      eureka-server:
         condition: service_healthy
     healthcheck:
       test: ["CMD-SHELL", "curl -fsS http://localhost:8084/actuator/health >/dev/null"]
@@ -157,6 +187,8 @@ services:
     restart: unless-stopped
     ports: ["${ORDER_SERVICE_PORT:-8081}:8081"]
     environment:
+      SPRING_PROFILES_ACTIVE: eureka
+      EUREKA_SERVER_URL: http://eureka-server:8761/eureka/
       ORDER_DB_URL: jdbc:postgresql://order-postgres:5432/${ORDER_DB_NAME:-order_db}
       ORDER_DB_USERNAME: ${ORDER_DB_USERNAME:-postgres}
       ORDER_DB_PASSWORD: ${ORDER_DB_PASSWORD:-postgres}
@@ -171,6 +203,8 @@ services:
       business-service:
         condition: service_healthy
       payment-service:
+        condition: service_healthy
+      eureka-server:
         condition: service_healthy
     healthcheck:
       test: ["CMD-SHELL", "curl -fsS http://localhost:8081/actuator/health >/dev/null"]

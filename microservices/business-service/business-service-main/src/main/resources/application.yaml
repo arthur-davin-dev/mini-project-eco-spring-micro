@@ -24,11 +24,11 @@ springdoc:
 spring:
   application:
     name: business-service
-  mongodb:
-    uri: ${BUSINESS_MONGODB_URI:mongodb://mongod:mongod@localhost:2026/business_db?authSource=admin}
   data:
     mongodb:
       auto-index-creation: true
+  mongodb:
+    uri: ${BUSINESS_MONGODB_URI:mongodb://mongod:mongod@localhost:2026/business_db?authSource=admin}
 
 eureka:
   client:
