@@ -58,6 +58,8 @@ class OrderRepositoryAdapterTest {
         OrderEntity savedEntity = entityCaptor.getValue();
         assertEquals(order.getId().value(), savedEntity.getId());
         assertEquals("St 271", savedEntity.getAddress().getStreet());
+        assertNotNull(savedEntity.getItems().getFirst().getId());
+        assertEquals(order.getId().value(), savedEntity.getItems().getFirst().getOrder().getId());
         assertEquals(productId, savedEntity.getItems().getFirst().getProductId());
         assertNotNull(savedOrder.getTrackingId());
         assertEquals(order.getPrice(), savedOrder.getPrice());

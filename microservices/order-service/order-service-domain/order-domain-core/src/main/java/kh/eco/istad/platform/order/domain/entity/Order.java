@@ -13,6 +13,7 @@ import kh.eco.istad.platform.order.domain.valueobject.StreetAddress;
 import kh.eco.istad.platform.order.domain.valueobject.TrackingId;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
 
@@ -35,7 +36,7 @@ public class Order extends AggregateRoot<OrderId> {
         businessId = builder.businessId;
         deliveryAddress = builder.deliveryAddress;
         price = builder.price;
-        items = builder.items;
+        items = builder.items == null ? new ArrayList<>() : new ArrayList<>(builder.items);
         trackingId = builder.trackingId;
         orderStatus = builder.orderStatus;
         failureMessages = builder.failureMessages;
@@ -60,6 +61,10 @@ public class Order extends AggregateRoot<OrderId> {
         super.setId(new OrderId(UUID.randomUUID()));
         trackingId = new TrackingId(UUID.randomUUID());
         orderStatus = OrderStatus.PENDING;
+        if (failureMessages == null) {
+            failureMessages = new ArrayList<>();
+        }
+        items.forEach(item -> item.initializeOrderItem(getId(), new OrderItemId(UUID.randomUUID())));
         validateOrder();
     }
 
@@ -101,7 +106,7 @@ public class Order extends AggregateRoot<OrderId> {
      */
     public void cancel(List<String> failureMessages) {
         if (!(orderStatus == OrderStatus.PENDING || orderStatus == OrderStatus.CANCELLING)) {
-            throw new OrderDomainException("Order state is not correct for cancel operation");
+            throw new ConflictException("Order state is not correct for cancel operation");
         }
         orderStatus = OrderStatus.CANCELLED;
         updateFailureMessages(failureMessages);
@@ -183,7 +188,7 @@ public class Order extends AggregateRoot<OrderId> {
     }
 
     public List<OrderItem> getItems() {
-        return items;
+        return Collections.unmodifiableList(items);
     }
 
     public TrackingId getTrackingId() {

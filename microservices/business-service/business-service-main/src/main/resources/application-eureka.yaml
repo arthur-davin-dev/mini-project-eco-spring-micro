@@ -2,8 +2,7 @@ eureka:
   client:
     enabled: true
     service-url:
-
-      defaultZone: ${spring.application.name}:${server.port}
+      defaultZone: ${EUREKA_SERVER_URL:http://localhost:8761/eureka/}
     healthcheck:
       enabled: true
     registry-fetch-interval-seconds: 5

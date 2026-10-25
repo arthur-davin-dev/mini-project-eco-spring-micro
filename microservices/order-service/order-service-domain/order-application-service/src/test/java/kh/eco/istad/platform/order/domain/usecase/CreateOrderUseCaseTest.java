@@ -41,7 +41,10 @@ class CreateOrderUseCaseTest {
     private static final UUID PRODUCT = UUID.randomUUID();
     private static final String REQUEST_KEY = "checkout-001";
 
-    private final CustomerRepository customers = id -> Optional.of(new Customer(id, true));
+    private final CustomerRepository customers = id -> Optional.of(Customer.builder()
+            .id(id)
+            .active(true)
+            .build());
     private final BusinessRepository businesses = id -> Optional.of(new Business(
             id,
             List.of(new Product(new ProductId(PRODUCT), "Burger", new Money(new BigDecimal("5.00")))),
@@ -151,7 +154,10 @@ class CreateOrderUseCaseTest {
 
     @Test
     void inactiveCustomerIsRejected() {
-        CustomerRepository inactive = id -> Optional.of(new Customer(id, false));
+        CustomerRepository inactive = id -> Optional.of(Customer.builder()
+                .id(id)
+                .active(false)
+                .build());
 
         assertThrows(OrderDomainException.class,
                 () -> useCase(new InMemoryOrders(), new RecordingPayment(), inactive, businesses).execute(command()));

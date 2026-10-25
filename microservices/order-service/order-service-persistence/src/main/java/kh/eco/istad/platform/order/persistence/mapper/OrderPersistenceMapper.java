@@ -35,7 +35,9 @@ public class OrderPersistenceMapper {
                 .trackingId(order.getTrackingId().value())
                 .price(order.getPrice().amount())
                 .orderStatus(order.getOrderStatus())
-                .failureMessages(String.join(",", order.getFailureMessages()))
+                .failureMessages(String.join(",", order.getFailureMessages() == null
+                        ? List.of()
+                        : order.getFailureMessages()))
                 .build();
 
         StreetAddress address = order.getDeliveryAddress();

@@ -6,6 +6,7 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.cloud.client.loadbalancer.LoadBalanced;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Primary;
 import org.springframework.context.annotation.Scope;
 import org.springframework.web.client.RestClient;
 
@@ -13,6 +14,18 @@ import org.springframework.web.client.RestClient;
 @Configuration
 @ConditionalOnProperty(name = "discovery.enabled", havingValue = "true")
 public class DiscoveryRestClientConfig {
+
+    /**
+     * Eureka's own HTTP transport also looks up a RestClient.Builder by type.
+     * Make the direct builder the default so registry URLs such as
+     * http://localhost:8761 are not sent through service discovery.
+     */
+    @Bean
+    @Primary
+    @Scope("prototype")
+    public RestClient.Builder restClientBuilder() {
+        return RestClient.builder();
+    }
 
     /** Prototype: every injection point gets its own builder instance. */
     @Bean
