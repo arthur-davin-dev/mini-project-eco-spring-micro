@@ -12,7 +12,7 @@ import org.springframework.web.client.RestClient;
 
 
 @Configuration
-@ConditionalOnProperty(name = "discovery.enabled", havingValue = "true")
+@ConditionalOnProperty(name = "spring.cloud.discovery.enabled", havingValue = "true")
 public class DiscoveryRestClientConfig {
 
     /**
@@ -39,8 +39,8 @@ public class DiscoveryRestClientConfig {
     @Qualifier("customerRestClient")
     public RestClient customerRestClient(
             @LoadBalanced RestClient.Builder builder,
-            @Value("${services.customer.base-url}") String baseUrl,
-            @Value("${services.customer.timeout-ms:3000}") int timeoutMs) {
+            @Value("${customer-service.base-url}") String baseUrl,
+            @Value("${customer-service.timeout-ms:3000}") int timeoutMs) {
         return RestClientSupport.build(builder, baseUrl, timeoutMs);
     }
 
@@ -48,8 +48,8 @@ public class DiscoveryRestClientConfig {
     @Qualifier("businessRestClient")
     public RestClient businessRestClient(
             @LoadBalanced RestClient.Builder builder,
-            @Value("${services.business.base-url}") String baseUrl,
-            @Value("${services.business.timeout-ms:3000}") int timeoutMs) {
+            @Value("${business-service.base-url}") String baseUrl,
+            @Value("${business-service.timeout-ms:3000}") int timeoutMs) {
         return RestClientSupport.build(builder, baseUrl, timeoutMs);
     }
 
@@ -57,8 +57,8 @@ public class DiscoveryRestClientConfig {
     @Qualifier("paymentRestClient")
     public RestClient paymentRestClient(
             @LoadBalanced RestClient.Builder builder,
-            @Value("${services.payment.base-url}") String baseUrl,
-            @Value("${services.payment.timeout-ms:3000}") int timeoutMs) {
+            @Value("${payment-service.base-url}") String baseUrl,
+            @Value("${payment-service.timeout-ms:3000}") int timeoutMs) {
         return RestClientSupport.build(builder, baseUrl, timeoutMs);
     }
 }

@@ -1,5 +1,5 @@
 server:
-  port: ${BUSINESS_SERVICE_PORT:8082}
+  port: ${BUSINESS_SERVICE_PORT:0}
 
 management:
   endpoints:
@@ -22,6 +22,9 @@ springdoc:
 #    enabled: true
 
 spring:
+  cloud:
+    discovery:
+      enabled: true
   application:
     name: business-service
   data:
@@ -32,4 +35,14 @@ spring:
 
 eureka:
   client:
-    enabled: false
+    enabled: true
+    service-url:
+      defaultZone: ${EUREKA_SERVER_URL:http://localhost:8761/eureka/}
+    healthcheck:
+      enabled: true
+    registry-fetch-interval-seconds: 5
+  instance:
+    prefer-ip-address: true
+    instance-id: ${spring.application.name}:${random.value}
+    lease-renewal-interval-in-seconds: 5
+    lease-expiration-duration-in-seconds: 10

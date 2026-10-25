@@ -1,5 +1,5 @@
 server:
-  port: ${ORDER_SERVICE_PORT:8081}
+  port: ${ORDER_SERVICE_PORT:0}
 
 management:
   endpoints:
@@ -21,18 +21,20 @@ springdoc:
   swagger-ui:
     enabled: true
 
-services:
-  customer:
-    base-url: ${CUSTOMER_SERVICE_URL:http://localhost:8083}
-    timeout-ms: 3000
-  business:
-    base-url: ${BUSINESS_SERVICE_URL:http://localhost:8082}
-    timeout-ms: 3000
-  payment:
-    base-url: ${PAYMENT_SERVICE_URL:http://localhost:8084}
-    timeout-ms: ${PAYMENT_SERVICE_TIMEOUT_MS:5000}
+customer-service:
+  base-url: ${CUSTOMER_SERVICE_URL:http://customer-service}
+  timeout-ms: 3000
+business-service:
+  base-url: ${BUSINESS_SERVICE_URL:http://business-service}
+  timeout-ms: 3000
+payment-service:
+  base-url: ${PAYMENT_SERVICE_URL:http://payment-service}
+  timeout-ms: ${PAYMENT_SERVICE_TIMEOUT_MS:5000}
 
 spring:
+  cloud:
+    discovery:
+      enabled: true
   application:
     name: order-service
   datasource:
@@ -47,7 +49,16 @@ spring:
 
 eureka:
   client:
-    enabled: false
-
-discovery:
-  enabled: false
+    enabled: true
+    service-url:
+      defaultZone: ${EUREKA_SERVER_URL:http://localhost:8761/eureka/}
+    healthcheck:
+      enabled: true
+    registry-fetch-interval-seconds: 5
+  instance:
+    prefer-ip-address: true
+    instance-id: ${spring.application.name}:${random.value}
+    lease-renewal-interval-in-seconds: 5
+    lease-expiration-duration-in-seconds: 10
+    status-page-url-path: /actuator/info
+    health-check-url-path: /actuator/health
