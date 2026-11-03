@@ -12,14 +12,11 @@ import org.springframework.stereotype.Component;
 public class OrderWebMapper {
 
     public CreateOrderCommand toCommand(CreateOrderRequest request) {
-        return toCommand(request, null);
-    }
-
-    public CreateOrderCommand toCommand(CreateOrderRequest request, String idempotencyKey) {
         return new CreateOrderCommand(
                 request.customerId(),
                 request.businessId(),
                 new AddressCommand(
+                        request.address().id(),
                         request.address().street(),
                         request.address().postalCode(),
                         request.address().city()),
@@ -27,8 +24,7 @@ public class OrderWebMapper {
                 request.items().stream()
                         .map(item -> new OrderItemCommand(
                                 item.productId(), item.quantity(), item.price(), item.subTotal()))
-                        .toList(),
-                idempotencyKey);
+                        .toList());
     }
 
     public CreateOrderResponse toResponse(CreateOrderResult result) {

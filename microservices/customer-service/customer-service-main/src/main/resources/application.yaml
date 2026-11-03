@@ -1,6 +1,5 @@
-
 server:
-  port: ${CUSTOMER_SERVICE_PORT:0}
+  port: ${CUSTOMER_SERVICE_PORT:8082}
 
 management:
   endpoints:
@@ -21,11 +20,28 @@ springdoc:
     enabled: true
 
 spring:
+  application:
+    name: customer-service
+
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: ${OAUTH2_ISSUER_URI:http://127.0.0.1:9000}
+
   cloud:
     discovery:
       enabled: true
-  application:
-    name: customer-service
+    consul:
+      host: ${CONSUL_HOST:localhost}
+      port: ${CONSUL_PORT:8500}
+      discovery:
+        enabled: true
+        register: true
+        service-name: ${spring.application.name}
+        prefer-ip-address: true
+        health-check-path: /actuator/health
+#        health-check-interval: 15s
 
   datasource:
     url: ${CUSTOMER_DB_URL:jdbc:postgresql://localhost:5434/customer_db}
@@ -38,16 +54,7 @@ spring:
     open-in-view: false
     show-sql: true
 
+# Disable Eureka because this project uses Consul
 eureka:
   client:
-    enabled: true
-    service-url:
-      defaultZone: ${EUREKA_SERVER_URL:http://localhost:8761/eureka/}
-    healthcheck:
-      enabled: true
-    registry-fetch-interval-seconds: 5
-  instance:
-    prefer-ip-address: true
-    instance-id: ${spring.application.name}:${random.value}
-    lease-renewal-interval-in-seconds: 5
-    lease-expiration-duration-in-seconds: 10
+    enabled: false

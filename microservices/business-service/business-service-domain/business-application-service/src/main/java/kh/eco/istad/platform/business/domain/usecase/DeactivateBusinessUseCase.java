@@ -6,25 +6,27 @@ import kh.eco.istad.platform.business.domain.dto.BusinessResult;
 import kh.eco.istad.platform.business.domain.mapper.BusinessDataMapper;
 import kh.eco.istad.platform.business.domain.port.out.BusinessRepository;
 import kh.eco.istad.platform.business.domain.service.BusinessDomainService;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
 import java.util.UUID;
 
 @Service
+@RequiredArgsConstructor
 public class DeactivateBusinessUseCase {
     private final BusinessRepository repository;
     private final BusinessDomainService domainService;
     private final BusinessDataMapper mapper;
-    public DeactivateBusinessUseCase(
-            BusinessRepository repository,
-            BusinessDomainService domainService,
-            BusinessDataMapper mapper
-    )
-    {
-        this.repository = repository;
-        this.domainService = domainService;
-        this.mapper = mapper;
-    }
+//    public DeactivateBusinessUseCase(
+//            BusinessRepository repository,
+//            BusinessDomainService domainService,
+//            BusinessDataMapper mapper
+//    )
+//    {
+//        this.repository = repository;
+//        this.domainService = domainService;
+//        this.mapper = mapper;
+//    }
 //    public Mono<BusinessResult> execute(UUID id) {
 //        if (id == null) return Mono.error(new IllegalArgumentException("Business id is required"));
 //        return repository.findById(

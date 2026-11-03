@@ -9,11 +9,6 @@ public record CreateOrderCommand(
         UUID businessId,
         AddressCommand address,
         BigDecimal price,
-        List<OrderItemCommand> items,
-        String idempotencyKey
+        List<OrderItemCommand> items
 ) {
-    public CreateOrderCommand(UUID customerId, UUID businessId, AddressCommand address,
-                              BigDecimal price, List<OrderItemCommand> items) {
-        this(customerId, businessId, address, price, items, null);
-    }
 }

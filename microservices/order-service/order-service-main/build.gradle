@@ -1,23 +1,31 @@
 plugins {
     id 'spring-boot-common-conventions'
+    id 'spring-cloud-common-conventions'
 }
 
 dependencies {
+    implementation libs.liquibase.core
+    implementation libs.spring.boot.starter.liquibase
+    implementation 'org.springframework.boot:spring-boot-starter-oauth2-client'
+    implementation 'org.springframework.boot:spring-boot-starter-oauth2-resource-server'
+    implementation libs.spring.boot.starter.webclient
+    runtimeOnly libs.postgresql
+    runtimeOnly libs.r2dbc.postgresql
+
     implementation project(':order-service-domain:order-domain-core')
     implementation project(':order-service-domain:order-application-service')
     implementation project(':order-service-persistence')
     implementation project(':order-service-restapi')
     implementation project(':order-service-client')
 
-    implementation 'kh.eco.istad:istad-common-restapi'
+    implementation libs.istad.common.restapi
 
-    implementation 'org.springframework.boot:spring-boot-starter-webmvc'
-    implementation 'org.springframework.boot:spring-boot-starter-actuator'
-    implementation 'org.springframework.cloud:spring-cloud-starter-netflix-eureka-client'
-    implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:3.0.2'
-    implementation 'org.springdoc:springdoc-openapi-starter-webmvc-scalar:3.0.2'
-}
-
-tasks.named('bootRun') {
-    jvmArgs '--enable-native-access=ALL-UNNAMED'
+    implementation libs.spring.boot.starter.webmvc
+    implementation libs.spring.boot.starter.actuator
+    implementation libs.spring.cloud.starter.netflix.eureka.client
+    implementation libs.istad.common.swagger
+    implementation libs.springdoc.webmvc.ui
+    implementation libs.springdoc.webmvc.scalar
+    implementation libs.spring.cloud.starter.consul.discovery
+    implementation libs.spring.cloud.starter.consul.config
 }

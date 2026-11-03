@@ -1,18 +1,17 @@
 package kh.eco.istad.platform.order.restapi.controller;
 
 import jakarta.validation.Valid;
+import kh.eco.istad.common.domain.exception.DomainException;
 import kh.eco.istad.platform.order.domain.dto.CreateOrderResult;
+import kh.eco.istad.platform.order.domain.entity.Order;
 import kh.eco.istad.platform.order.domain.usecase.CreateOrderUseCase;
 import kh.eco.istad.platform.order.restapi.dto.CreateOrderRequest;
 import kh.eco.istad.platform.order.restapi.dto.CreateOrderResponse;
 import kh.eco.istad.platform.order.restapi.mapper.OrderWebMapper;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestHeader;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+import reactor.core.publisher.Flux;
 
 @RestController
 @RequestMapping("/api/orders")
@@ -25,12 +24,15 @@ public class OrderController {
         this.createOrderUseCase = createOrderUseCase;
         this.mapper = mapper;
     }
+    @GetMapping
+    public Flux<Order> findAll(){
+        throw new DomainException("I am Single");
+    }
 
     @PostMapping
     public ResponseEntity<CreateOrderResponse> createOrder(
-            @Valid @RequestBody CreateOrderRequest request,
-            @RequestHeader("Idempotency-Key") String idempotencyKey) {
-        CreateOrderResult result = createOrderUseCase.execute(mapper.toCommand(request, idempotencyKey));
+            @Valid @RequestBody CreateOrderRequest request) {
+        CreateOrderResult result = createOrderUseCase.execute(mapper.toCommand(request));
         return ResponseEntity.status(HttpStatus.CREATED).body(mapper.toResponse(result));
     }
 }

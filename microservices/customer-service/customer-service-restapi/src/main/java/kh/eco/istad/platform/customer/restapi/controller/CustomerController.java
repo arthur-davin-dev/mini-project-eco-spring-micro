@@ -11,6 +11,7 @@ import kh.eco.istad.platform.customer.restapi.dto.CustomerResponse;
 import kh.eco.istad.platform.customer.restapi.dto.UpdateCustomerRequest;
 import kh.eco.istad.platform.customer.restapi.mapper.CustomerWebMapper;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -25,7 +26,10 @@ import java.util.List;
 import java.util.UUID;
 
 @RestController
-@RequestMapping("/api/customers")
+@RequestMapping(
+        path = {"/api/customers", "/customers"},
+        produces = MediaType.APPLICATION_JSON_VALUE
+)
 public class CustomerController {
 
     private final InitiateCustomerUseCase initiateCustomerUseCase;

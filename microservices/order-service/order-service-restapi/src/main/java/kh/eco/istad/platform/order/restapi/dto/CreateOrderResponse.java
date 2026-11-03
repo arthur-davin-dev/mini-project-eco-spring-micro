@@ -8,5 +8,6 @@ public record CreateOrderResponse(
         UUID orderId,
         UUID trackingId,
         OrderStatus orderStatus,
-        String message) {
+        String message
+) {
 }

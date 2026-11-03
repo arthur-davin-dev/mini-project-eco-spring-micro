@@ -1,9 +1,9 @@
 plugins {
-    id 'spring-common-conventions'
+    alias(libs.plugins.spring.common.conventions)
 }
 
 dependencies {
     api project(':customer-service-domain:customer-application-service')
-    implementation 'kh.eco.istad:istad-common-restapi'
-    implementation 'org.springframework.boot:spring-boot-starter-webmvc'
+    implementation libs.istad.common.restapi
+    implementation libs.spring.boot.starter.webmvc
 }

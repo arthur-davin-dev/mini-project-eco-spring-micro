@@ -53,7 +53,7 @@ public class DiscoveryDemoController {
         if (!ALLOWED.contains(service)) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Unknown service: " + service);
         }
-        int calls = Math.min(Math.max(times, 1), 50);
+        int calls = Math.clamp(times, 1, 50);
         List<Object> answers = new ArrayList<>();
         for (int i = 1; i <= calls; i++) {
             try {

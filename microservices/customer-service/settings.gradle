@@ -13,6 +13,11 @@ dependencyResolutionManagement {
     repositories {
         mavenCentral()
     }
+    versionCatalogs {
+        libs {
+            from(files("../../gradle/libs.versions.toml"))
+        }
+    }
 }
 //includeBuild() ប្រើនៅពេលអ្នកមាន Gradle build មួយទៀត ដែលមាន settings.gradle របស់វាផ្ទាល់។
 rootProject.name = 'customer-service'

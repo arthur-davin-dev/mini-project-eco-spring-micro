@@ -1,9 +1,9 @@
-plugins { id 'spring-common-conventions' }
+plugins { alias(libs.plugins.spring.common.conventions) }
 dependencies {
     api project(':payment-service-domain:payment-application-service')
-    implementation 'kh.eco.istad:istad-common-restapi'
-    implementation 'org.springframework.boot:spring-boot-starter-webmvc'
+    implementation libs.istad.common.restapi
+    implementation libs.spring.boot.starter.webmvc
 
-    testImplementation 'org.springframework.boot:spring-boot-starter-test'
-    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+    testImplementation libs.spring.boot.starter.test
+    testRuntimeOnly libs.junit.platform.launcher
 }

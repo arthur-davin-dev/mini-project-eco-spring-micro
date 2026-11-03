@@ -15,11 +15,7 @@ import org.springframework.web.client.RestClient;
 @ConditionalOnProperty(name = "spring.cloud.discovery.enabled", havingValue = "true")
 public class DiscoveryRestClientConfig {
 
-    /**
-     * Eureka's own HTTP transport also looks up a RestClient.Builder by type.
-     * Make the direct builder the default so registry URLs such as
-     * http://localhost:8761 are not sent through service discovery.
-     */
+
     @Bean
     @Primary
     @Scope("prototype")

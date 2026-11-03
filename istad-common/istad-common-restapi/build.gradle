@@ -1,5 +1,5 @@
 plugins {
-    id 'spring-common-conventions'
+    alias(libs.plugins.spring.common.conventions)
 }
 
 group = 'kh.eco.istad'
@@ -7,10 +7,10 @@ group = 'kh.eco.istad'
 dependencies {
     api project(':istad-common-domain')
 
-    implementation 'org.springframework.boot:spring-boot-starter-webmvc'
-    implementation 'org.springframework:spring-tx'
+    implementation libs.spring.boot.starter.webmvc
+    implementation libs.spring.tx
 
-    testImplementation platform('org.junit:junit-bom:6.0.0')
-    testImplementation 'org.junit.jupiter:junit-jupiter'
-    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+    testImplementation platform(libs.junit.bom)
+    testImplementation libs.junit.jupiter
+    testRuntimeOnly libs.junit.platform.launcher
 }

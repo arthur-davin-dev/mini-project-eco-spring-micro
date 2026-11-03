@@ -1,0 +1,5 @@
+dependencyManagement {
+    imports {
+        mavenBom libs.spring.cloud.dependencies.get().toString()
+    }
+}

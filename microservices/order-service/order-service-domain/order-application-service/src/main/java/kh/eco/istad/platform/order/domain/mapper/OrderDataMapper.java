@@ -35,7 +35,7 @@ public class OrderDataMapper {
                 .customerId(new CustomerId(command.customerId()))
                 .businessId(new BusinessId(command.businessId()))
                 .deliveryAddress(new StreetAddress(
-                        UUID.randomUUID(), address.street(), address.postalCode(), address.city()))
+                        address.id(), address.street(), address.postalCode(), address.city()))
                 .price(new Money(command.price()))
                 .items(items)
                 .build();

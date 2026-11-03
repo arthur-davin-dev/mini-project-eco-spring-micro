@@ -1,0 +1,26 @@
+package kh.eco.istad.platform.order.config;
+
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
+import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.config.Customizer;
+import org.springframework.security.web.SecurityFilterChain;
+
+@Configuration(proxyBeanMethods = false)
+public class OrderSecurityConfig {
+
+    @Bean
+    SecurityFilterChain orderServiceSecurityFilterChain(HttpSecurity http) throws Exception {
+        return http
+                .csrf(AbstractHttpConfigurer::disable)
+                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .authorizeHttpRequests(authorize -> authorize
+                        .requestMatchers("/customers", "/customer/**").hasAuthority("SCOPE_order.read")
+                        .requestMatchers("/actuator/health", "/actuator/health/**").permitAll()
+                        .anyRequest().denyAll())
+                .oauth2ResourceServer(resourceServer -> resourceServer.jwt(Customizer.withDefaults()))
+                .build();
+    }
+}

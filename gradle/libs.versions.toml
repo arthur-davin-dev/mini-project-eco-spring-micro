@@ -1,0 +1,68 @@
+[versions]
+
+java = "25"
+spring-boot = "4.1.1"
+spring-cloud = "2025.1.4"
+dependency-management-plugin = "1.1.7"
+springdoc = "3.2.0"
+junit = "6.0.0"
+mapstruct = "1.6.3"
+lombok-mapstruct-binding = "0.2.0"
+
+
+[libraries]
+spring-boot-gradle-plugin = { module = "org.springframework.boot:spring-boot-gradle-plugin", version.ref = "spring-boot" }
+spring-boot-autoconfigure = { module = "org.springframework.boot:spring-boot-autoconfigure", version.ref = "spring-boot" }
+spring-dependency-management-plugin = { module = "io.spring.gradle:dependency-management-plugin", version.ref = "dependency-management-plugin" }
+junit-bom = { module = "org.junit:junit-bom", version.ref = "junit" }
+junit-jupiter = { module = "org.junit.jupiter:junit-jupiter" }
+junit-platform-launcher = { module = "org.junit.platform:junit-platform-launcher" }
+istad-common-domain = { module = "kh.eco.istad:istad-common-domain" }
+istad-common-restapi = { module = "kh.eco.istad:istad-common-restapi" }
+istad-common-swagger = { module = "kh.eco.istad:istad-common-swagger" }
+mapstruct = { module = "org.mapstruct:mapstruct", version.ref = "mapstruct" }
+mapstruct-processor = { module = "org.mapstruct:mapstruct-processor", version.ref = "mapstruct" }
+lombok = { module = "org.projectlombok:lombok" }
+lombok-mapstruct-binding = { module = "org.projectlombok:lombok-mapstruct-binding", version.ref = "lombok-mapstruct-binding" }
+spring-boot-dependencies = { module = "org.springframework.boot:spring-boot-dependencies", version.ref = "spring-boot" }
+spring-cloud-dependencies = { module = "org.springframework.cloud:spring-cloud-dependencies", version.ref = "spring-cloud" }
+springdoc-webmvc-ui = { module = "org.springdoc:springdoc-openapi-starter-webmvc-ui", version.ref = "springdoc" }
+springdoc-webmvc-scalar = { module = "org.springdoc:springdoc-openapi-starter-webmvc-scalar", version.ref = "springdoc" }
+springdoc-webflux-ui = { module = "org.springdoc:springdoc-openapi-starter-webflux-ui", version.ref = "springdoc" }
+springdoc-webflux-scalar = { module = "org.springdoc:springdoc-openapi-starter-webflux-scalar", version.ref = "springdoc" }
+springdoc-openapi-common = { module = "org.springdoc:springdoc-openapi-starter-common", version.ref = "springdoc" }
+reactor-core = { module = "io.projectreactor:reactor-core" }
+reactor-test = { module = "io.projectreactor:reactor-test" }
+liquibase-core = { module = "org.liquibase:liquibase-core" }
+postgresql = { module = "org.postgresql:postgresql" }
+r2dbc-postgresql = { module = "org.postgresql:r2dbc-postgresql" }
+spring-boot-starter-actuator = { module = "org.springframework.boot:spring-boot-starter-actuator" }
+spring-boot-starter-data-jpa = { module = "org.springframework.boot:spring-boot-starter-data-jpa" }
+spring-boot-starter-data-mongodb-reactive = { module = "org.springframework.boot:spring-boot-starter-data-mongodb-reactive" }
+spring-boot-starter-data-r2dbc = { module = "org.springframework.boot:spring-boot-starter-data-r2dbc" }
+spring-boot-starter-liquibase = { module = "org.springframework.boot:spring-boot-starter-liquibase" }
+spring-boot-starter-logging = { module = "org.springframework.boot:spring-boot-starter-logging" }
+spring-boot-starter-test = { module = "org.springframework.boot:spring-boot-starter-test" }
+spring-boot-starter-validation = { module = "org.springframework.boot:spring-boot-starter-validation" }
+spring-boot-starter-webclient = { module = "org.springframework.boot:spring-boot-starter-webclient" }
+spring-boot-starter-webflux = { module = "org.springframework.boot:spring-boot-starter-webflux" }
+spring-boot-starter-webflux-test = { module = "org.springframework.boot:spring-boot-starter-webflux-test" }
+spring-boot-starter-webmvc = { module = "org.springframework.boot:spring-boot-starter-webmvc" }
+spring-boot-starter-webmvc-test = { module = "org.springframework.boot:spring-boot-starter-webmvc-test" }
+spring-cloud-starter-consul-config = { module = "org.springframework.cloud:spring-cloud-starter-consul-config" }
+spring-cloud-starter-consul-discovery = { module = "org.springframework.cloud:spring-cloud-starter-consul-discovery" }
+spring-cloud-starter-loadbalancer = { module = "org.springframework.cloud:spring-cloud-starter-loadbalancer" }
+spring-cloud-starter-netflix-eureka-client = { module = "org.springframework.cloud:spring-cloud-starter-netflix-eureka-client" }
+spring-cloud-starter-netflix-eureka-server = { module = "org.springframework.cloud:spring-cloud-starter-netflix-eureka-server" }
+spring-context = { module = "org.springframework:spring-context" }
+spring-tx = { module = "org.springframework:spring-tx" }
+
+
+[plugins]
+java-common-conventions = { id = "java-common-conventions" }
+spring-common-conventions = { id = "spring-common-conventions" }
+[bundles]
+spring-boot-gradle-plugins = [
+    "spring-boot-gradle-plugin",
+    "spring-dependency-management-plugin"
+]

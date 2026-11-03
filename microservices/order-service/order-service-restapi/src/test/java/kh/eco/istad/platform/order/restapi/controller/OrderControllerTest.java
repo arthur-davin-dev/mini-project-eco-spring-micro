@@ -49,7 +49,6 @@ class OrderControllerTest {
                 .thenReturn(new CreateOrderResult(orderId, trackingId, OrderStatus.PENDING, "Order created successfully"));
 
         mockMvc.perform(post("/api/orders")
-                        .header("Idempotency-Key", UUID.randomUUID().toString())
                         .contentType(APPLICATION_JSON)
                         .content(validOrderJson()))
                 .andExpect(status().isCreated())
@@ -63,7 +62,6 @@ class OrderControllerTest {
         String request = validOrderJson().replace("\"quantity\": 2, ", "");
 
         mockMvc.perform(post("/api/orders")
-                        .header("Idempotency-Key", UUID.randomUUID().toString())
                         .contentType(APPLICATION_JSON)
                         .content(request))
                 .andExpect(status().isBadRequest())
@@ -76,10 +74,10 @@ class OrderControllerTest {
                 {
                   "customerId": "%s",
                   "businessId": "%s",
-                  "address": {"street": "St 271", "postalCode": "12000", "city": "Phnom Penh"},
+                  "address": {"id": "%s", "street": "St 271", "postalCode": "12000", "city": "Phnom Penh"},
                   "price": 10.00,
                   "items": [{"productId": "%s", "quantity": 2, "price": 5.00, "subTotal": 10.00}]
                 }
-                """.formatted(UUID.randomUUID(), UUID.randomUUID(), UUID.randomUUID());
+                """.formatted(UUID.randomUUID(), UUID.randomUUID(), UUID.randomUUID(), UUID.randomUUID());
     }
 }

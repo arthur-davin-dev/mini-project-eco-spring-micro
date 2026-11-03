@@ -1,5 +1,3 @@
-server:
-  port: ${ORDER_SERVICE_PORT:0}
 
 management:
   endpoints:
@@ -24,41 +22,87 @@ springdoc:
 customer-service:
   base-url: ${CUSTOMER_SERVICE_URL:http://customer-service}
   timeout-ms: 3000
+
 business-service:
   base-url: ${BUSINESS_SERVICE_URL:http://business-service}
   timeout-ms: 3000
+
 payment-service:
   base-url: ${PAYMENT_SERVICE_URL:http://payment-service}
   timeout-ms: ${PAYMENT_SERVICE_TIMEOUT_MS:5000}
 
+global:
+  version: ${GLOBAL_VERSION:local}
+
 spring:
-  cloud:
-    discovery:
-      enabled: true
   application:
     name: order-service
-  datasource:
-    url: ${ORDER_DB_URL:jdbc:postgresql://localhost:5433/order_db}
-    username: ${ORDER_DB_USERNAME:postgres}
-    password: ${ORDER_DB_PASSWORD:postgres}
-  jpa:
-    hibernate:
-      ddl-auto: update
-    open-in-view: false
-    show-sql: true
+  profiles:
+    active:
+      - dev
+  config:
+    import:
+    - "optional:consul:"
+
+  cloud:
+#    discovery:
+#      enabled: true
+    consul:
+      config:
+        format: yaml
+        prefixes: config
+#        data-key: data
+        watch:
+          enabled: true
+
+      host: ${CONSUL_HOST:localhost}
+      port: ${CONSUL_PORT:8500}
+      discovery:
+        enabled: true
+        register: true
+        service-name: ${spring.application.name}
+        prefer-ip-address: true
+        health-check-path: /actuator/health
+#        health-check-interval: 15s
+        instance-id: ${spring.application.name}:${random.value}
+
+    discovery:
+      enabled: true
+  r2dbc:
+    url: ${ORDER_R2DBC_URL:r2dbc:postgresql://localhost:9543/db_order}
+    username: ${ORDER_DB_USERNAME:iteuser}
+    password: ${ORDER_DB_PASSWORD:qwerqwer}
+  liquibase:
+    enabled: true
+    change-log: classpath:/db.changelog/db.changelog-master.yaml
+    url: ${ORDER_DB_URL:jdbc:postgresql://localhost:9543/db_order}
+    user: ${ORDER_DB_USERNAME:iteuser}
+    password: ${ORDER_DB_PASSWORD:qwerqwer}
+    driver-class-name: org.postgresql.Driver
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: ${OAUTH2_ISSUER_URI:http://127.0.0.1:9000}
+      client:
+        registration:
+          customer-service:
+            provider: auth-server
+            authorization-grant-type: client_credentials
+            client-authentication-method: client_secret_basic
+            client-id: order-service
+#            client-name:
+            client-secret: ${ORDER_SERVICE_CLIENT_SECRET:local-order-secret}
+            scope:
+              - customer.read
+        provider:
+          auth-server:
+            token-uri: ${OAUTH2_TOKEN_URI:http://127.0.0.1:9000/oauth2/token}
+  http:
+    serviceclient:
+      customer-service:
+        base-url: ${CUSTOMER_SERVICE_HTTP_BASE_URL:lb://customer-service}
 
 eureka:
   client:
-    enabled: true
-    service-url:
-      defaultZone: ${EUREKA_SERVER_URL:http://localhost:8761/eureka/}
-    healthcheck:
-      enabled: true
-    registry-fetch-interval-seconds: 5
-  instance:
-    prefer-ip-address: true
-    instance-id: ${spring.application.name}:${random.value}
-    lease-renewal-interval-in-seconds: 5
-    lease-expiration-duration-in-seconds: 10
-    status-page-url-path: /actuator/info
-    health-check-url-path: /actuator/health
+    enabled: false

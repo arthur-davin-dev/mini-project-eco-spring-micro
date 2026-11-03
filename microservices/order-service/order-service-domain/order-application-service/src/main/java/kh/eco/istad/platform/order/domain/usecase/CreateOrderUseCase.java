@@ -19,6 +19,7 @@ import kh.eco.istad.platform.order.domain.port.out.PaymentGateway;
 import kh.eco.istad.platform.order.domain.port.out.PaymentGateway.PaymentResult;
 import kh.eco.istad.platform.order.domain.service.OrderDomainService;
 import org.springframework.stereotype.Service;
+import java.util.UUID;
 
 @Service
 public class CreateOrderUseCase {
@@ -46,12 +47,12 @@ public class CreateOrderUseCase {
 
     public CreateOrderResult execute(CreateOrderCommand command) {
         if (command == null) throw new IllegalArgumentException("Order details are required");
-        String requestKey = command.idempotencyKey();
-        if (requestKey == null || requestKey.isBlank() || requestKey.length() > 128) {
-            throw new IllegalArgumentException("Idempotency-Key header must contain 1 to 128 characters");
+        UUID orderAddressId = command.address().id();
+        if (orderAddressId == null) {
+            throw new IllegalArgumentException("Address id is required");
         }
 
-        Order order = orderRepository.findByIdempotencyKey(requestKey).orElse(null);
+        Order order = orderRepository.findByOrderAddressId(orderAddressId).orElse(null);
         if (order == null) {
             Customer customer = customerRepository.findCustomer(new CustomerId(command.customerId()))
                     .orElseThrow(() -> new ResourceNotFoundException(
@@ -64,7 +65,7 @@ public class CreateOrderUseCase {
 
             order = orderDataMapper.toOrder(command);
             orderDomainService.validateAndInitiateOrder(order, business);
-            order = orderRepository.save(order, requestKey);
+            order = orderRepository.save(order);
         }
 
         if (order.getOrderStatus() == OrderStatus.PAID) {
