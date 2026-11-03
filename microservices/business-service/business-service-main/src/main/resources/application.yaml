@@ -1,6 +1,5 @@
 server:
-  port: ${BUSINESS_SERVICE_PORT:0}
-
+  port: ${BUSINESS_SERVICE_PORT:9988}
 management:
   endpoints:
     web:
@@ -25,24 +24,23 @@ spring:
   cloud:
     discovery:
       enabled: true
+    consul:
+      host: ${CONSUL_HOST:localhost}
+      port: ${CONSUL_PORT:8500}
+      discovery:
+        enabled: true
+        register: true
+        service-name: ${spring.application.name}
+        prefer-ip-address: true
+        health-check-path: /actuator/health
   application:
     name: business-service
+  profiles:
+    active: dev
+
+
   data:
     mongodb:
       auto-index-creation: true
   mongodb:
     uri: ${BUSINESS_MONGODB_URI:mongodb://mongod:mongod@localhost:2026/business_db?authSource=admin}
-
-eureka:
-  client:
-    enabled: true
-    service-url:
-      defaultZone: ${EUREKA_SERVER_URL:http://localhost:8761/eureka/}
-    healthcheck:
-      enabled: true
-    registry-fetch-interval-seconds: 5
-  instance:
-    prefer-ip-address: true
-    instance-id: ${spring.application.name}:${random.value}
-    lease-renewal-interval-in-seconds: 5
-    lease-expiration-duration-in-seconds: 10

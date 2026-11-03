@@ -9,6 +9,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
 import org.springframework.context.annotation.Scope;
 import org.springframework.web.client.RestClient;
+import org.springframework.http.client.ClientHttpRequestInterceptor;
 
 
 @Configuration
@@ -35,8 +36,10 @@ public class DiscoveryRestClientConfig {
     @Qualifier("customerRestClient")
     public RestClient customerRestClient(
             @LoadBalanced RestClient.Builder builder,
+            @Qualifier("customerOAuth2Interceptor") ClientHttpRequestInterceptor oauth2Interceptor,
             @Value("${customer-service.base-url}") String baseUrl,
             @Value("${customer-service.timeout-ms:3000}") int timeoutMs) {
+        builder.requestInterceptor(oauth2Interceptor);
         return RestClientSupport.build(builder, baseUrl, timeoutMs);
     }
 

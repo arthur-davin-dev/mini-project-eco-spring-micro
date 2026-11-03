@@ -7,16 +7,17 @@ pluginManagement {
     }
 }
 
+includeBuild '../../istad-common'
+
 dependencyResolutionManagement {
+    repositories {
+        mavenCentral()
+    }
     versionCatalogs {
         libs {
             from(files("../../gradle/libs.versions.toml"))
         }
     }
-
-    repositories {
-        mavenCentral()
-    }
 }
 
-rootProject.name = 'eureka-server'
+rootProject.name = 'gateway-server'

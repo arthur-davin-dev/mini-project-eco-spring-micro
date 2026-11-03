@@ -54,11 +54,6 @@
                   <project path="$PROJECT_DIR$/microservices/customer-service/customer-service-restapi" />
                 </projects>
               </build>
-              <build path="$PROJECT_DIR$/microservices/eureka-server" name="eureka-server">
-                <projects>
-                  <project path="$PROJECT_DIR$/microservices/eureka-server" />
-                </projects>
-              </build>
               <build path="$PROJECT_DIR$/microservices/order-service" name="order-service">
                 <projects>
                   <project path="$PROJECT_DIR$/microservices/order-service" />
@@ -112,7 +107,6 @@
             <option value="$PROJECT_DIR$/microservices/customer-service/customer-service-message" />
             <option value="$PROJECT_DIR$/microservices/customer-service/customer-service-persistence" />
             <option value="$PROJECT_DIR$/microservices/customer-service/customer-service-restapi" />
-            <option value="$PROJECT_DIR$/microservices/eureka-server" />
             <option value="$PROJECT_DIR$/microservices/order-service" />
             <option value="$PROJECT_DIR$/microservices/order-service/order-service-client" />
             <option value="$PROJECT_DIR$/microservices/order-service/order-service-domain" />
@@ -131,6 +125,39 @@
           </set>
         </option>
         <option name="myGradleHome" value="/usr/share/java/gradle" />
+      </GradleProjectSettings>
+      <GradleProjectSettings>
+        <compositeConfiguration>
+          <compositeBuild compositeDefinitionSource="SCRIPT">
+            <builds>
+              <build path="$PROJECT_DIR$/build-logic" name="build-logic">
+                <projects>
+                  <project path="$PROJECT_DIR$/build-logic" />
+                </projects>
+              </build>
+              <build path="$PROJECT_DIR$/istad-common" name="istad-common">
+                <projects>
+                  <project path="$PROJECT_DIR$/istad-common" />
+                  <project path="$PROJECT_DIR$/istad-common/istad-common-domain" />
+                  <project path="$PROJECT_DIR$/istad-common/istad-common-restapi" />
+                  <project path="$PROJECT_DIR$/istad-common/istad-common-swagger" />
+                  <project path="$PROJECT_DIR$/istad-common/istad-common-webflux" />
+                </projects>
+              </build>
+            </builds>
+          </compositeBuild>
+        </compositeConfiguration>
+        <option name="externalProjectPath" value="$PROJECT_DIR$/microservices/gateway-server" />
+        <option name="modules">
+          <set>
+            <option value="$PROJECT_DIR$/build-logic" />
+            <option value="$PROJECT_DIR$/istad-common" />
+            <option value="$PROJECT_DIR$/istad-common/istad-common-domain" />
+            <option value="$PROJECT_DIR$/istad-common/istad-common-restapi" />
+            <option value="$PROJECT_DIR$/istad-common/istad-common-swagger" />
+            <option value="$PROJECT_DIR$/istad-common/istad-common-webflux" />
+          </set>
+        </option>
       </GradleProjectSettings>
     </option>
   </component>

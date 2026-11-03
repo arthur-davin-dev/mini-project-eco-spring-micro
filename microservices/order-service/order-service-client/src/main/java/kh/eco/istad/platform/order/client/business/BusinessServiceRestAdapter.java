@@ -50,7 +50,7 @@ public class BusinessServiceRestAdapter implements BusinessRepository {
         }catch (HttpClientErrorException.NotFound ex){
             return Optional.empty();
         }catch (RestClientException | IllegalStateException ex){
-            // IllegalStateException: Spring Cloud LoadBalancer found no instance of the service in Eureka
+            // IllegalStateException: Spring Cloud LoadBalancer found no instance of the service in Consul
             log.error("Call to business-service failed", ex);
             throw new ExternalServiceException(
                     "Business is unavailable", ex

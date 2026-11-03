@@ -8,7 +8,7 @@ import java.util.Map;
 
 /**
  * Tells the caller WHICH running instance answered.
- * Used in the Eureka lab to prove that load balancing alternates between instances.
+ * Used to prove that load balancing alternates between service instances.
  */
 @RestController
 public class InstanceInfoController {

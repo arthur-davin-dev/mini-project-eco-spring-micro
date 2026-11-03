@@ -1,73 +1,29 @@
-
-management:
-  endpoints:
-    web:
-      exposure:
-        include: health,info
-  endpoint:
-    health:
-      probes:
-        enabled: true
-
-scalar:
-  enabled: true
-  url: /v3/api-docs
-
-springdoc:
-  api-docs:
-    enabled: true
-  swagger-ui:
-    enabled: true
-
-customer-service:
-  base-url: ${CUSTOMER_SERVICE_URL:http://customer-service}
-  timeout-ms: 3000
-
-business-service:
-  base-url: ${BUSINESS_SERVICE_URL:http://business-service}
-  timeout-ms: 3000
-
-payment-service:
-  base-url: ${PAYMENT_SERVICE_URL:http://payment-service}
-  timeout-ms: ${PAYMENT_SERVICE_TIMEOUT_MS:5000}
-
-global:
-  version: ${GLOBAL_VERSION:local}
-
 spring:
   application:
     name: order-service
   profiles:
-    active:
-      - dev
+    active: dev
   config:
     import:
     - "optional:consul:"
-
   cloud:
-#    discovery:
-#      enabled: true
+    discovery:
+      enabled: true
     consul:
+      host: ${CONSUL_HOST:localhost}
+      port: ${CONSUL_PORT:8500}
       config:
         format: yaml
         prefixes: config
-#        data-key: data
         watch:
           enabled: true
-
-      host: ${CONSUL_HOST:localhost}
-      port: ${CONSUL_PORT:8500}
       discovery:
         enabled: true
         register: true
         service-name: ${spring.application.name}
+        instance-id: ${spring.application.name}:${random.value}
         prefer-ip-address: true
         health-check-path: /actuator/health
-#        health-check-interval: 15s
-        instance-id: ${spring.application.name}:${random.value}
-
-    discovery:
-      enabled: true
   r2dbc:
     url: ${ORDER_R2DBC_URL:r2dbc:postgresql://localhost:9543/db_order}
     username: ${ORDER_DB_USERNAME:iteuser}
@@ -91,7 +47,6 @@ spring:
             authorization-grant-type: client_credentials
             client-authentication-method: client_secret_basic
             client-id: order-service
-#            client-name:
             client-secret: ${ORDER_SERVICE_CLIENT_SECRET:local-order-secret}
             scope:
               - customer.read
@@ -103,6 +58,37 @@ spring:
       customer-service:
         base-url: ${CUSTOMER_SERVICE_HTTP_BASE_URL:lb://customer-service}
 
-eureka:
-  client:
-    enabled: false
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+  endpoint:
+    health:
+      probes:
+        enabled: true
+
+customer-service:
+  base-url: ${CUSTOMER_SERVICE_URL:http://customer-service}
+  timeout-ms: 3000
+
+business-service:
+  base-url: ${BUSINESS_SERVICE_URL:http://business-service}
+  timeout-ms: 3000
+
+payment-service:
+  base-url: ${PAYMENT_SERVICE_URL:http://payment-service}
+  timeout-ms: ${PAYMENT_SERVICE_TIMEOUT_MS:5000}
+
+global:
+  version: ${GLOBAL_VERSION:local}
+
+springdoc:
+  api-docs:
+    enabled: true
+  swagger-ui:
+    enabled: true
+
+scalar:
+  enabled: true
+  url: /v3/api-docs

@@ -13,7 +13,6 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-oauth2-resource-server'
     implementation libs.spring.boot.starter.webmvc
     implementation libs.spring.boot.starter.actuator
-    implementation libs.spring.cloud.starter.netflix.eureka.client
     implementation libs.istad.common.swagger
     implementation libs.springdoc.webmvc.ui
     implementation libs.springdoc.webmvc.scalar

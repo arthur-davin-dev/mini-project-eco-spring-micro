@@ -6,6 +6,7 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.client.RestClient;
+import org.springframework.http.client.ClientHttpRequestInterceptor;
 
 @Configuration
 @ConditionalOnProperty(name = "spring.cloud.discovery.enabled", havingValue = "false", matchIfMissing = true)
@@ -14,9 +15,11 @@ public class RestClientConfig {
     @Bean
     @Qualifier("customerRestClient")
     public RestClient customerRestClient(
+            @Qualifier("customerOAuth2Interceptor") ClientHttpRequestInterceptor oauth2Interceptor,
             @Value("${customer-service.base-url}") String baseUrl,
             @Value("${customer-service.timeout-ms:3000}") int timeoutMs) {
-        return RestClientSupport.build(RestClient.builder(), baseUrl, timeoutMs);
+        RestClient.Builder builder = RestClient.builder().requestInterceptor(oauth2Interceptor);
+        return RestClientSupport.build(builder, baseUrl, timeoutMs);
     }
 
     @Bean

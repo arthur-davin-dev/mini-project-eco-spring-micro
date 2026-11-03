@@ -17,8 +17,10 @@ public class OrderSecurityConfig {
                 .csrf(AbstractHttpConfigurer::disable)
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(authorize -> authorize
-                        .requestMatchers("/customers", "/customer/**").hasAuthority("SCOPE_order.read")
-                        .requestMatchers("/actuator/health", "/actuator/health/**").permitAll()
+                        // These endpoints are called by the local client during development.
+                        // The downstream customer-service call uses order-service client credentials.
+                        .requestMatchers("/customers", "/customer/**").permitAll()
+                        .requestMatchers("/actuator/health", "/actuator/health/**", "/flux").permitAll()
                         .anyRequest().denyAll())
                 .oauth2ResourceServer(resourceServer -> resourceServer.jwt(Customizer.withDefaults()))
                 .build();

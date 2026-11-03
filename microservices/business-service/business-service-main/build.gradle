@@ -8,10 +8,11 @@ dependencies {
     implementation project(':business-service-domain:business-application-service')
     implementation project(':business-service-persistence')
     implementation project(':business-service-restapi')
+    implementation libs.spring.cloud.starter.consul.discovery
+    implementation 'org.springframework.boot:spring-boot-starter-actuator'
 
     implementation libs.spring.boot.starter.webflux
     implementation libs.spring.boot.starter.actuator
-    implementation libs.spring.cloud.starter.netflix.eureka.client
     implementation libs.spring.boot.starter.data.mongodb.reactive
     implementation libs.istad.common.swagger
     implementation libs.springdoc.webflux.ui
