@@ -9,6 +9,10 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-oauth2-client'
     implementation 'org.springframework.boot:spring-boot-starter-oauth2-resource-server'
     implementation libs.spring.boot.starter.webclient
+    implementation(libs.spring.boot.starter.grpc.client) {
+        exclude group: 'io.grpc', module: 'grpc-netty'
+    }
+    implementation libs.grpc.netty.shaded
     runtimeOnly libs.postgresql
     runtimeOnly libs.r2dbc.postgresql
 

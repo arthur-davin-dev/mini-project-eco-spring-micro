@@ -57,6 +57,11 @@ spring:
     serviceclient:
       customer-service:
         base-url: ${CUSTOMER_SERVICE_HTTP_BASE_URL:lb://customer-service}
+  grpc:
+    client:
+      channel:
+        customer-service:
+          target: ${CUSTOMER_SERVICE_GRPC_TARGET:static://localhost:9090}
 
 management:
   endpoints:
@@ -72,7 +77,6 @@ customer-service:
   base-url: ${CUSTOMER_SERVICE_URL:http://customer-service}
   timeout-ms: 3000
   grpc:
-    target: ${CUSTOMER_SERVICE_GRPC_TARGET:localhost:9090}
     timeout-ms: ${CUSTOMER_SERVICE_GRPC_TIMEOUT_MS:3000}
 
 business-service:

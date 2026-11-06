@@ -8,11 +8,11 @@ import build.buf.gen.customer.v1.GetCustomerResponse;
 import kh.eco.istad.common.domain.exception.ResourceNotFoundException;
 import io.grpc.Status;
 import io.grpc.stub.StreamObserver;
-import org.springframework.stereotype.Service;
+import org.springframework.grpc.server.service.GrpcService;
 
 import java.util.UUID;
 
-@Service
+@GrpcService
 public class CustomerGrpcService extends CustomerServiceGrpc.CustomerServiceImplBase {
 
     private final GetCustomerUseCase getCustomerUseCase;

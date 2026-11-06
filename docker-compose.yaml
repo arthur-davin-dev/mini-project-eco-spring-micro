@@ -184,7 +184,7 @@ services:
     ports: ["${ORDER_SERVICE_PORT:-8081}:8081"]
     environment:
       ORDER_SERVICE_PORT: 8081
-      CUSTOMER_SERVICE_GRPC_TARGET: customer-service:9090
+      CUSTOMER_SERVICE_GRPC_TARGET: static://customer-service:9090
       CONSUL_HOST: consul-server
       ORDER_DB_URL: jdbc:postgresql://order-postgres:5432/${ORDER_DB_NAME:-order_db}
       ORDER_DB_USERNAME: ${ORDER_DB_USERNAME:-postgres}

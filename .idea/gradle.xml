@@ -162,6 +162,7 @@
             <option value="$PROJECT_DIR$/istad-common/istad-common-restapi" />
             <option value="$PROJECT_DIR$/istad-common/istad-common-swagger" />
             <option value="$PROJECT_DIR$/istad-common/istad-common-webflux" />
+            <option value="$PROJECT_DIR$/microservices/gateway-server" />
           </set>
         </option>
       </GradleProjectSettings>

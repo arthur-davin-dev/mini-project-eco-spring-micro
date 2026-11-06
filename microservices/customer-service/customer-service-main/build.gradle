@@ -10,6 +10,9 @@ dependencies {
     implementation project(':customer-service-restapi')
     implementation project(':customer-service-message')
 
+    implementation(libs.spring.boot.starter.grpc.server) {
+        exclude group: 'io.grpc', module: 'grpc-netty'
+    }
     implementation libs.grpc.netty.shaded
 
     implementation libs.istad.common.restapi

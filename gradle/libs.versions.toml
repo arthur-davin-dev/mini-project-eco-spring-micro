@@ -10,6 +10,7 @@ mapstruct = "1.6.3"
 lombok-mapstruct-binding = "0.2.0"
 grpc = "1.85.1"
 istad-common-proto-grpc = "1.85.1.1.20261106031900.791fac7fed6a"
+protobuf-java = "4.36.2"
 
 
 [libraries]
@@ -57,7 +58,11 @@ spring-cloud-starter-loadbalancer = { module = "org.springframework.cloud:spring
 spring-context = { module = "org.springframework:spring-context" }
 spring-tx = { module = "org.springframework:spring-tx" }
 grpc-netty-shaded = { module = "io.grpc:grpc-netty-shaded", version.ref = "grpc" }
+grpc-bom = { module = "io.grpc:grpc-bom", version.ref = "grpc" }
+protobuf-java = { module = "com.google.protobuf:protobuf-java", version.ref = "protobuf-java" }
 istad-common-proto-grpc = { module = "build.buf.gen:istad_istad-common-proto_grpc_java", version.ref = "istad-common-proto-grpc" }
+spring-boot-starter-grpc-server = { module = "org.springframework.boot:spring-boot-starter-grpc-server" }
+spring-boot-starter-grpc-client = { module = "org.springframework.boot:spring-boot-starter-grpc-client" }
 
 
 [plugins]
