@@ -7,11 +7,6 @@
         <compositeConfiguration>
           <compositeBuild compositeDefinitionSource="SCRIPT">
             <builds>
-              <build path="$PROJECT_DIR$/authorization-server" name="authorization-server">
-                <projects>
-                  <project path="$PROJECT_DIR$/authorization-server" />
-                </projects>
-              </build>
               <build path="$PROJECT_DIR$/build-logic" name="build-logic">
                 <projects>
                   <project path="$PROJECT_DIR$/build-logic" />
@@ -54,6 +49,16 @@
                   <project path="$PROJECT_DIR$/microservices/customer-service/customer-service-restapi" />
                 </projects>
               </build>
+              <build path="$PROJECT_DIR$/microservices/gateway-server" name="gateway-server">
+                <projects>
+                  <project path="$PROJECT_DIR$/microservices/gateway-server" />
+                </projects>
+              </build>
+              <build path="$PROJECT_DIR$/microservices/iam-service" name="iam-service">
+                <projects>
+                  <project path="$PROJECT_DIR$/microservices/iam-service" />
+                </projects>
+              </build>
               <build path="$PROJECT_DIR$/microservices/order-service" name="order-service">
                 <projects>
                   <project path="$PROJECT_DIR$/microservices/order-service" />
@@ -84,7 +89,6 @@
         <option name="modules">
           <set>
             <option value="$PROJECT_DIR$" />
-            <option value="$PROJECT_DIR$/authorization-server" />
             <option value="$PROJECT_DIR$/build-logic" />
             <option value="$PROJECT_DIR$/istad-common" />
             <option value="$PROJECT_DIR$/istad-common/istad-common-domain" />
@@ -107,6 +111,8 @@
             <option value="$PROJECT_DIR$/microservices/customer-service/customer-service-message" />
             <option value="$PROJECT_DIR$/microservices/customer-service/customer-service-persistence" />
             <option value="$PROJECT_DIR$/microservices/customer-service/customer-service-restapi" />
+            <option value="$PROJECT_DIR$/microservices/gateway-server" />
+            <option value="$PROJECT_DIR$/microservices/iam-service" />
             <option value="$PROJECT_DIR$/microservices/order-service" />
             <option value="$PROJECT_DIR$/microservices/order-service/order-service-client" />
             <option value="$PROJECT_DIR$/microservices/order-service/order-service-domain" />
@@ -156,6 +162,26 @@
             <option value="$PROJECT_DIR$/istad-common/istad-common-restapi" />
             <option value="$PROJECT_DIR$/istad-common/istad-common-swagger" />
             <option value="$PROJECT_DIR$/istad-common/istad-common-webflux" />
+          </set>
+        </option>
+      </GradleProjectSettings>
+      <GradleProjectSettings>
+        <compositeConfiguration>
+          <compositeBuild compositeDefinitionSource="SCRIPT">
+            <builds>
+              <build path="$PROJECT_DIR$/build-logic" name="build-logic">
+                <projects>
+                  <project path="$PROJECT_DIR$/build-logic" />
+                </projects>
+              </build>
+            </builds>
+          </compositeBuild>
+        </compositeConfiguration>
+        <option name="externalProjectPath" value="$PROJECT_DIR$/microservices/iam-service" />
+        <option name="modules">
+          <set>
+            <option value="$PROJECT_DIR$/build-logic" />
+            <option value="$PROJECT_DIR$/microservices/iam-service" />
           </set>
         </option>
       </GradleProjectSettings>

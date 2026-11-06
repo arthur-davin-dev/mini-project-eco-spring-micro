@@ -6,10 +6,6 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.util.Map;
 
-/**
- * Tells the caller WHICH running instance answered.
- * Used to prove that load balancing alternates between service instances.
- */
 @RestController
 public class InstanceInfoController {
 

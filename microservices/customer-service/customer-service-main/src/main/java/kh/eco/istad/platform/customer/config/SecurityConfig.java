@@ -13,17 +13,18 @@ public class SecurityConfig {
 
     @Bean
     SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-        http
-                .csrf(AbstractHttpConfigurer::disable)
-                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-                .authorizeHttpRequests(authorize -> authorize
-                        .requestMatchers("/actuator/health", "/actuator/health/**").permitAll()
-                        .requestMatchers("/api/customers", "/api/customers/**", "/customers", "/customers/**")
-                        .hasAuthority("SCOPE_customer.read")
-                        .anyRequest().denyAll()
-                )
+        http.
+                csrf(AbstractHttpConfigurer::disable)
+                .sessionManagement(
+                        session -> session
+                                .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .authorizeHttpRequests(auth-> auth
+                                .requestMatchers("/actuator/health","/actuator/health/**").permitAll()
+                                .requestMatchers("/api/customers","/api/customers/**","/customers","/customers/**")
+                                .hasAnyAuthority("SCOPE_customer.read")
+                                .anyRequest().denyAll()
+                        )
                 .oauth2ResourceServer(resourceServer -> resourceServer.jwt(Customizer.withDefaults()));
-
         return http.build();
     }
 }

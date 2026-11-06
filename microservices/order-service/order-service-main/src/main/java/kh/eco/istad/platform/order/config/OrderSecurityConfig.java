@@ -15,10 +15,9 @@ public class OrderSecurityConfig {
     SecurityFilterChain orderServiceSecurityFilterChain(HttpSecurity http) throws Exception {
         return http
                 .csrf(AbstractHttpConfigurer::disable)
-                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .sessionManagement(session -> session
+                        .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(authorize -> authorize
-                        // These endpoints are called by the local client during development.
-                        // The downstream customer-service call uses order-service client credentials.
                         .requestMatchers("/customers", "/customer/**").permitAll()
                         .requestMatchers("/actuator/health", "/actuator/health/**", "/flux").permitAll()
                         .anyRequest().denyAll())

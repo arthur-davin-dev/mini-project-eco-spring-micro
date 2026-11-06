@@ -1,7 +1,6 @@
 package kh.eco.istad.platform.order.restapi.controller;
 
 import kh.eco.istad.common.domain.valueobject.OrderStatus;
-import kh.eco.istad.common.restapi.exception.GlobalExceptionHandler;
 import kh.eco.istad.platform.order.domain.dto.CreateOrderCommand;
 import kh.eco.istad.platform.order.domain.dto.CreateOrderResult;
 import kh.eco.istad.platform.order.domain.usecase.CreateOrderUseCase;
@@ -26,7 +25,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @WebMvcTest(OrderController.class)
-@Import({OrderController.class, OrderWebMapper.class, GlobalExceptionHandler.class})
+@Import({OrderController.class, OrderWebMapper.class})
 @ContextConfiguration(classes = OrderControllerTest.TestApplication.class)
 class OrderControllerTest {
 

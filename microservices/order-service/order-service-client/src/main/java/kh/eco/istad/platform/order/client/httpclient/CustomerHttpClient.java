@@ -13,6 +13,7 @@ import reactor.core.publisher.Mono;
 public interface CustomerHttpClient {
     @GetExchange
     Flux<QueryCustomerResult> queryCustomer();
+
     @GetExchange("/{id}")
     Mono<QueryCustomerResult> findCustomerById(@PathVariable("id") String id);
 }

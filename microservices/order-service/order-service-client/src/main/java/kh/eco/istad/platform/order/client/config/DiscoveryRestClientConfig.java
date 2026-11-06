@@ -24,7 +24,9 @@ public class DiscoveryRestClientConfig {
         return RestClient.builder();
     }
 
-    /** Prototype: every injection point gets its own builder instance. */
+    /**
+     * Prototype: every injection point gets its own builder instance.
+     */
     @Bean
     @LoadBalanced
     @Scope("prototype")

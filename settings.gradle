@@ -2,4 +2,3 @@ rootProject.name = 'mini-e-commerce-micro'
 
 includeBuild 'istad-common'
 includeBuild 'microservices'
-includeBuild 'authorization-server'
