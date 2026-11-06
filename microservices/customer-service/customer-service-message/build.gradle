@@ -4,4 +4,5 @@ plugins {
 
 dependencies {
     api project(':customer-service-domain:customer-application-service')
+    api libs.istad.common.proto.grpc
 }

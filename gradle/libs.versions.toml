@@ -8,6 +8,8 @@ springdoc = "3.2.0"
 junit = "6.0.0"
 mapstruct = "1.6.3"
 lombok-mapstruct-binding = "0.2.0"
+grpc = "1.85.1"
+istad-common-proto-grpc = "1.85.1.1.20261106031900.791fac7fed6a"
 
 
 [libraries]
@@ -54,6 +56,8 @@ spring-cloud-starter-consul-discovery = { module = "org.springframework.cloud:sp
 spring-cloud-starter-loadbalancer = { module = "org.springframework.cloud:spring-cloud-starter-loadbalancer" }
 spring-context = { module = "org.springframework:spring-context" }
 spring-tx = { module = "org.springframework:spring-tx" }
+grpc-netty-shaded = { module = "io.grpc:grpc-netty-shaded", version.ref = "grpc" }
+istad-common-proto-grpc = { module = "build.buf.gen:istad_istad-common-proto_grpc_java", version.ref = "istad-common-proto-grpc" }
 
 
 [plugins]

@@ -71,6 +71,9 @@ management:
 customer-service:
   base-url: ${CUSTOMER_SERVICE_URL:http://customer-service}
   timeout-ms: 3000
+  grpc:
+    target: ${CUSTOMER_SERVICE_GRPC_TARGET:localhost:9090}
+    timeout-ms: ${CUSTOMER_SERVICE_GRPC_TIMEOUT_MS:3000}
 
 business-service:
   base-url: ${BUSINESS_SERVICE_URL:http://business-service}

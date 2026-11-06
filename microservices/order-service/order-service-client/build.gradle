@@ -5,6 +5,8 @@ plugins {
 
 dependencies {
     api project(':order-service-domain:order-application-service')
+    api libs.istad.common.proto.grpc
+    implementation libs.grpc.netty.shaded
     api 'org.springframework.boot:spring-boot-starter-oauth2-client'
     implementation libs.spring.boot.starter.webmvc
     implementation libs.spring.cloud.starter.loadbalancer

@@ -21,6 +21,10 @@ import org.springframework.security.oauth2.client.ReactiveOAuth2AuthorizedClient
 import org.springframework.security.oauth2.client.web.reactive.function.client.support.OAuth2WebClientHttpServiceGroupConfigurer;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.authority.AuthorityUtils;
+import io.grpc.ManagedChannel;
+import io.grpc.ManagedChannelBuilder;
+import build.buf.gen.customer.v1.CustomerServiceGrpc;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpRequest;
 import org.springframework.http.client.ClientHttpRequestInterceptor;
 import org.springframework.http.client.support.HttpRequestWrapper;
@@ -91,6 +95,19 @@ public class OAuth2ClientConfig {
             authorizedRequest.getHeaders().setBearerAuth(authorizedClient.getAccessToken().getTokenValue());
             return execution.execute(authorizedRequest, body);
         };
+    }
+
+    @Bean(destroyMethod = "shutdownNow")
+    ManagedChannel customerGrpcChannel(
+            @Value("${customer-service.grpc.target:localhost:9090}") String target) {
+        return ManagedChannelBuilder.forTarget(target)
+                .usePlaintext()
+                .build();
+    }
+
+    @Bean
+    CustomerServiceGrpc.CustomerServiceBlockingStub customerServiceBlockingStub(ManagedChannel customerGrpcChannel) {
+        return CustomerServiceGrpc.newBlockingStub(customerGrpcChannel);
     }
 
 }

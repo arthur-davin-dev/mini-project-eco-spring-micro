@@ -6,6 +6,7 @@ import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.web.SecurityFilterChain;
 
 @Configuration(proxyBeanMethods = false)
@@ -20,6 +21,7 @@ public class SecurityConfig {
                                 .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth-> auth
                                 .requestMatchers("/actuator/health","/actuator/health/**").permitAll()
+                                .requestMatchers(HttpMethod.GET, "/api/customers/*", "/customers/*").permitAll()
                                 .requestMatchers("/api/customers","/api/customers/**","/customers","/customers/**")
                                 .hasAnyAuthority("SCOPE_customer.read")
                                 .anyRequest().denyAll()

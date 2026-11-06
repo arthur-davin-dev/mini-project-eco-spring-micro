@@ -93,9 +93,12 @@ services:
         BOOT_MODULE: customer-service-main
         ARTIFACT_PATH: microservices/customer-service/customer-service-main/build/libs
     restart: unless-stopped
-    ports: ["${CUSTOMER_SERVICE_PORT:-8083}:8083"]
+    ports:
+      - "${CUSTOMER_SERVICE_PORT:-8083}:8083"
+      - "${CUSTOMER_SERVICE_GRPC_HOST_PORT:-9090}:9090"
     environment:
       CUSTOMER_SERVICE_PORT: 8083
+      CUSTOMER_SERVICE_GRPC_PORT: 9090
       CONSUL_HOST: consul-server
       CUSTOMER_DB_URL: jdbc:postgresql://customer-postgres:5432/${CUSTOMER_DB_NAME:-customer_db}
       CUSTOMER_DB_USERNAME: ${CUSTOMER_DB_USERNAME:-postgres}
@@ -181,6 +184,7 @@ services:
     ports: ["${ORDER_SERVICE_PORT:-8081}:8081"]
     environment:
       ORDER_SERVICE_PORT: 8081
+      CUSTOMER_SERVICE_GRPC_TARGET: customer-service:9090
       CONSUL_HOST: consul-server
       ORDER_DB_URL: jdbc:postgresql://order-postgres:5432/${ORDER_DB_NAME:-order_db}
       ORDER_DB_USERNAME: ${ORDER_DB_USERNAME:-postgres}
