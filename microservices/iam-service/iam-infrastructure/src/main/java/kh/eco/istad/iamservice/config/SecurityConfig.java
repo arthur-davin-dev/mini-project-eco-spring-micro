@@ -7,6 +7,7 @@ import com.nimbusds.jose.jwk.RSAKey;
 import com.nimbusds.jose.jwk.source.ImmutableJWKSet;
 import com.nimbusds.jose.jwk.source.JWKSource;
 import com.nimbusds.jose.proc.SecurityContext;
+
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.security.KeyFactory;
@@ -21,6 +22,7 @@ import java.util.Base64;
 import java.util.List;
 import java.util.Set;
 import java.util.function.Consumer;
+
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -77,19 +79,23 @@ public class SecurityConfig {
     private static final Logger LOGGER = LoggerFactory.getLogger(SecurityConfig.class);
 
     private static final Set<String> DYNAMIC_CLIENT_SCOPES =
-        Set.of(OidcScopes.OPENID, OidcScopes.PROFILE, OidcScopes.EMAIL, OidcScopes.PHONE, OidcScopes.ADDRESS);
+            Set.of(OidcScopes.OPENID, OidcScopes.PROFILE, OidcScopes.EMAIL, OidcScopes.PHONE, OidcScopes.ADDRESS);
 
     private final JdbcTemplate jdbcTemplate;
     private final FederatedOAuth2UserService federatedOAuth2UserService;
     private final FederatedOidcUserService federatedOidcUserService;
     private final FederatedLinkIntent federatedLinkIntent;
     private final RecordLoginAttemptUseCase recordLoginAttempt;
+    private final HostAwareLogoutSuccessHandler hostAwareLogoutSuccessHandler;
 
-    @Value("${spring.security.oauth2.authorizationserver.issuer}") private String issuer;
+    @Value("${spring.security.oauth2.authorizationserver.issuer}")
+    private String issuer;
 
-    @Value("${iam.security.jwk.private-key-path:}") private String privateKeyPath;
+    @Value("${iam.security.jwk.private-key-path:}")
+    private String privateKeyPath;
 
-    @Value("${iam.security.jwk.public-key-path:}") private String publicKeyPath;
+    @Value("${iam.security.jwk.public-key-path:}")
+    private String publicKeyPath;
 
     // 1. Authorization Server Security
     @Bean
@@ -98,19 +104,19 @@ public class SecurityConfig {
         OAuth2AuthorizationServerConfigurer authorizationServerConfigurer = new OAuth2AuthorizationServerConfigurer();
 
         http.securityMatcher(authorizationServerConfigurer.getEndpointsMatcher())
-            .with(authorizationServerConfigurer,
-                (authorizationServer)
-                    -> authorizationServer.authorizationEndpoint(endpoint -> endpoint.consentPage("/oauth2/consent"))
-                        .oidc(oidc
-                            -> oidc.clientRegistrationEndpoint(endpoint
-                                -> endpoint.authenticationProviders(requirePkceAndConsentForDynamicClients()))))
-            .authorizeHttpRequests((authorize) -> authorize.anyRequest().authenticated())
-            // Redirect to the login page when not authenticated from the
-            // authorization endpoint
-            .exceptionHandling(
-                (exceptions)
-                    -> exceptions.defaultAuthenticationEntryPointFor(new LoginUrlAuthenticationEntryPoint("/login"),
-                        new MediaTypeRequestMatcher(MediaType.TEXT_HTML)));
+                .with(authorizationServerConfigurer,
+                        (authorizationServer)
+                                -> authorizationServer.authorizationEndpoint(endpoint -> endpoint.consentPage("/oauth2/consent"))
+                                .oidc(oidc
+                                        -> oidc.clientRegistrationEndpoint(endpoint
+                                        -> endpoint.authenticationProviders(requirePkceAndConsentForDynamicClients()))))
+                .authorizeHttpRequests((authorize) -> authorize.anyRequest().authenticated())
+                // Redirect to the login page when not authenticated from the
+                // authorization endpoint
+                .exceptionHandling(
+                        (exceptions)
+                                -> exceptions.defaultAuthenticationEntryPointFor(new LoginUrlAuthenticationEntryPoint("/login"),
+                                new MediaTypeRequestMatcher(MediaType.TEXT_HTML)));
 
         return http.build();
     }
@@ -119,20 +125,20 @@ public class SecurityConfig {
         return providers -> providers.forEach(provider -> {
             if (provider instanceof OidcClientRegistrationAuthenticationProvider registrationProvider) {
                 registrationProvider.setAuthenticationValidator(
-                    OidcClientRegistrationAuthenticationValidator.DEFAULT_REDIRECT_URI_VALIDATOR
-                        .andThen(
-                            OidcClientRegistrationAuthenticationValidator.DEFAULT_POST_LOGOUT_REDIRECT_URI_VALIDATOR)
-                        .andThen(OidcClientRegistrationAuthenticationValidator.DEFAULT_JWK_SET_URI_VALIDATOR)
-                        .andThen(SecurityConfig::validateDynamicClientScopes));
+                        OidcClientRegistrationAuthenticationValidator.DEFAULT_REDIRECT_URI_VALIDATOR
+                                .andThen(
+                                        OidcClientRegistrationAuthenticationValidator.DEFAULT_POST_LOGOUT_REDIRECT_URI_VALIDATOR)
+                                .andThen(OidcClientRegistrationAuthenticationValidator.DEFAULT_JWK_SET_URI_VALIDATOR)
+                                .andThen(SecurityConfig::validateDynamicClientScopes));
                 Converter<OidcClientRegistration, RegisteredClient> delegate =
-                    new OidcClientRegistrationRegisteredClientConverter();
+                        new OidcClientRegistrationRegisteredClientConverter();
                 registrationProvider.setRegisteredClientConverter(registration -> {
                     RegisteredClient registeredClient = delegate.convert(registration);
                     ClientSettings clientSettings =
-                        ClientSettings.withSettings(registeredClient.getClientSettings().getSettings())
-                            .requireProofKey(true)
-                            .requireAuthorizationConsent(true)
-                            .build();
+                            ClientSettings.withSettings(registeredClient.getClientSettings().getSettings())
+                                    .requireProofKey(true)
+                                    .requireAuthorizationConsent(true)
+                                    .build();
                     return RegisteredClient.from(registeredClient).clientSettings(clientSettings).build();
                 });
             }
@@ -144,7 +150,7 @@ public class SecurityConfig {
         var requested = authentication.getClientRegistration().getScopes();
         if (!DYNAMIC_CLIENT_SCOPES.containsAll(requested)) {
             throw new OAuth2AuthenticationException(new OAuth2Error(
-                OAuth2ErrorCodes.INVALID_SCOPE, "Only the supported OpenID Connect scopes may be registered.", null));
+                    OAuth2ErrorCodes.INVALID_SCOPE, "Only the supported OpenID Connect scopes may be registered.", null));
         }
     }
 
@@ -152,40 +158,40 @@ public class SecurityConfig {
     @Order(2)
     public SecurityFilterChain defaultSecurityFilterChain(HttpSecurity http) throws Exception {
         http.authorizeHttpRequests(
-                (authorize)
-                    -> authorize
-                        .requestMatchers("/login", "/register", "/error", "/iam.css", "/favicon.ico", "/scalar",
-                            "/scalar/**", "/v3/api-docs", "/v3/api-docs/**", "/swagger-ui/**")
+                        (authorize)
+                                -> authorize
+                                .requestMatchers("/login", "/register", "/error", "/iam.css", "/favicon.ico", "/scalar",
+                                        "/scalar/**", "/v3/api-docs", "/v3/api-docs/**", "/swagger-ui/**")
+                                .permitAll()
+                                .anyRequest()
+                                .authenticated())
+                // Form login handles the redirect to the login page from the
+                // authorization server filter chain
+                .oauth2Login(config
+                        -> config.loginPage("/login")
                         .permitAll()
-                        .anyRequest()
-                        .authenticated())
-            // Form login handles the redirect to the login page from the
-            // authorization server filter chain
-            .oauth2Login(config
-                -> config.loginPage("/login")
-                    .permitAll()
-                    .failureHandler(oauthLoginFailureHandler())
-                    .userInfoEndpoint(userInfo
-                        -> userInfo.userService(federatedOAuth2UserService).oidcUserService(federatedOidcUserService)))
-            .oauth2Client(Customizer.withDefaults())
-            .formLogin(config -> config.loginPage("/login")
-                    .successHandler(formLoginSuccessHandler())
-                    .failureHandler(formLoginFailureHandler())
-                    .permitAll())
-            .logout(logout
-                -> logout.logoutUrl("/logout")
-                    .invalidateHttpSession(true)
-                    .clearAuthentication(true)
-                    .deleteCookies("JSESSIONID")
-                    .logoutSuccessUrl("/login?logout")
-                    .permitAll());
+                        .failureHandler(oauthLoginFailureHandler())
+                        .userInfoEndpoint(userInfo
+                                -> userInfo.userService(federatedOAuth2UserService).oidcUserService(federatedOidcUserService)))
+                .oauth2Client(Customizer.withDefaults())
+                .formLogin(config -> config.loginPage("/login")
+                        .successHandler(formLoginSuccessHandler())
+                        .failureHandler(formLoginFailureHandler())
+                        .permitAll())
+                .logout(logout
+                        -> logout.logoutUrl("/logout")
+                        .invalidateHttpSession(true)
+                        .clearAuthentication(true)
+                        .deleteCookies("JSESSIONID")
+                        .logoutSuccessHandler(hostAwareLogoutSuccessHandler)   // was: .logoutSuccessUrl("/login?logout")
+                        .permitAll());
 
         return http.build();
     }
 
     private AuthenticationSuccessHandler formLoginSuccessHandler() {
         SavedRequestAwareAuthenticationSuccessHandler delegate =
-            new SavedRequestAwareAuthenticationSuccessHandler();
+                new SavedRequestAwareAuthenticationSuccessHandler();
         return (request, response, authentication) -> {
             recordLoginAttempt.execute(authentication.getName(), true);
             delegate.onAuthenticationSuccess(request, response, authentication);
@@ -194,7 +200,7 @@ public class SecurityConfig {
 
     private AuthenticationFailureHandler formLoginFailureHandler() {
         SimpleUrlAuthenticationFailureHandler delegate =
-            new SimpleUrlAuthenticationFailureHandler("/login?error");
+                new SimpleUrlAuthenticationFailureHandler("/login?error");
         return (request, response, exception) -> {
             recordLoginAttempt.execute(request.getParameter("username"), false);
             delegate.onAuthenticationFailure(request, response, exception);
@@ -207,13 +213,13 @@ public class SecurityConfig {
             String provider = requestPath.substring(requestPath.lastIndexOf('/') + 1);
             boolean accountLink = federatedLinkIntent.targetForCurrentRequest() != null;
             boolean alreadyLinked = hasCause(exception,
-                kh.eco.istad.platform.authorization.domain.exception.ConflictException.class);
+                    kh.eco.istad.platform.authorization.domain.exception.ConflictException.class);
             LOGGER.error("Federated sign-in failed for provider '{}' at callback '{}': {}", provider, requestPath,
-                exception.getMessage(), exception);
+                    exception.getMessage(), exception);
             federatedLinkIntent.clear(request);
             if (accountLink) {
                 response.sendRedirect(alreadyLinked ? "/profile/accounts?link_error=already_linked"
-                                                    : "/profile/accounts?link_error=failed");
+                        : "/profile/accounts?link_error=failed");
             } else {
                 response.sendRedirect("/login?oauth_error");
             }
@@ -237,19 +243,19 @@ public class SecurityConfig {
     @Bean
     public OAuth2AuthorizationService oAuth2AuthorizationService() {
         BasicPolymorphicTypeValidator.Builder validator = BasicPolymorphicTypeValidator.builder()
-                                                              .allowIfSubType(Long.class)
-                                                              .allowIfSubType(Integer.class)
-                                                              .allowIfSubType(Boolean.class)
-                                                              .allowIfSubType(Double.class);
+                .allowIfSubType(Long.class)
+                .allowIfSubType(Integer.class)
+                .allowIfSubType(Boolean.class)
+                .allowIfSubType(Double.class);
         JsonMapper jsonMapper = JsonMapper.builder()
-                                    .addModules(SecurityJacksonModules.getModules(
-                                        JdbcOAuth2AuthorizationService.class.getClassLoader(), validator))
-                                    .build();
+                .addModules(SecurityJacksonModules.getModules(
+                        JdbcOAuth2AuthorizationService.class.getClassLoader(), validator))
+                .build();
 
         JdbcOAuth2AuthorizationService service =
-            new JdbcOAuth2AuthorizationService(jdbcTemplate, registeredClientRepository());
+                new JdbcOAuth2AuthorizationService(jdbcTemplate, registeredClientRepository());
         service.setAuthorizationRowMapper(
-            new JsonMapperOAuth2AuthorizationRowMapper(registeredClientRepository(), jsonMapper));
+                new JsonMapperOAuth2AuthorizationRowMapper(registeredClientRepository(), jsonMapper));
         service.setAuthorizationParametersMapper(new JsonMapperOAuth2AuthorizationParametersMapper(jsonMapper));
         return service;
     }
@@ -265,7 +271,7 @@ public class SecurityConfig {
         RSAPublicKey publicKey = (RSAPublicKey) keyPair.getPublic();
         RSAPrivateKey privateKey = (RSAPrivateKey) keyPair.getPrivate();
         String keyId = Base64.getUrlEncoder().withoutPadding().encodeToString(
-            MessageDigest.getInstance("SHA-256").digest(publicKey.getEncoded()));
+                MessageDigest.getInstance("SHA-256").digest(publicKey.getEncoded()));
         RSAKey rsaKey = new RSAKey.Builder(publicKey).privateKey(privateKey).keyID(keyId).build();
         JWKSet jwkSet = new JWKSet(rsaKey);
         return new ImmutableJWKSet<>(jwkSet);
@@ -290,8 +296,8 @@ public class SecurityConfig {
 
     private static byte[] decodePem(String pem, String label) {
         String body = pem.replace("-----BEGIN " + label + "-----", "")
-                          .replace("-----END " + label + "-----", "")
-                          .replaceAll("\\s", "");
+                .replace("-----END " + label + "-----", "")
+                .replaceAll("\\s", "");
         return Base64.getDecoder().decode(body);
     }
 

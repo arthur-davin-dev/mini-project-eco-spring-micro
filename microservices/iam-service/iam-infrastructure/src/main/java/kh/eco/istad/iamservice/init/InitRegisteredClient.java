@@ -74,7 +74,6 @@ public class InitRegisteredClient {
                 .tokenSettings(tokenSettings)
                 .build();
         registeredClientRepository.save(oidcClient); // insert or update
-
         // ------------------------------------------------------------------
         // iam-postman (confidential, so refresh tokens are issued)
         // ------------------------------------------------------------------
@@ -104,7 +103,6 @@ public class InitRegisteredClient {
                 .tokenSettings(tokenSettings)
                 .build();
         registeredClientRepository.save(postmanClient); // insert or update
-
         // ------------------------------------------------------------------
         // iam-client-registrar (DCR) - unchanged
         // ------------------------------------------------------------------
