@@ -1,5 +1,7 @@
 package kh.eco.istad.iam.persistence.jpa.adapter;
 
+import kh.eco.istad.platform.authorization.domain.entity.AuditableEntity;
+import kh.eco.istad.platform.authorization.domain.entity.assignment.PermissionEffect;
 import kh.eco.istad.platform.authorization.domain.entity.assignment.RolePermission;
 import kh.eco.istad.platform.authorization.domain.entity.assignment.UserPermission;
 import kh.eco.istad.platform.authorization.domain.entity.assignment.UserRole;
@@ -22,12 +24,16 @@ import kh.eco.istad.iam.persistence.jpa.entity.UserPermissionEntity;
 import kh.eco.istad.iam.persistence.jpa.entity.UserRoleEntity;
 
 import java.util.List;
+import java.util.UUID;
 
 final class DomainMapper {
     private DomainMapper() {
     }
 
-    static User toDomain(UserEntity e, List<Identity> identities) {
+    static User toDomain(
+            UserEntity e,
+            List<Identity> identities
+    ) {
         PostalAddress address = e.getAddressStreetAddress() == null && e.getAddressLocality() == null
                 && e.getAddressRegion() == null && e.getAddressPostalCode() == null
                 && e.getAddressCountry() == null ? null : new PostalAddress(e.getAddressStreetAddress(),
@@ -78,10 +84,25 @@ final class DomainMapper {
     }
 
     static Identity toDomain(IdentityEntity e) {
-        return Identity.restore(e.getUuid(), IdentityProvider.valueOf(e.getProvider()), e.getProviderSubject(),
-                e.getEmail(), e.isEmailVerified(), e.getDisplayName(), e.getUsername(), e.getPictureUrl(),
-                e.getLinkedAt(), e.getLastLoginAt(), e.isDeleted(), e.getDeletedAt(), e.getDeletedBy(),
-                e.getCreatedBy(), e.getCreatedAt(), e.getUpdatedBy(), e.getUpdatedAt(), e.getVersion());
+        return Identity.restore(
+                e.getUuid(),
+                IdentityProvider.valueOf(e.getProvider()),
+                e.getProviderSubject(),
+                e.getEmail(),
+                e.isEmailVerified(),
+                e.getDisplayName(),
+                e.getUsername(),
+                e.getPictureUrl(),
+                e.getLinkedAt(),
+                e.getLastLoginAt(),
+                e.isDeleted(),
+                e.getDeletedAt(),
+                e.getDeletedBy(),
+                e.getCreatedBy(),
+                e.getCreatedAt(),
+                e.getUpdatedBy(),
+                e.getUpdatedAt(),
+                e.getVersion());
     }
 
     static void copyTo(Identity d, IdentityEntity e, Long userId) {
@@ -100,9 +121,20 @@ final class DomainMapper {
     }
 
     static Role toDomain(RoleEntity e) {
-        return Role.restore(e.getUuid(), e.getName(), e.getDescription(), e.isSystem(), e.isActive(),
-                e.isDeleted(), e.getDeletedAt(), e.getDeletedBy(), e.getCreatedBy(), e.getCreatedAt(),
-                e.getUpdatedBy(), e.getUpdatedAt(), e.getVersion());
+        return Role.restore(
+                e.getUuid(),
+                e.getName(),
+                e.getDescription(),
+                e.isSystem(),
+                e.isActive(),
+                e.isDeleted(),
+                e.getDeletedAt(),
+                e.getDeletedBy(),
+                e.getCreatedBy(),
+                e.getCreatedAt(),
+                e.getUpdatedBy(),
+                e.getUpdatedAt(),
+                e.getVersion());
     }
 
     static void copyTo(Role d, RoleEntity e) {
@@ -115,9 +147,21 @@ final class DomainMapper {
     }
 
     static Permission toDomain(PermissionEntity e) {
-        return Permission.restore(e.getUuid(), e.getResource(), e.getAction(), e.getDescription(),
-                e.isSystem(), e.isActive(), e.isDeleted(), e.getDeletedAt(), e.getDeletedBy(),
-                e.getCreatedBy(), e.getCreatedAt(), e.getUpdatedBy(), e.getUpdatedAt(), e.getVersion());
+        return Permission.restore(
+                e.getUuid(),
+                e.getResource(),
+                e.getAction(),
+                e.getDescription(),
+                e.isSystem(),
+                e.isActive(),
+                e.isDeleted(),
+                e.getDeletedAt(),
+                e.getDeletedBy(),
+                e.getCreatedBy(),
+                e.getCreatedAt(),
+                e.getUpdatedBy(),
+                e.getUpdatedAt(),
+                e.getVersion());
     }
 
     static void copyTo(Permission d, PermissionEntity e) {
@@ -131,26 +175,50 @@ final class DomainMapper {
         copyAudit(d, e);
     }
 
-    static UserRole toDomain(UserRoleEntity e, java.util.UUID userUuid, java.util.UUID roleUuid) {
-        return UserRole.restore(userUuid, roleUuid, e.getAssignedAt(), e.getAssignedBy(), e.getExpiresAt(),
-                e.getRevokedAt(), e.getRevokedBy(), e.getReason());
+    static UserRole toDomain(
+            UserRoleEntity e,
+            UUID userUuid,
+            UUID roleUuid
+    ) {
+        return UserRole.restore(
+                userUuid,
+                roleUuid,
+                e.getAssignedAt(),
+                e.getAssignedBy(),
+                e.getExpiresAt(),
+                e.getRevokedAt(),
+                e.getRevokedBy(),
+                e.getReason());
     }
 
-    static RolePermission toDomain(RolePermissionEntity e, java.util.UUID roleUuid,
-                                   java.util.UUID permissionUuid) {
-        return RolePermission.restore(roleUuid, permissionUuid, e.getAssignedAt(), e.getAssignedBy(),
+    static RolePermission toDomain(
+            RolePermissionEntity e,
+            UUID roleUuid,
+            UUID permissionUuid
+    ) {
+        return RolePermission.restore(
+                roleUuid, permissionUuid, e.getAssignedAt(), e.getAssignedBy(),
                 e.getExpiresAt(), e.getRevokedAt(), e.getRevokedBy(), e.getReason());
     }
 
-    static UserPermission toDomain(UserPermissionEntity e, java.util.UUID userUuid,
-                                   java.util.UUID permissionUuid) {
-        return UserPermission.restore(userUuid, permissionUuid,
-                kh.eco.istad.platform.authorization.domain.entity.assignment.PermissionEffect.valueOf(e.getEffect()),
-                e.getAssignedAt(), e.getAssignedBy(), e.getExpiresAt(), e.getRevokedAt(),
-                e.getRevokedBy(), e.getReason());
+    static UserPermission toDomain(
+            UserPermissionEntity e,
+            UUID userUuid,
+            UUID permissionUuid
+    ) {
+        return UserPermission.restore(
+                userUuid,
+                permissionUuid,
+                PermissionEffect.valueOf(e.getEffect()),
+                e.getAssignedAt(),
+                e.getAssignedBy(),
+                e.getExpiresAt(),
+                e.getRevokedAt(),
+                e.getRevokedBy(),
+                e.getReason());
     }
 
-    private static void copyAudit(kh.eco.istad.platform.authorization.domain.entity.AuditableEntity d, AuditedRecord e) {
+    private static void copyAudit(AuditableEntity d, AuditedRecord e) {
         e.setDeleted(d.isDeleted());
         e.setDeletedAt(d.getDeletedAt());
         e.setDeletedBy(d.getDeletedBy());

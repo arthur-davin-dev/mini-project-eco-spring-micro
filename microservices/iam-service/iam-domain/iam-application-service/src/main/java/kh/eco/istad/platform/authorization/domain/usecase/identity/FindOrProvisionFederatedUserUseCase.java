@@ -36,8 +36,12 @@ public class FindOrProvisionFederatedUserUseCase {
     private final AuthorityResolver authorities;
     private final Clock clock;
 
-    public FindOrProvisionFederatedUserUseCase(UserRepository users, RoleRepository roles,
-                                               AuthorityResolver authorities, Clock clock) {
+    public FindOrProvisionFederatedUserUseCase(
+            UserRepository users,
+            RoleRepository roles,
+            AuthorityResolver authorities,
+            Clock clock
+    ) {
         this.users = users;
         this.roles = roles;
         this.authorities = authorities;
