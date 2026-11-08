@@ -82,9 +82,10 @@ iam:
   security:
     dcr:
       client-secret: ${IAM_DCR_CLIENT_SECRET:}
-    jwk:
-      private-key-path: ${IAM_JWK_PRIVATE_KEY_PATH:}
-      public-key-path: ${IAM_JWK_PUBLIC_KEY_PATH:}
+    oidc-client:
+      secret: ${IAM_OIDC_CLIENT_SECRET:}
+    postman-client:
+      secret: ${IAM_POSTMAN_CLIENT_SECRET:}
 
 server:
   port: 9000

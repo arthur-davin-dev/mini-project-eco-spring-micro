@@ -15,6 +15,7 @@ import kh.eco.istad.platform.authorization.domain.entity.role.Role;
 import kh.eco.istad.platform.authorization.domain.entity.user.Identity;
 import kh.eco.istad.platform.authorization.domain.entity.user.IdentityProvider;
 import kh.eco.istad.platform.authorization.domain.entity.user.User;
+import kh.eco.istad.platform.authorization.domain.exception.PhoneNumberConflictException;
 import kh.eco.istad.iam.persistence.jpa.entity.IdentityEntity;
 import kh.eco.istad.iam.persistence.jpa.entity.PermissionEntity;
 import kh.eco.istad.iam.persistence.jpa.entity.RoleEntity;
@@ -34,6 +35,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.dao.OptimisticLockingFailureException;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -92,8 +94,12 @@ public class PersistenceAdapter {
         return users.existsByEmailIgnoreCaseAndDeletedFalse(email);
     }
 
+    public boolean existsByPhoneNumber(String phoneNumber) {
+        return users.existsByPhoneNumber(phoneNumber);
+    }
+
     public boolean existsByPhoneNumberForAnotherUser(String phoneNumber, UUID userUuid) {
-        return users.existsByPhoneNumberAndUuidNotAndDeletedFalse(phoneNumber, userUuid);
+        return users.existsByPhoneNumberAndUuidNot(phoneNumber, userUuid);
     }
 
     @Transactional
@@ -103,7 +109,14 @@ public class PersistenceAdapter {
             throw stale("user", user.getUuid());
         }
         DomainMapper.copyTo(user, entity);
-        entity = users.saveAndFlush(entity);
+        try {
+            entity = users.saveAndFlush(entity);
+        } catch (DataIntegrityViolationException exception) {
+            if (hasCauseMessage(exception, "iam_users_phone_number_key")) {
+                throw new PhoneNumberConflictException();
+            }
+            throw exception;
+        }
         user.synchronizeVersion(entity.getVersion());
         for (Identity identity : user.getIdentities()) {
             IdentityEntity identityEntity = identities.findByUuid(identity.getUuid())
@@ -115,6 +128,15 @@ public class PersistenceAdapter {
             identityEntity = identities.saveAndFlush(identityEntity);
             identity.synchronizeVersion(identityEntity.getVersion());
         }
+    }
+
+    private static boolean hasCauseMessage(Throwable exception, String text) {
+        for (Throwable cause = exception; cause != null; cause = cause.getCause()) {
+            if (cause.getMessage() != null && cause.getMessage().contains(text)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     public PageResult<User> findAll(UserFilterQuery filter, PageRequest page) {

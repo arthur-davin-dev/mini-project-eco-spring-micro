@@ -1,9 +1,10 @@
-
 package kh.eco.istad.iamservice.init;
 
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.oauth2.core.AuthorizationGrantType;
 import org.springframework.security.oauth2.core.ClientAuthenticationMethod;
 import org.springframework.security.oauth2.core.oidc.OidcScopes;
@@ -12,8 +13,6 @@ import org.springframework.security.oauth2.server.authorization.client.Registere
 import org.springframework.security.oauth2.server.authorization.settings.ClientSettings;
 import org.springframework.security.oauth2.server.authorization.settings.OAuth2TokenFormat;
 import org.springframework.security.oauth2.server.authorization.settings.TokenSettings;
-import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.beans.factory.annotation.Value;
 
 import java.time.Duration;
 import java.util.UUID;
@@ -28,8 +27,15 @@ public class InitRegisteredClient {
     @Value("${iam.security.dcr.client-secret:}")
     private String dcrClientSecret;
 
+    // Secrets for the confidential clients (set these in .env / environment)
+    @Value("${iam.security.oidc-client.secret:}")
+    private String oidcClientSecret;
+
+    @Value("${iam.security.postman-client.secret:}")
+    private String postmanClientSecret;
+
     @PostConstruct
-    public void init(){
+    public void init() {
 
         TokenSettings tokenSettings = TokenSettings.builder()
                 .accessTokenFormat(OAuth2TokenFormat.SELF_CONTAINED)
@@ -39,15 +45,24 @@ public class InitRegisteredClient {
                 .reuseRefreshTokens(false)
                 .build();
 
-        ClientSettings clientSettings = ClientSettings.builder()
+        // ------------------------------------------------------------------
+        // oidc-client (confidential, so refresh tokens are issued)
+        // ------------------------------------------------------------------
+        requireSecret(oidcClientSecret, "IAM_OIDC_CLIENT_SECRET");
+
+        ClientSettings oidcClientSettings = ClientSettings.builder()
                 .requireProofKey(true)
                 .requireAuthorizationConsent(true)
                 .build();
 
-        RegisteredClient oidcClient = RegisteredClient.withId(UUID.randomUUID().toString())
+        RegisteredClient existingOidc = registeredClientRepository.findByClientId("oidc-client");
+        RegisteredClient oidcClient = RegisteredClient
+                .withId(existingOidc != null ? existingOidc.getId() : UUID.randomUUID().toString())
                 .clientId("oidc-client")
-                .clientAuthenticationMethod(ClientAuthenticationMethod.NONE)
+                .clientSecret(passwordEncoder.encode(oidcClientSecret))
+                .clientAuthenticationMethod(ClientAuthenticationMethod.CLIENT_SECRET_BASIC)
                 .authorizationGrantType(AuthorizationGrantType.AUTHORIZATION_CODE)
+                .authorizationGrantType(AuthorizationGrantType.REFRESH_TOKEN)
                 .redirectUri("http://127.0.0.1:8080/login/oauth2/code/oidc-client")
                 .postLogoutRedirectUri("http://127.0.0.1:8080/")
                 .scope(OidcScopes.OPENID)
@@ -55,18 +70,28 @@ public class InitRegisteredClient {
                 .scope(OidcScopes.EMAIL)
                 .scope(OidcScopes.PHONE)
                 .scope(OidcScopes.ADDRESS)
-                .clientSettings(clientSettings)
+                .clientSettings(oidcClientSettings)
                 .tokenSettings(tokenSettings)
                 .build();
+        registeredClientRepository.save(oidcClient); // insert or update
 
-        if (registeredClientRepository.findByClientId("oidc-client") == null) {
-            registeredClientRepository.save(oidcClient);
-        }
+        // ------------------------------------------------------------------
+        // iam-postman (confidential, so refresh tokens are issued)
+        // ------------------------------------------------------------------
+        requireSecret(postmanClientSecret, "IAM_POSTMAN_CLIENT_SECRET");
 
-        RegisteredClient postmanClient = RegisteredClient.withId(UUID.randomUUID().toString())
+        ClientSettings postmanClientSettings = ClientSettings.builder()
+                .requireProofKey(true)
+                .requireAuthorizationConsent(false)
+                .build();
+
+        RegisteredClient existingPostman = registeredClientRepository.findByClientId("iam-postman");
+        RegisteredClient postmanClient = RegisteredClient
+                .withId(existingPostman != null ? existingPostman.getId() : UUID.randomUUID().toString())
                 .clientId("iam-postman")
                 .clientName("IAM Postman (local development)")
-                .clientAuthenticationMethod(ClientAuthenticationMethod.NONE)
+                .clientSecret(passwordEncoder.encode(postmanClientSecret))
+                .clientAuthenticationMethod(ClientAuthenticationMethod.CLIENT_SECRET_BASIC)
                 .authorizationGrantType(AuthorizationGrantType.AUTHORIZATION_CODE)
                 .authorizationGrantType(AuthorizationGrantType.REFRESH_TOKEN)
                 .redirectUri("https://oauth.pstmn.io/v1/callback")
@@ -75,23 +100,14 @@ public class InitRegisteredClient {
                 .scope(OidcScopes.EMAIL)
                 .scope(OidcScopes.PHONE)
                 .scope(OidcScopes.ADDRESS)
-                .clientSettings(ClientSettings.builder()
-                        .requireProofKey(true)
-                        .requireAuthorizationConsent(false)
-                        .build())
+                .clientSettings(postmanClientSettings)
                 .tokenSettings(tokenSettings)
                 .build();
+        registeredClientRepository.save(postmanClient); // insert or update
 
-        RegisteredClient existingPostmanClient = registeredClientRepository.findByClientId("iam-postman");
-        if (existingPostmanClient == null) {
-            registeredClientRepository.save(postmanClient);
-        } else if (!existingPostmanClient.getAuthorizationGrantTypes()
-                .contains(AuthorizationGrantType.REFRESH_TOKEN)) {
-            registeredClientRepository.save(RegisteredClient.from(existingPostmanClient)
-                    .authorizationGrantType(AuthorizationGrantType.REFRESH_TOKEN)
-                    .build());
-        }
-
+        // ------------------------------------------------------------------
+        // iam-client-registrar (DCR) - unchanged
+        // ------------------------------------------------------------------
         if (dcrClientSecret != null && !dcrClientSecret.isBlank()
                 && registeredClientRepository.findByClientId("iam-client-registrar") == null) {
             if (dcrClientSecret.length() < 32) {
@@ -110,4 +126,9 @@ public class InitRegisteredClient {
         }
     }
 
+    private void requireSecret(String secret, String envName) {
+        if (secret == null || secret.isBlank()) {
+            throw new IllegalStateException(envName + " must be set");
+        }
+    }
 }

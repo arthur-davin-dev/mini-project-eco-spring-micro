@@ -18,6 +18,7 @@ import org.springframework.security.oauth2.server.authorization.settings.ClientS
 import org.springframework.security.oauth2.server.authorization.settings.OAuth2TokenFormat;
 import org.springframework.security.oauth2.server.authorization.settings.TokenSettings;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import tools.jackson.databind.ObjectMapper;
@@ -48,6 +49,7 @@ class IamServiceApplicationTests {
     @Autowired JwtDecoder jwtDecoder;
     @Autowired RegisteredClientRepository registeredClients;
     @Autowired PasswordEncoder passwordEncoder;
+    @Autowired JdbcTemplate jdbcTemplate;
 
     @Test
     void contextLoads() {
@@ -174,9 +176,19 @@ class IamServiceApplicationTests {
                 .queryParam("nonce", "nonce-" + unique)
                 .queryParam("code_challenge", challenge)
                 .queryParam("code_challenge_method", "S256");
+        mockMvc.perform(post("/login").with(csrf())
+                        .param("username", username).param("password", "incorrect-password"))
+                .andExpect(status().is3xxRedirection());
+        org.junit.jupiter.api.Assertions.assertEquals(1, jdbcTemplate.queryForObject(
+                "select failed_login_attempts from users where username = ?", Integer.class, username));
+
         MvcResult login = mockMvc.perform(post("/login").with(csrf())
                         .param("username", username).param("password", password))
                 .andExpect(status().is3xxRedirection()).andReturn();
+        org.junit.jupiter.api.Assertions.assertEquals(0, jdbcTemplate.queryForObject(
+                "select failed_login_attempts from users where username = ?", Integer.class, username));
+        org.junit.jupiter.api.Assertions.assertNotNull(jdbcTemplate.queryForObject(
+                "select last_login_at from users where username = ?", java.time.OffsetDateTime.class, username));
         MockHttpSession session = (MockHttpSession) login.getRequest().getSession(false);
         org.junit.jupiter.api.Assertions.assertNotNull(session, "Successful login should create a session");
         MvcResult callback = mockMvc.perform(authorizationRequest.session(session))

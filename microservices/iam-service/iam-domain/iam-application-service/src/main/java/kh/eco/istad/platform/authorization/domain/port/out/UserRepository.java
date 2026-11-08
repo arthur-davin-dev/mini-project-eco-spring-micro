@@ -24,6 +24,8 @@ public interface UserRepository {
 
     boolean existsByEmail(String email);
 
+    boolean existsByPhoneNumber(String phoneNumber);
+
     boolean existsByPhoneNumberForAnotherUser(String phoneNumber, UUID userUuid);
 
     void save(User user);

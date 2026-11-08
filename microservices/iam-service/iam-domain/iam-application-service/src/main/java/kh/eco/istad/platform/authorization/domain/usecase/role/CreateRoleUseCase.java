@@ -26,8 +26,13 @@ public class CreateRoleUseCase {
     private final CurrentActorProvider actors;
     private final Clock clock;
 
-    public CreateRoleUseCase(RoleRepository roles, PermissionRepository permissions,
-                             AuthorityResolver authorities, CurrentActorProvider actors, Clock clock) {
+    public CreateRoleUseCase(
+            RoleRepository roles,
+            PermissionRepository permissions,
+            AuthorityResolver authorities,
+            CurrentActorProvider actors,
+            Clock clock
+    ) {
         this.roles = roles;
         this.permissions = permissions;
         this.authorities = authorities;

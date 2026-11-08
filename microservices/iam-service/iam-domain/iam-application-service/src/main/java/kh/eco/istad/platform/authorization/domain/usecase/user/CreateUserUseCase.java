@@ -15,6 +15,7 @@ import kh.eco.istad.platform.authorization.domain.entity.user.User;
 import kh.eco.istad.platform.authorization.domain.entity.user.UserProfile;
 import kh.eco.istad.platform.authorization.domain.valueobject.EmailAddress;
 import kh.eco.istad.platform.authorization.domain.valueobject.Username;
+import kh.eco.istad.platform.authorization.domain.exception.PhoneNumberConflictException;
 
 import java.time.Clock;
 import java.time.Instant;
@@ -44,6 +45,10 @@ public class CreateUserUseCase {
         Username username = new Username(command.username());
         EmailAddress email = new EmailAddress(command.email());
         Rules.ensureUsernameAndEmailAvailable(users, username, email);
+        String phoneNumber = command.profile() == null ? null : command.profile().phoneNumber();
+        if (phoneNumber != null && users.existsByPhoneNumber(phoneNumber)) {
+            throw new PhoneNumberConflictException();
+        }
 
         List<Role> initialRoles = command.roleUuids().stream()
                 .distinct()
@@ -60,16 +65,28 @@ public class CreateUserUseCase {
         }
 
         return DomainDtoMapper.toUserResult(user, initialRoles.stream()
-                .map(role -> new RoleRef(role.getUuid(), role.getName())).toList());
+                .map(role -> new RoleRef(
+                        role.getUuid(),
+                        role.getName())).toList());
     }
 
     private static UserProfile toProfile(UserProfileCommand profile) {
         if (profile == null) {
             throw new IllegalArgumentException("Profile is required");
         }
-        return new UserProfile(profile.givenName(), profile.familyName(), profile.middleName(),
-                profile.nickname(), profile.gender(), profile.birthdate(), profile.phoneNumber(),
-                profile.pictureUrl(), profile.websiteUrl(), profile.profileUrl(), profile.zoneinfo(),
-                profile.locale(), profile.address());
+        return new UserProfile(
+                profile.givenName(),
+                profile.familyName(),
+                profile.middleName(),
+                profile.nickname(),
+                profile.gender(),
+                profile.birthdate(),
+                profile.phoneNumber(),
+                profile.pictureUrl(),
+                profile.websiteUrl(),
+                profile.profileUrl(),
+                profile.zoneinfo(),
+                profile.locale(),
+                profile.address());
     }
 }

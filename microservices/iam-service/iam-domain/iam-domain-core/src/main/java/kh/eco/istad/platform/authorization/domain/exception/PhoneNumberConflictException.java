@@ -1,6 +1,6 @@
 package kh.eco.istad.platform.authorization.domain.exception;
 
-public final class PhoneNumberConflictException extends DomainException {
+public final class PhoneNumberConflictException extends ConflictException {
 
     private static final long serialVersionUID = 1L;
 

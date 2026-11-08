@@ -57,12 +57,19 @@ public final class RestMapper {
     //requests -> commands
 
     public static RegisterUserCommand toCommand(RegisterUserRequest r) {
-        return new RegisterUserCommand(r.username(), r.email(), r.password(), r.confirmPassword(),
-                r.givenName(), r.familyName(), r.locale());
+        return new RegisterUserCommand(
+                r.username(),
+                r.email(),
+                r.password(),
+                r.confirmPassword(),
+                r.givenName(),
+                r.familyName(),
+                r.locale());
     }
 
     public static CreateUserCommand toCommand(CreateUserRequest r) {
-        UserProfileCommand profile = new UserProfileCommand(r.givenName(), r.familyName(), null, null, r.gender(),
+        UserProfileCommand profile = new UserProfileCommand(
+                r.givenName(), r.familyName(), null, null, r.gender(),
                 r.birthdate(), r.phoneNumber(), null, null, null, r.zoneinfo(), r.locale(),
                 toAddress(r.address()));
         return new CreateUserCommand(r.username(), r.email(), r.password(), r.confirmPassword(), profile,
@@ -70,12 +77,14 @@ public final class RestMapper {
     }
 
     public static UpdateUserProfileCommand toCommand(UpdateUserProfileRequest r) {
-        return new UpdateUserProfileCommand(r.givenName(), null, null, r.nickname(), null, null,
+        return new UpdateUserProfileCommand(
+                r.givenName(), null, null, r.nickname(), null, null,
                 r.phoneNumber(), null, null, null, null, r.locale(), null);
     }
 
     public static ChangePasswordCommand toCommand(ChangePasswordRequest r) {
-        return new ChangePasswordCommand(r.currentPassword(), r.newPassword(), r.confirmPassword());
+        return new ChangePasswordCommand(
+                r.currentPassword(), r.newPassword(), r.confirmPassword());
     }
 
     public static CreateRoleCommand toCommand(CreateRoleRequest r) {

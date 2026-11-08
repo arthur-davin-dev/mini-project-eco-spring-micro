@@ -1,6 +1,7 @@
 
 package kh.eco.istad.iamservice.config;
 
+import kh.eco.istad.platform.authorization.domain.usecase.user.RecordLoginAttemptUseCase;
 import com.nimbusds.jose.jwk.JWKSet;
 import com.nimbusds.jose.jwk.RSAKey;
 import com.nimbusds.jose.jwk.source.ImmutableJWKSet;
@@ -62,6 +63,9 @@ import org.springframework.security.oauth2.server.authorization.settings.ClientS
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.AuthenticationFailureHandler;
 import org.springframework.security.web.authentication.LoginUrlAuthenticationEntryPoint;
+import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
+import org.springframework.security.web.authentication.SavedRequestAwareAuthenticationSuccessHandler;
+import org.springframework.security.web.authentication.SimpleUrlAuthenticationFailureHandler;
 import org.springframework.security.web.util.matcher.MediaTypeRequestMatcher;
 import tools.jackson.databind.json.JsonMapper;
 import tools.jackson.databind.jsontype.BasicPolymorphicTypeValidator;
@@ -79,6 +83,7 @@ public class SecurityConfig {
     private final FederatedOAuth2UserService federatedOAuth2UserService;
     private final FederatedOidcUserService federatedOidcUserService;
     private final FederatedLinkIntent federatedLinkIntent;
+    private final RecordLoginAttemptUseCase recordLoginAttempt;
 
     @Value("${spring.security.oauth2.authorizationserver.issuer}") private String issuer;
 
@@ -163,7 +168,10 @@ public class SecurityConfig {
                     .userInfoEndpoint(userInfo
                         -> userInfo.userService(federatedOAuth2UserService).oidcUserService(federatedOidcUserService)))
             .oauth2Client(Customizer.withDefaults())
-            .formLogin(config -> config.loginPage("/login").permitAll())
+            .formLogin(config -> config.loginPage("/login")
+                    .successHandler(formLoginSuccessHandler())
+                    .failureHandler(formLoginFailureHandler())
+                    .permitAll())
             .logout(logout
                 -> logout.logoutUrl("/logout")
                     .invalidateHttpSession(true)
@@ -173,6 +181,24 @@ public class SecurityConfig {
                     .permitAll());
 
         return http.build();
+    }
+
+    private AuthenticationSuccessHandler formLoginSuccessHandler() {
+        SavedRequestAwareAuthenticationSuccessHandler delegate =
+            new SavedRequestAwareAuthenticationSuccessHandler();
+        return (request, response, authentication) -> {
+            recordLoginAttempt.execute(authentication.getName(), true);
+            delegate.onAuthenticationSuccess(request, response, authentication);
+        };
+    }
+
+    private AuthenticationFailureHandler formLoginFailureHandler() {
+        SimpleUrlAuthenticationFailureHandler delegate =
+            new SimpleUrlAuthenticationFailureHandler("/login?error");
+        return (request, response, exception) -> {
+            recordLoginAttempt.execute(request.getParameter("username"), false);
+            delegate.onAuthenticationFailure(request, response, exception);
+        };
     }
 
     private AuthenticationFailureHandler oauthLoginFailureHandler() {

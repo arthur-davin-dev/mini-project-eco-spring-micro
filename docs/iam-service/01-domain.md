@@ -27,7 +27,9 @@ the following invariants to remain explicit in domain behavior:
 The core models now validate the PDF's key field limits and lifecycle rules.
 Sign-in eligibility checks all account states, failed logins lock at the
 configured threshold, audit times cannot move backward, and successful login
-events record their actor and audit timestamp. Social identities are unique
+events record their actor and audit timestamp. The form-login success and
+failure handlers invoke `RecordLoginAttemptUseCase` so these state changes are
+persisted for local password sign-ins. Social identities are unique
 per active provider on a user, and a user cannot unlink their final sign-in
 method. Assignment revocation validates actor, time, reason, expiry, and
 restored state. Permission names also respect the `VARCHAR(100)` schema limit.

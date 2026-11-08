@@ -48,6 +48,11 @@ public class UserRepositoryAdapter implements UserRepository {
     }
 
     @Override
+    public boolean existsByPhoneNumber(String phoneNumber) {
+        return persistence.existsByPhoneNumber(phoneNumber);
+    }
+
+    @Override
     public boolean existsByPhoneNumberForAnotherUser(String phoneNumber, UUID userUuid) {
         return persistence.existsByPhoneNumberForAnotherUser(phoneNumber, userUuid);
     }
