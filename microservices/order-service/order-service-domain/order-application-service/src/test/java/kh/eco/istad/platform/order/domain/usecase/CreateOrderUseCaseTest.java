@@ -39,9 +39,12 @@ class CreateOrderUseCaseTest {
     private static final UUID CUSTOMER = UUID.randomUUID();
     private static final UUID BUSINESS = UUID.randomUUID();
     private static final UUID PRODUCT = UUID.randomUUID();
-    private static final String REQUEST_KEY = "checkout-001";
+    private static final UUID ADDRESS_ID = UUID.randomUUID();
 
-    private final CustomerRepository customers = id -> Optional.of(new Customer(id, true));
+    private final CustomerRepository customers = id -> Optional.of(Customer.builder()
+            .id(id)
+            .active(true)
+            .build());
     private final BusinessRepository businesses = id -> Optional.of(new Business(
             id,
             List.of(new Product(new ProductId(PRODUCT), "Burger", new Money(new BigDecimal("5.00")))),
@@ -55,10 +58,9 @@ class CreateOrderUseCaseTest {
 
     private CreateOrderCommand command() {
         return new CreateOrderCommand(CUSTOMER, BUSINESS,
-                new AddressCommand("St 271", "12000", "Phnom Penh"),
+                new AddressCommand(ADDRESS_ID, "St 271", "12000", "Phnom Penh"),
                 new BigDecimal("999.00"),
-                List.of(new OrderItemCommand(PRODUCT, 2, new BigDecimal("5.00"), new BigDecimal("10.00"))),
-                REQUEST_KEY);
+                List.of(new OrderItemCommand(PRODUCT, 2, new BigDecimal("5.00"), new BigDecimal("10.00"))));
     }
 
     @Test
@@ -72,7 +74,7 @@ class CreateOrderUseCaseTest {
         assertEquals(OrderStatus.PAID, result.orderStatus());
         assertEquals(new BigDecimal("10.00"), payment.amount.amount());
         assertEquals(result.orderId().toString(), payment.key);
-        assertEquals(OrderStatus.PAID, orders.findByIdempotencyKey(REQUEST_KEY).orElseThrow().getOrderStatus());
+        assertEquals(OrderStatus.PAID, orders.findByOrderAddressId(ADDRESS_ID).orElseThrow().getOrderStatus());
     }
 
     @Test
@@ -83,7 +85,7 @@ class CreateOrderUseCaseTest {
         CreateOrderUseCase useCase = useCase(orders, payment, customers, businesses);
 
         assertThrows(PaymentRejectedException.class, () -> useCase.execute(command()));
-        Order pending = orders.findByIdempotencyKey(REQUEST_KEY).orElseThrow();
+        Order pending = orders.findByOrderAddressId(ADDRESS_ID).orElseThrow();
         assertEquals(OrderStatus.PENDING, pending.getOrderStatus());
         UUID orderId = pending.getId().value();
 
@@ -103,8 +105,8 @@ class CreateOrderUseCaseTest {
         CreateOrderUseCase useCase = useCase(orders, payment, customers, businesses);
 
         assertThrows(ExternalServiceException.class, () -> useCase.execute(command()));
-        UUID firstOrderId = orders.findByIdempotencyKey(REQUEST_KEY).orElseThrow().getId().value();
-        assertEquals(OrderStatus.PENDING, orders.findByIdempotencyKey(REQUEST_KEY).orElseThrow().getOrderStatus());
+        UUID firstOrderId = orders.findByOrderAddressId(ADDRESS_ID).orElseThrow().getId().value();
+        assertEquals(OrderStatus.PENDING, orders.findByOrderAddressId(ADDRESS_ID).orElseThrow().getOrderStatus());
 
         payment.failure = null;
         CreateOrderResult result = useCase.execute(command());
@@ -138,7 +140,7 @@ class CreateOrderUseCaseTest {
 
         assertThrows(ExternalServiceException.class, () -> useCase.execute(command()));
         assertEquals(OrderStatus.PENDING,
-                orders.findByIdempotencyKey(REQUEST_KEY).orElseThrow().getOrderStatus());
+                orders.findByOrderAddressId(ADDRESS_ID).orElseThrow().getOrderStatus());
     }
 
     @Test
@@ -151,7 +153,10 @@ class CreateOrderUseCaseTest {
 
     @Test
     void inactiveCustomerIsRejected() {
-        CustomerRepository inactive = id -> Optional.of(new Customer(id, false));
+        CustomerRepository inactive = id -> Optional.of(Customer.builder()
+                .id(id)
+                .active(false)
+                .build());
 
         assertThrows(OrderDomainException.class,
                 () -> useCase(new InMemoryOrders(), new RecordingPayment(), inactive, businesses).execute(command()));
@@ -185,23 +190,18 @@ class CreateOrderUseCaseTest {
 
     private static final class InMemoryOrders implements OrderRepository {
         private final Map<UUID, Order> byId = new HashMap<>();
-        private final Map<String, UUID> idempotencyKeys = new HashMap<>();
+        private final Map<UUID, UUID> ordersByAddressId = new HashMap<>();
 
         @Override
         public Order save(Order order) {
             byId.put(order.getId().value(), order);
+            ordersByAddressId.put(order.getDeliveryAddress().id(), order.getId().value());
             return order;
         }
 
         @Override
-        public Order save(Order order, String key) {
-            idempotencyKeys.put(key, order.getId().value());
-            return save(order);
-        }
-
-        @Override
-        public Optional<Order> findByIdempotencyKey(String key) {
-            UUID id = idempotencyKeys.get(key);
+        public Optional<Order> findByOrderAddressId(UUID addressId) {
+            UUID id = ordersByAddressId.get(addressId);
             return Optional.ofNullable(id == null ? null : byId.get(id));
         }
     }

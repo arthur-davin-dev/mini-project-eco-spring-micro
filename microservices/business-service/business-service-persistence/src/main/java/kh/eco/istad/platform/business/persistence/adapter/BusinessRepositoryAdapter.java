@@ -37,7 +37,7 @@ public class BusinessRepositoryAdapter implements BusinessRepository {
 
     @Override
     public Mono<Business> findById(BusinessId businessId) {
-        return mongoRepository.findById(businessId).map(this::toDomain);
+        return mongoRepository.findById(businessId.value().toString()).map(this::toDomain);
     }
 
     @Override
@@ -61,7 +61,7 @@ public class BusinessRepositoryAdapter implements BusinessRepository {
 
     private BusinessDocument toDocument(Business business){
         return BusinessDocument.builder()
-                .id(business.getId())
+                .id(business.getId().value().toString())
                 .legalName(business.getBusinessName().legalName())
                 .displayName(business.getBusinessName().displayName())
                 .email(business.getBusinessContact().email())
@@ -94,7 +94,7 @@ public class BusinessRepositoryAdapter implements BusinessRepository {
 
     private Business toDomain(BusinessDocument document){
         return Business.builder()
-                .id(document.getId())
+                .id(new BusinessId(java.util.UUID.fromString(document.getId())))
                 .businessName(new BusinessName(document.getLegalName(),document.getDisplayName()))
                 .businessContact(new BusinessContact(document.getEmail(),document.getPhoneNumber()))
                 .active(document.isActive())

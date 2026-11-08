@@ -1,13 +1,14 @@
 plugins {
-    id 'spring-common-conventions'
+    alias(libs.plugins.spring.common.conventions)
 }
 
 dependencies {
     api project(':order-service-domain:order-application-service')
-    implementation 'kh.eco.istad:istad-common-restapi'
-    implementation 'org.springframework.boot:spring-boot-starter-webmvc'
+    implementation libs.istad.common.restapi
+    implementation 'kh.eco.istad:istad-common-webflux'
+    implementation libs.spring.boot.starter.webmvc
 
-    testImplementation 'org.springframework.boot:spring-boot-starter-test'
-    testImplementation 'org.springframework.boot:spring-boot-starter-webmvc-test'
-    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+    testImplementation libs.spring.boot.starter.test
+    testImplementation libs.spring.boot.starter.webmvc.test
+    testRuntimeOnly libs.junit.platform.launcher
 }

@@ -1,19 +1,94 @@
-server:
-  port: 8081
+spring:
+  application:
+    name: order-service
+  profiles:
+    active: dev
+  config:
+    import:
+    - "optional:consul:"
+  cloud:
+    discovery:
+      enabled: true
+    consul:
+      host: ${CONSUL_HOST:localhost}
+      port: ${CONSUL_PORT:8500}
+      config:
+        format: yaml
+        prefixes: config
+        watch:
+          enabled: true
+      discovery:
+        enabled: true
+        register: true
+        service-name: ${spring.application.name}
+        instance-id: ${spring.application.name}:${random.value}
+        prefer-ip-address: true
+        health-check-path: /actuator/health
+  r2dbc:
+    url: ${ORDER_R2DBC_URL:r2dbc:postgresql://localhost:9543/db_order}
+    username: ${ORDER_DB_USERNAME:iteuser}
+    password: ${ORDER_DB_PASSWORD:qwerqwer}
+  liquibase:
+    enabled: true
+    change-log: classpath:/db.changelog/db.changelog-master.yaml
+    url: ${ORDER_DB_URL:jdbc:postgresql://localhost:9543/db_order}
+    user: ${ORDER_DB_USERNAME:iteuser}
+    password: ${ORDER_DB_PASSWORD:qwerqwer}
+    driver-class-name: org.postgresql.Driver
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: ${OAUTH2_ISSUER_URI:http://127.0.0.1:9000}
+      client:
+        registration:
+          customer-service:
+            provider: auth-server
+            authorization-grant-type: client_credentials
+            client-authentication-method: client_secret_basic
+            client-id: order-service
+            client-secret: ${ORDER_SERVICE_CLIENT_SECRET:local-order-secret}
+            scope:
+              - customer.read
+        provider:
+          auth-server:
+            token-uri: ${OAUTH2_TOKEN_URI:http://127.0.0.1:9000/oauth2/token}
+  http:
+    serviceclient:
+      customer-service:
+        base-url: ${CUSTOMER_SERVICE_HTTP_BASE_URL:lb://customer-service}
+  grpc:
+    client:
+      channel:
+        customer-service:
+          target: ${CUSTOMER_SERVICE_GRPC_TARGET:static://localhost:9090}
 
 management:
   endpoints:
     web:
       exposure:
-        include: health
+        include: health,info
   endpoint:
     health:
       probes:
         enabled: true
 
-scalar:
-  enabled: true
-  url: /v3/api-docs
+customer-service:
+  base-url: ${CUSTOMER_SERVICE_URL:http://customer-service}
+  timeout-ms: 3000
+  grpc:
+    timeout-ms: ${CUSTOMER_SERVICE_GRPC_TIMEOUT_MS:3000}
+
+business-service:
+  base-url: ${BUSINESS_SERVICE_URL:http://business-service}
+  timeout-ms: 3000
+
+payment-service:
+  base-url: ${PAYMENT_SERVICE_URL:http://payment-service}
+  timeout-ms: ${PAYMENT_SERVICE_TIMEOUT_MS:5000}
+
+global:
+  version: ${GLOBAL_VERSION:local}
 
 springdoc:
   api-docs:
@@ -21,26 +96,6 @@ springdoc:
   swagger-ui:
     enabled: true
 
-services:
-  customer:
-    base-url: ${CUSTOMER_SERVICE_URL:http://localhost:8083}
-    timeout-ms: 3000
-  business:
-    base-url: ${BUSINESS_SERVICE_URL:http://localhost:8082}
-    timeout-ms: 3000
-  payment:
-    base-url: ${PAYMENT_SERVICE_URL:http://localhost:8084}
-    timeout-ms: ${PAYMENT_SERVICE_TIMEOUT_MS:5000}
-
-spring:
-  application:
-    name: order-service
-  datasource:
-    url: ${ORDER_DB_URL:jdbc:postgresql://localhost:5433/order_db}
-    username: ${ORDER_DB_USERNAME:postgres}
-    password: ${ORDER_DB_PASSWORD:postgres}
-  jpa:
-    hibernate:
-      ddl-auto: update
-    open-in-view: false
-    show-sql: true
+scalar:
+  enabled: true
+  url: /v3/api-docs

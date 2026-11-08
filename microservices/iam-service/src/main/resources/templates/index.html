@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Sign in</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --ink: #0f2a43;
+      --ink-soft: #3b5670;
+      --panel: #123a5c;
+      --panel-deep: #0c2a45;
+      --line: #d9e1e8;
+      --surface: #ffffff;
+      --bg: #f6f8fa;
+      --accent: #1f6fd1;
+      --accent-hover: #1858a8;
+      --danger: #b42318;
+      --danger-bg: #fef3f2;
+      --ok: #05603a;
+      --ok-bg: #ecfdf3;
+      --radius: 10px;
+      --font: "Manrope", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html, body { height: 100%; }
+
+    body {
+      font-family: var(--font);
+      color: var(--ink);
+      background: var(--surface);
+      -webkit-font-smoothing: antialiased;
+    }
+
+    main {
+      display: grid;
+      grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr);
+      min-height: 100vh;
+    }
+
+    /* ---------- Left: brand panel ---------- */
+    .left {
+      position: relative;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      padding: 48px 56px;
+      color: #fff;
+      background: linear-gradient(160deg, var(--panel) 0%, var(--panel-deep) 100%);
+    }
+
+    /* concentric rings: the one decorative moment */
+    .left::before {
+      content: "";
+      position: absolute;
+      width: 720px;
+      height: 720px;
+      right: -280px;
+      bottom: -300px;
+      border-radius: 50%;
+      background:
+              radial-gradient(circle, transparent 0 28%, rgba(255,255,255,.07) 28% 28.4%, transparent 28.4% 42%,
+              rgba(255,255,255,.07) 42% 42.4%, transparent 42.4% 56%,
+              rgba(255,255,255,.07) 56% 56.4%, transparent 56.4% 70%,
+              rgba(255,255,255,.07) 70% 70.4%, transparent 70.4%);
+      pointer-events: none;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-weight: 800;
+      font-size: 1.15rem;
+      letter-spacing: -.01em;
+    }
+
+    .brand-mark {
+      width: 34px;
+      height: 34px;
+      border-radius: 9px;
+      background: #fff;
+      display: grid;
+      place-items: center;
+    }
+
+    .brand-mark svg { width: 18px; height: 18px; }
+
+    .pitch { position: relative; max-width: 440px; }
+
+    .pitch h2 {
+      font-size: clamp(2rem, 3.2vw, 2.9rem);
+      font-weight: 800;
+      line-height: 1.1;
+      letter-spacing: -.03em;
+      margin-bottom: 16px;
+    }
+
+    .pitch p {
+      font-size: 1.02rem;
+      line-height: 1.6;
+      color: rgba(255,255,255,.75);
+    }
+
+    .left small {
+      position: relative;
+      color: rgba(255,255,255,.55);
+      font-size: .85rem;
+    }
+
+    /* ---------- Right: form ---------- */
+    .right {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 48px 24px;
+      background: var(--surface);
+    }
+
+    .card { width: 100%; max-width: 380px; }
+
+    .card h1 {
+      font-size: 1.85rem;
+      font-weight: 800;
+      letter-spacing: -.03em;
+      margin-bottom: 6px;
+    }
+
+    .sub {
+      color: var(--ink-soft);
+      font-size: .95rem;
+      margin-bottom: 28px;
+    }
+
+    .alert {
+      border-radius: var(--radius);
+      padding: 12px 14px;
+      font-size: .9rem;
+      font-weight: 500;
+      margin-bottom: 20px;
+    }
+    .alert.error { color: var(--danger); background: var(--danger-bg); border: 1px solid #fecdca; }
+    .alert.ok { color: var(--ok); background: var(--ok-bg); border: 1px solid #abefc6; }
+
+    form { display: flex; flex-direction: column; gap: 18px; }
+
+    .field { display: flex; flex-direction: column; gap: 7px; }
+
+    label {
+      font-size: .88rem;
+      font-weight: 600;
+    }
+
+    .input-wrap { position: relative; }
+
+    input[type="text"],
+    input[type="password"] {
+      width: 100%;
+      height: 46px;
+      padding: 0 14px;
+      font: inherit;
+      font-size: .95rem;
+      color: var(--ink);
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      transition: border-color .15s, box-shadow .15s;
+    }
+
+    input::placeholder { color: #8da1b3; }
+
+    input:hover { border-color: #b9c6d2; }
+
+    input:focus {
+      outline: none;
+      border-color: var(--accent);
+      box-shadow: 0 0 0 4px rgba(31,111,209,.15);
+    }
+
+    #password { padding-right: 64px; }
+
+    .toggle {
+      position: absolute;
+      right: 6px;
+      top: 50%;
+      transform: translateY(-50%);
+      height: 34px;
+      padding: 0 10px;
+      font: inherit;
+      font-size: .82rem;
+      font-weight: 600;
+      color: var(--ink-soft);
+      background: none;
+      border: 0;
+      border-radius: 7px;
+      cursor: pointer;
+    }
+    .toggle:hover { color: var(--ink); background: var(--bg); }
+
+    .btn-primary {
+      height: 48px;
+      margin-top: 4px;
+      font: inherit;
+      font-weight: 700;
+      font-size: .95rem;
+      color: #fff;
+      background: var(--accent);
+      border: 0;
+      border-radius: var(--radius);
+      cursor: pointer;
+      transition: background .15s, transform .05s;
+    }
+    .btn-primary:hover { background: var(--accent-hover); }
+    .btn-primary:active { transform: translateY(1px); }
+
+    .divider {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      margin: 26px 0;
+      color: #6d8296;
+      font-size: .85rem;
+    }
+    .divider::before, .divider::after {
+      content: "";
+      flex: 1;
+      height: 1px;
+      background: var(--line);
+    }
+
+    .social { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+
+    .btn-social {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      height: 46px;
+      font-size: .92rem;
+      font-weight: 600;
+      color: var(--ink);
+      text-decoration: none;
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      transition: background .15s, border-color .15s;
+    }
+    .btn-social:hover { background: var(--bg); border-color: #b9c6d2; }
+    .btn-social svg { width: 18px; height: 18px; flex: none; }
+
+    a:focus-visible, button:focus-visible {
+      outline: 3px solid rgba(31,111,209,.45);
+      outline-offset: 2px;
+    }
+
+    /* ---------- Responsive ---------- */
+    @media (max-width: 860px) {
+      main { grid-template-columns: 1fr; }
+      .left { display: none; }
+      .right { align-items: flex-start; padding-top: 72px; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      * { transition: none !important; }
+    }
+  </style>
+</head>
+<body>
+
+<main>
+
+  <section class="left" aria-hidden="true">
+    <div class="brand">
+      <span class="brand-mark">
+        <svg viewBox="0 0 24 24" fill="none" stroke="#123a5c" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5L20 7"/></svg>
+      </span>
+      Your App
+    </div>
+
+    <div class="pitch">
+      <h2>Pick up right where you left off.</h2>
+      <p>Sign in to see your projects, your team's latest changes, and everything waiting for your review.</p>
+    </div>
+
+    <small>&copy; 2026 Your App</small>
+  </section>
+
+  <section class="right">
+    <div class="card">
+      <h1>Sign in</h1>
+      <p class="sub">Welcome back. Enter your details to continue.</p>
+
+      <!-- Spring Security default redirects: /login?error and /login?logout -->
+      <div class="alert error" role="alert" th:if="${param.error}">
+        Incorrect username or password. Check your details and try again.
+      </div>
+      <div class="alert ok" role="status" th:if="${param.logout}">
+        You have been signed out.
+      </div>
+
+      <form action="/login" method="post">
+        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+
+        <div class="field">
+          <label for="username">Username</label>
+          <input type="text" id="username" name="username" autocomplete="username"
+                 placeholder="Enter your username" required autofocus>
+        </div>
+
+        <div class="field">
+          <label for="password">Password</label>
+          <div class="input-wrap">
+            <input type="password" id="password" name="password" autocomplete="current-password"
+                   placeholder="Enter your password" required>
+            <button type="button" class="toggle" id="toggle" aria-controls="password" aria-pressed="false">Show</button>
+          </div>
+        </div>
+
+        <button type="submit" class="btn-primary">Sign in</button>
+      </form>
+
+      <div class="divider">or continue with</div>
+
+      <div class="social">
+        <a class="btn-social" href="/oauth2/authorization/github">
+          <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 .5C5.65.5.5 5.65.5 12c0 5.08 3.29 9.39 7.86 10.91.58.1.79-.25.79-.56v-2c-3.2.7-3.87-1.54-3.87-1.54-.52-1.33-1.28-1.69-1.28-1.69-1.05-.71.08-.7.08-.7 1.15.08 1.76 1.19 1.76 1.19 1.03 1.76 2.69 1.25 3.35.96.1-.75.4-1.25.73-1.54-2.55-.29-5.24-1.28-5.24-5.69 0-1.26.45-2.28 1.19-3.09-.12-.29-.52-1.46.11-3.05 0 0 .97-.31 3.17 1.18a11 11 0 0 1 5.77 0c2.2-1.49 3.17-1.18 3.17-1.18.63 1.59.23 2.76.11 3.05.74.81 1.19 1.83 1.19 3.09 0 4.42-2.69 5.39-5.25 5.68.41.36.78 1.06.78 2.14v3.17c0 .31.21.67.8.56A11.5 11.5 0 0 0 23.5 12C23.5 5.65 18.35.5 12 .5z"/></svg>
+          GitHub
+        </a>
+        <a class="btn-social" href="/oauth2/authorization/google">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path fill="#4285F4" d="M23.5 12.27c0-.82-.07-1.6-.21-2.36H12v4.46h6.45a5.52 5.52 0 0 1-2.4 3.62v3h3.88c2.27-2.09 3.57-5.17 3.57-8.72z"/><path fill="#34A853" d="M12 24c3.24 0 5.96-1.07 7.94-2.91l-3.88-3c-1.07.72-2.45 1.15-4.06 1.15-3.12 0-5.77-2.11-6.71-4.95H1.28v3.1A12 12 0 0 0 12 24z"/><path fill="#FBBC05" d="M5.29 14.29a7.2 7.2 0 0 1 0-4.58v-3.1H1.28a12 12 0 0 0 0 10.78l4.01-3.1z"/><path fill="#EA4335" d="M12 4.76c1.76 0 3.34.61 4.59 1.8l3.44-3.44C17.95 1.19 15.24 0 12 0A12 12 0 0 0 1.28 6.61l4.01 3.1C6.23 6.87 8.88 4.76 12 4.76z"/></svg>
+          Google
+        </a>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<script>
+  (function () {
+    var btn = document.getElementById('toggle');
+    var input = document.getElementById('password');
+    btn.addEventListener('click', function () {
+      var show = input.type === 'password';
+      input.type = show ? 'text' : 'password';
+      btn.textContent = show ? 'Hide' : 'Show';
+      btn.setAttribute('aria-pressed', String(show));
+    });
+  })();
+</script>
+
+</body>
+</html>

@@ -12,6 +12,15 @@ includeBuild '../../istad-common'
 dependencyResolutionManagement {
     repositories {
         mavenCentral()
+        maven {
+            name = 'buf'
+            url = 'https://buf.build/gen/maven'
+        }
+    }
+    versionCatalogs {
+        libs {
+            from(files("../../gradle/libs.versions.toml"))
+        }
     }
 }
 //includeBuild() ប្រើនៅពេលអ្នកមាន Gradle build មួយទៀត ដែលមាន settings.gradle របស់វាផ្ទាល់។

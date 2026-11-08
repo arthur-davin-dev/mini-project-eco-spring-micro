@@ -1,7 +1,10 @@
 plugins {
-    id 'spring-common-conventions'
+    alias(libs.plugins.spring.common.conventions)
 }
 
 dependencies {
     api project(':customer-service-domain:customer-application-service')
+    api platform(libs.grpc.bom)
+    api libs.istad.common.proto.grpc
+    api libs.protobuf.java
 }

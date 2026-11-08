@@ -1,11 +1,10 @@
 server:
-  port: 8082
-
+  port: ${BUSINESS_SERVICE_PORT:9988}
 management:
   endpoints:
     web:
       exposure:
-        include: health
+        include: health, info
   endpoint:
     health:
       probes:
@@ -22,10 +21,26 @@ springdoc:
 #    enabled: true
 
 spring:
+  cloud:
+    discovery:
+      enabled: true
+    consul:
+      host: ${CONSUL_HOST:localhost}
+      port: ${CONSUL_PORT:8500}
+      discovery:
+        enabled: true
+        register: true
+        service-name: ${spring.application.name}
+        prefer-ip-address: true
+        health-check-path: /actuator/health
   application:
     name: business-service
-  mongodb:
-    uri: ${BUSINESS_MONGODB_URI:mongodb://mongod:mongod@localhost:2026/business_db?authSource=admin}
+  profiles:
+    active: dev
+
+
   data:
     mongodb:
       auto-index-creation: true
+  mongodb:
+    uri: ${BUSINESS_MONGODB_URI:mongodb://mongod:mongod@localhost:2026/business_db?authSource=admin}

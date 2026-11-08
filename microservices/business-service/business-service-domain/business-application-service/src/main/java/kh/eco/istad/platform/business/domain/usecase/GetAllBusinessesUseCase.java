@@ -17,7 +17,12 @@ public class GetAllBusinessesUseCase {
         this.mapper = mapper;
     }
 
-    public Flux<BusinessResult> execute() {
-        return repository.findAll().map(mapper::toBusinessResult);
+//    public Flux<BusinessResult> execute() {
+//        return repository.findAll().map(mapper::toBusinessResult);
+//    }
+    public Flux<BusinessResult> execute(){
+        return repository
+                .findAll()
+                .map(mapper::toBusinessResult);
     }
 }

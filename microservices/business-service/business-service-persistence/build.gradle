@@ -1,12 +1,12 @@
 plugins {
-    id 'spring-common-conventions'
+    alias(libs.plugins.spring.common.conventions)
 }
 
 dependencies {
     api project(':business-service-domain:business-application-service')
-    implementation 'org.springframework.boot:spring-boot-starter-data-mongodb-reactive'
+    implementation libs.spring.boot.starter.data.mongodb.reactive
 
-    testImplementation 'org.springframework.boot:spring-boot-starter-test'
-    testImplementation 'io.projectreactor:reactor-test'
-    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+    testImplementation libs.spring.boot.starter.test
+    testImplementation libs.reactor.test
+    testRuntimeOnly libs.junit.platform.launcher
 }

@@ -1,25 +1,21 @@
 package kh.eco.istad.platform.order.persistence.entity;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.springframework.data.annotation.Id;
+import org.springframework.data.relational.core.mapping.Table;
 
 import java.util.UUID;
 
-@Entity
-@Table(name = "customers")
+@Table("customers")
 @Getter
 @Setter
 @NoArgsConstructor
 public class CustomerEntity {
-
     @Id
     private UUID id;
-
-    @Column(nullable = false)
-    private String name;
+    private String firstName;
+    private String givenName;
+    private String userName;
 }

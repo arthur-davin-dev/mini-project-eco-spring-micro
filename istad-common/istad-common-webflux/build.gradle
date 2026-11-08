@@ -1,0 +1,22 @@
+plugins {
+    id 'spring-boot-common-conventions'
+}
+
+group = 'kh.eco.istad'
+version = '1.0-SNAPSHOT'
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    implementation 'kh.eco.istad:istad-common-domain'
+    implementation 'org.springframework.boot:spring-boot-starter-webflux'
+    testImplementation platform('org.junit:junit-bom:6.0.0')
+    testImplementation 'org.junit.jupiter:junit-jupiter'
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+}
+
+test {
+    useJUnitPlatform()
+}

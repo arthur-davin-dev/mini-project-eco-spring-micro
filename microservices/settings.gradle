@@ -1,6 +1,20 @@
+dependencyResolutionManagement {
+    versionCatalogs {
+        libs {
+            from(files("../gradle/libs.versions.toml"))
+        }
+    }
+
+    repositories {
+        mavenCentral()
+    }
+}
+
 rootProject.name = 'microservices'
 
 includeBuild 'business-service'
 includeBuild 'order-service'
 includeBuild 'payment-service'
 includeBuild 'customer-service'
+includeBuild 'gateway-server'
+includeBuild 'iam-service'

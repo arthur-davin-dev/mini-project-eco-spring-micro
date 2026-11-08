@@ -1,5 +1,5 @@
-plugins { id 'spring-common-conventions' }
+plugins { alias(libs.plugins.spring.common.conventions) }
 dependencies {
     api project(':payment-service-domain:payment-domain-core')
-    testImplementation 'org.junit.jupiter:junit-jupiter'
+    testImplementation libs.junit.jupiter
 }

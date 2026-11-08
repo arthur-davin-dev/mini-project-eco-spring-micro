@@ -1,10 +1,18 @@
 plugins {
-    id 'spring-common-conventions'
+    alias(libs.plugins.spring.common.conventions)
+    id 'spring-cloud-common-conventions'
 }
 
 dependencies {
     api project(':order-service-domain:order-application-service')
-    implementation 'org.springframework.boot:spring-boot-starter-webmvc'
-    testImplementation 'org.springframework.boot:spring-boot-starter-test'
-    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+    api platform(libs.grpc.bom)
+    api libs.istad.common.proto.grpc
+    api libs.protobuf.java
+    api 'org.springframework.boot:spring-boot-starter-oauth2-client'
+    implementation libs.spring.boot.starter.webmvc
+    implementation libs.spring.cloud.starter.loadbalancer
+    implementation libs.spring.boot.starter.webclient
+    testImplementation libs.spring.boot.starter.test
+    testImplementation libs.reactor.test
+    testRuntimeOnly libs.junit.platform.launcher
 }

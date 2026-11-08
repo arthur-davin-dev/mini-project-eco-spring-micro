@@ -7,17 +7,30 @@ group = 'kh.eco.istad'
 version = '1.0.0'
 java {
     toolchain {
-        languageVersion = JavaLanguageVersion.of(25)
+        languageVersion = JavaLanguageVersion.of(libs.versions.java.get().toInteger())
     }
 }
 dependencyManagement {
     imports {
-        mavenBom 'org.springframework.boot:spring-boot-dependencies:4.1.1'
+        mavenBom(libs.spring.boot.dependencies.get().toString()) {
+            // Keep Spring Boot's managed runtimes aligned with the published Buf SDK.
+            bomProperty 'grpc-java.version', libs.versions.grpc.get()
+            bomProperty 'protobuf-java.version', libs.versions.protobuf.java.get()
+        }
     }
 }
 dependencies {
-    testImplementation 'org.springframework.boot:spring-boot-starter-test'
+    annotationProcessor libs.lombok.mapstruct.binding
+    annotationProcessor libs.mapstruct.processor
+    compileOnly libs.mapstruct
+    compileOnly libs.lombok
+    annotationProcessor libs.lombok
+    testImplementation libs.spring.boot.starter.test
 }
 tasks.withType(Test).configureEach {
     useJUnitPlatform()
+}
+
+tasks.named('bootRun') {
+    jvmArgs '--enable-native-access=ALL-UNNAMED'
 }

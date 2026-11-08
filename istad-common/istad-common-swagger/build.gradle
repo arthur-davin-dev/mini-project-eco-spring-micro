@@ -1,0 +1,11 @@
+plugins {
+    id 'java-library'
+}
+
+group = 'kh.eco.istad'
+version = '1.0.0'
+
+dependencies {
+    implementation libs.springdoc.openapi.common
+    implementation libs.spring.boot.autoconfigure
+}
