@@ -1,0 +1,24 @@
+plugins {
+    id 'spring-boot-common-conventions'
+}
+
+dependencies {
+    implementation project(':iam-domain:iam-domain-core')
+    implementation project(':iam-domain:iam-application-service')
+    implementation project(':iam-persistence')
+    implementation project(':iam-infrastructure')
+    implementation project(':iam-rest-api')
+    implementation project(':iam-web')
+    implementation 'org.springframework.boot:spring-boot-starter-liquibase'
+    implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+    implementation 'org.springframework.boot:spring-boot-starter-security'
+    implementation 'org.springframework.boot:spring-boot-starter-security-oauth2-authorization-server'
+    implementation 'org.springframework.boot:spring-boot-starter-security-oauth2-client'
+    implementation libs.springdoc.webmvc.ui
+    implementation libs.springdoc.webmvc.scalar
+    testImplementation 'org.springframework.boot:spring-boot-starter-webmvc-test'
+    testImplementation 'org.springframework.boot:spring-boot-starter-oauth2-resource-server'
+    testImplementation 'org.springframework.boot:spring-boot-starter-security-oauth2-authorization-server'
+    testImplementation 'org.springframework.security:spring-security-test'
+    runtimeOnly 'org.postgresql:postgresql'
+}

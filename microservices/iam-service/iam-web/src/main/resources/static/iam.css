@@ -1,0 +1,456 @@
+:root {
+    color-scheme: light dark;
+
+    /* Color: neutrals */
+    --bg: #f2f5f8;
+    --surface: #ffffff;
+    --border: #dfe6ed;
+    --border-strong: #c8d3de;
+    --text: #17324d;
+    --text-label: #304b64;
+    --text-muted: #52677c;
+
+    /* Color: brand */
+    --primary: #1769c2;
+    --primary-hover: #1259a6;
+    --link: #1769c2;
+    --focus-ring: rgb(23 105 194 / 0.35);
+
+    /* Color: components */
+    --secondary-bg: #e9eff5;
+    --secondary-hover: #dbe4ed;
+    --danger: #aa2935;
+    --danger-hover: #8f202b;
+    --tag-bg: #eaf2fb;
+
+    /* Color: feedback */
+    --error-text: #a3212c;
+    --error-bg: #fff1f0;
+    --error-border: #f5c6c2;
+    --success-text: #11613b;
+    --success-bg: #effaf3;
+    --success-border: #bfe6cf;
+
+    /* Type */
+    --font-sans: system-ui, -apple-system, "Segoe UI", "Noto Sans Khmer", "Khmer UI", sans-serif;
+    --font-size-base: 1rem;
+    --line-height-base: 1.55;
+    --line-height-khmer: 1.75;
+
+    /* Shape & depth */
+    --radius-sm: 8px;
+    --radius-lg: 16px;
+    --radius-pill: 999px;
+    --shadow-card: 0 12px 36px rgb(23 50 77 / 0.07);
+    --transition: 120ms ease;
+
+    /* Layout */
+    --card-width: 520px;
+    --card-width-wide: 900px;
+}
+
+@media (prefers-color-scheme: dark) {
+    :root {
+        --bg: #0e1824;
+        --surface: #152433;
+        --border: #263a4f;
+        --border-strong: #35506b;
+        --text: #e6edf4;
+        --text-label: #cbd8e4;
+        --text-muted: #9fb2c5;
+
+        --primary: #2a78d0;
+        --primary-hover: #3485e0;
+        --link: #7ab8f7;
+        --focus-ring: rgb(122 184 247 / 0.4);
+
+        --secondary-bg: #223548;
+        --secondary-hover: #2b4259;
+        --danger: #b3303c;
+        --danger-hover: #c53a47;
+        --tag-bg: #1f3650;
+
+        --error-text: #ffb3b8;
+        --error-bg: #3a1d21;
+        --error-border: #6b2f36;
+        --success-text: #8fe0b0;
+        --success-bg: #14301f;
+        --success-border: #25583a;
+
+        --shadow-card: 0 12px 36px rgb(0 0 0 / 0.35);
+    }
+}
+
+
+/* 2. Base
+   ========================================================================== */
+
+*,
+*::before,
+*::after {
+    box-sizing: border-box;
+}
+
+:root {
+    font-family: var(--font-sans);
+    font-synthesis: none;
+    color: var(--text);
+    background: var(--bg);
+    text-size-adjust: 100%;
+}
+
+body {
+    margin: 0;
+    padding: 4vh 16px;
+    min-height: 100vh;
+    line-height: var(--line-height-base);
+}
+
+body:lang(km) {
+    line-height: var(--line-height-khmer);
+}
+
+hr {
+    margin: 24px 0;
+    border: 0;
+    border-top: 1px solid var(--border);
+}
+
+
+/* 3. Typography
+   ========================================================================== */
+
+h1,
+h2 {
+    line-height: 1.25;
+    text-wrap: balance;
+}
+
+h1 {
+    margin: 0 0 8px;
+    font-size: 1.8rem;
+    letter-spacing: -0.01em;
+}
+
+h2 {
+    margin: 32px 0 8px;
+    font-size: 1.25rem;
+}
+
+p {
+    margin: 0 0 12px;
+    color: var(--text-muted);
+}
+
+p b {
+    color: var(--text);
+}
+
+a {
+    color: var(--link);
+    text-decoration: none;
+    text-underline-offset: 3px;
+}
+
+a:hover {
+    text-decoration: underline;
+}
+
+:focus-visible {
+    outline: 3px solid var(--focus-ring);
+    outline-offset: 2px;
+    border-radius: 4px;
+}
+
+
+/* 4. Layout
+   ========================================================================== */
+
+.card {
+    width: min(100%, var(--card-width));
+    margin: 0 auto;
+    padding: 32px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-card);
+}
+
+.card.wide {
+    width: min(100%, var(--card-width-wide));
+}
+
+.card > header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 28px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid var(--border);
+}
+
+.card > header > a {
+    font-weight: 700;
+}
+
+.card > header nav {
+    display: flex;
+    gap: 6px;
+    align-items: center;
+    color: var(--text-muted);
+}
+
+.actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin: 22px 0;
+}
+
+
+/* 5. Forms
+   ========================================================================== */
+
+label {
+    display: block;
+    margin: 16px 0;
+    font-weight: 600;
+    color: var(--text-label);
+}
+
+input,
+select {
+    display: block;
+    width: 100%;
+    margin-top: 6px;
+    padding: 11px 12px;
+    font: inherit;
+    font-weight: 400;
+    color: var(--text);
+    background: var(--surface);
+    border: 1px solid var(--border-strong);
+    border-radius: var(--radius-sm);
+    transition: border-color var(--transition), box-shadow var(--transition);
+}
+
+input:hover,
+select:hover {
+    border-color: var(--text-muted);
+}
+
+input:focus-visible,
+select:focus-visible {
+    outline: none;
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px var(--focus-ring);
+}
+
+input:user-invalid,
+select:user-invalid {
+    border-color: var(--error-text);
+}
+
+input::placeholder {
+    color: var(--text-muted);
+    opacity: 0.7;
+}
+
+input:disabled,
+select:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+input[type="checkbox"] {
+    display: inline-block;
+    width: 1.1rem;
+    height: 1.1rem;
+    margin: 0;
+    accent-color: var(--primary);
+}
+
+.check {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-weight: 500;
+}
+
+
+/* 6. Buttons
+   ========================================================================== */
+
+button,
+.button {
+    display: inline-block;
+    padding: 11px 16px;
+    font: inherit;
+    font-weight: 650;
+    text-align: center;
+    color: #fff;
+    background: var(--primary);
+    border: 0;
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    transition: background-color var(--transition), transform var(--transition);
+}
+
+button:hover,
+.button:hover {
+    background: var(--primary-hover);
+    text-decoration: none;
+}
+
+button:active,
+.button:active {
+    transform: translateY(1px);
+}
+
+button:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none;
+}
+
+label + button,
+label + .button {
+    margin-top: 8px;
+}
+
+.secondary {
+    color: var(--text);
+    background: var(--secondary-bg);
+}
+
+.secondary:hover {
+    background: var(--secondary-hover);
+}
+
+.danger {
+    background: var(--danger);
+}
+
+.danger:hover {
+    background: var(--danger-hover);
+}
+
+
+/* 7. Feedback
+   ========================================================================== */
+
+.error,
+.success {
+    margin: 16px 0;
+    padding: 12px 14px;
+    border: 1px solid transparent;
+    border-radius: var(--radius-sm);
+}
+
+.error {
+    color: var(--error-text);
+    background: var(--error-bg);
+    border-color: var(--error-border);
+}
+
+.success {
+    color: var(--success-text);
+    background: var(--success-bg);
+    border-color: var(--success-border);
+}
+
+
+/* 8. Data display
+   ========================================================================== */
+
+.tag {
+    display: inline-block;
+    margin: 3px;
+    padding: 4px 10px;
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: var(--text);
+    background: var(--tag-bg);
+    border-radius: var(--radius-pill);
+}
+
+table {
+    width: 100%;
+    margin-top: 18px;
+    border-collapse: collapse;
+}
+
+th,
+td {
+    padding: 12px;
+    text-align: left;
+    vertical-align: middle;
+    border-bottom: 1px solid var(--border);
+}
+
+th {
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: var(--text-muted);
+}
+
+tbody tr:hover {
+    background: var(--bg);
+}
+
+td form {
+    margin: 0;
+}
+
+td:last-child {
+    text-align: right;
+}
+
+ul {
+    margin: 0 0 16px;
+    padding-left: 24px;
+}
+
+li {
+    padding: 4px 0;
+    color: var(--text-muted);
+}
+
+
+/* 9. Responsive
+   ========================================================================== */
+
+@media (max-width: 560px) {
+    body {
+        padding: 16px 12px;
+    }
+
+    .card {
+        padding: 22px;
+    }
+
+    h1 {
+        font-size: 1.5rem;
+    }
+
+    th,
+    td {
+        padding: 8px;
+        font-size: 0.9rem;
+    }
+
+    /* Stack action buttons full width on small screens */
+    .actions > .button,
+    .actions > form,
+    .actions > form > button {
+        width: 100%;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+        transition: none !important;
+    }
+}

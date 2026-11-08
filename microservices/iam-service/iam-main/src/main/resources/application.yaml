@@ -1,0 +1,109 @@
+spring:
+  config:
+    import: optional:file:.env[.properties]
+  application:
+    name: iam-service
+  security:
+    oauth2:
+      authorizationserver:
+        issuer: ${IAM_ISSUER:http://localhost:9000}
+      client:
+        registration:
+          google:
+            client-id: ${GOOGLE_CLIENT_ID:}
+            client-secret: ${GOOGLE_CLIENT_SECRET:}
+            client-authentication-method: client_secret_basic
+            authorization-grant-type: authorization_code
+            redirect-uri: "{baseUrl}/login/oauth2/code/{registrationId}"
+            scope: [openid, profile, email]
+          github:
+            client-id: ${GITHUB_CLIENT_ID:}
+            client-secret: ${GITHUB_CLIENT_SECRET:}
+            client-authentication-method: client_secret_basic
+            authorization-grant-type: authorization_code
+            redirect-uri: "{baseUrl}/login/oauth2/code/{registrationId}"
+            scope: [read:user, user:email]
+          facebook:
+            client-id: ${FACEBOOK_CLIENT_ID:}
+            client-secret: ${FACEBOOK_CLIENT_SECRET:}
+            client-authentication-method: client_secret_post
+            authorization-grant-type: authorization_code
+            redirect-uri: "{baseUrl}/login/oauth2/code/{registrationId}"
+            scope: [email, public_profile]
+          telegram:
+            provider: telegram
+            client-id: ${TELEGRAM_CLIENT_ID:}
+            client-secret: ${TELEGRAM_CLIENT_SECRET:}
+            client-authentication-method: client_secret_basic
+            authorization-grant-type: authorization_code
+            redirect-uri: ${TELEGRAM_REDIRECT_URI:{baseUrl}/login/oauth2/code/{registrationId}}
+            scope: [openid, profile]
+        provider:
+          google:
+            authorization-uri: https://accounts.google.com/o/oauth2/v2/auth
+            token-uri: https://oauth2.googleapis.com/token
+            user-info-uri: https://openidconnect.googleapis.com/v1/userinfo
+            jwk-set-uri: https://www.googleapis.com/oauth2/v3/certs
+            user-name-attribute: sub
+            issuer-uri: https://accounts.google.com
+          github:
+            authorization-uri: https://github.com/login/oauth/authorize
+            token-uri: https://github.com/login/oauth/access_token
+            user-info-uri: https://api.github.com/user
+            user-name-attribute: id
+          facebook:
+            authorization-uri: https://www.facebook.com/dialog/oauth
+            token-uri: https://graph.facebook.com/oauth/access_token
+            user-info-uri: https://graph.facebook.com/me?fields=id,name,email,picture
+            user-name-attribute: id
+          telegram:
+            authorization-uri: https://oauth.telegram.org/auth
+            token-uri: https://oauth.telegram.org/token
+            jwk-set-uri: https://oauth.telegram.org/.well-known/jwks.json
+            issuer-uri: https://oauth.telegram.org
+            user-name-attribute: sub
+  datasource:
+    url: ${DB_URL:jdbc:postgresql://localhost:9543/db_oauth2}
+    username: ${DB_USERNAME:iteuser}
+    password: ${DB_PASSWORD}
+    driver-class-name: org.postgresql.Driver
+  jpa:
+    hibernate:
+      ddl-auto: none
+
+  liquibase:
+    url: ${spring.datasource.url}
+    user: ${spring.datasource.username}
+    password: ${spring.datasource.password}
+    driver-class-name: ${spring.datasource.driver-class-name}
+    change-log: classpath:db.changelog/db.changelog-master.yaml
+
+iam:
+  security:
+    dcr:
+      client-secret: ${IAM_DCR_CLIENT_SECRET:}
+    jwk:
+      private-key-path: ${IAM_JWK_PRIVATE_KEY_PATH:}
+      public-key-path: ${IAM_JWK_PUBLIC_KEY_PATH:}
+
+server:
+  port: 9000
+  forward-headers-strategy: framework
+
+springdoc:
+  api-docs:
+    enabled: true
+  swagger-ui:
+    enabled: true
+
+scalar:
+  enabled: true
+  url: /v3/api-docs
+
+gg:
+  jte:
+    use-precompiled-templates: true
+
+logging:
+  level:
+    org.springframework.security: INFO

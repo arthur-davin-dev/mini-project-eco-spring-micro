@@ -2,7 +2,7 @@ OAUTH2-LOCAL-TEST.md
 .dockerignore
 test-integration.sh
 Dockerfile
-docs
+docs/*
 .gradle
 .env
 build/
@@ -47,7 +47,9 @@ bin/
 
 ### Mac OS ###
 .DS_Store
-docs/
+docs/*
+!docs/iam-service/
+!docs/iam-service/**
 
 test-integration.sh
 Dockerfile
