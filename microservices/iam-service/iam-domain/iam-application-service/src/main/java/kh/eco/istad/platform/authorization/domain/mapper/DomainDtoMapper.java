@@ -15,7 +15,9 @@ import kh.eco.istad.platform.authorization.domain.entity.user.UserProfile;
 
 import java.util.List;
 
-/** Maps framework-free domain objects to application results. */
+/**
+ * Maps framework-free domain objects to application results.
+ */
 public final class DomainDtoMapper {
 
     private DomainDtoMapper() {
@@ -51,29 +53,73 @@ public final class DomainDtoMapper {
 
     public static UserSummary toUserSummary(User user, List<RoleRef> roles) {
         UserProfile profile = user.getProfile();
-        return new UserSummary(user.getUuid(), user.getUsername().value(), user.getEmail().value(),
-                profile.fullName(), profile.locale(), user.isEnabled(), user.isAccountNonLocked(), roles,
-                user.getCreatedAt(), user.getUpdatedAt());
+        return new UserSummary(
+                user.getUuid(),
+                user.getUsername().value(),
+                user.getEmail().value(),
+                profile.fullName(),
+                profile.locale(),
+                user.isEnabled(),
+                user.isAccountNonLocked(),
+                roles,
+                user.getCreatedAt(),
+                user.getUpdatedAt());
     }
 
-    public static RoleResult toRoleResult(Role role, List<String> permissionNames) {
-        return new RoleResult(role.getUuid(), role.getName(), role.getDescription(), role.isSystem(),
-                role.isActive(), permissionNames, role.getCreatedAt(), role.getUpdatedAt());
+    public static RoleResult toRoleResult(
+            Role role,
+            List<String> permissionNames
+    ) {
+        return new RoleResult(
+                role.getUuid(),
+                role.getName(),
+                role.getDescription(),
+                role.isSystem(),
+                role.isActive(),
+                permissionNames,
+                role.getCreatedAt(),
+                role.getUpdatedAt()
+        );
     }
 
-    public static RoleSummary toRoleSummary(Role role, List<String> permissionNames) {
-        return new RoleSummary(role.getUuid(), role.getName(), role.getDescription(), role.isSystem(),
-                role.isActive(), permissionNames, role.getCreatedAt(), role.getUpdatedAt());
+    public static RoleSummary toRoleSummary(
+            Role role,
+            List<String> permissionNames
+    ) {
+        return new RoleSummary(
+                role.getUuid(),
+                role.getName(),
+                role.getDescription(),
+                role.isSystem(),
+                role.isActive(),
+                permissionNames,
+                role.getCreatedAt(),
+                role.getUpdatedAt()
+        );
     }
 
     public static PermissionResult toPermissionResult(Permission permission) {
-        return new PermissionResult(permission.getUuid(), permission.name(), permission.getResource(),
-                permission.getAction(), permission.getDescription(), permission.isSystem(), permission.isActive(),
-                permission.getCreatedAt(), permission.getUpdatedAt());
+        return new PermissionResult(
+                permission.getUuid(),
+                permission.name(),
+                permission.getResource(),
+                permission.getAction(),
+                permission.getDescription(),
+                permission.isSystem(),
+                permission.isActive(),
+                permission.getCreatedAt(),
+                permission.getUpdatedAt()
+        );
     }
 
     public static IdentityResult toIdentityResult(Identity identity) {
-        return new IdentityResult(identity.getUuid(), identity.getProvider(), identity.getEmail(),
-                identity.getDisplayName(), identity.getLinkedAt(), identity.getLastLoginAt());
+        return new IdentityResult(
+                identity.getUuid(),
+                identity.getProvider(),
+                identity.getEmail(),
+                identity.getDisplayName(),
+                identity.getLinkedAt(),
+                identity.getLastLoginAt()
+        );
     }
 }

@@ -68,6 +68,7 @@ public class InitRegisteredClient {
                 .clientName("IAM Postman (local development)")
                 .clientAuthenticationMethod(ClientAuthenticationMethod.NONE)
                 .authorizationGrantType(AuthorizationGrantType.AUTHORIZATION_CODE)
+                .authorizationGrantType(AuthorizationGrantType.REFRESH_TOKEN)
                 .redirectUri("https://oauth.pstmn.io/v1/callback")
                 .scope(OidcScopes.OPENID)
                 .scope(OidcScopes.PROFILE)
@@ -81,8 +82,14 @@ public class InitRegisteredClient {
                 .tokenSettings(tokenSettings)
                 .build();
 
-        if (registeredClientRepository.findByClientId("iam-postman") == null) {
+        RegisteredClient existingPostmanClient = registeredClientRepository.findByClientId("iam-postman");
+        if (existingPostmanClient == null) {
             registeredClientRepository.save(postmanClient);
+        } else if (!existingPostmanClient.getAuthorizationGrantTypes()
+                .contains(AuthorizationGrantType.REFRESH_TOKEN)) {
+            registeredClientRepository.save(RegisteredClient.from(existingPostmanClient)
+                    .authorizationGrantType(AuthorizationGrantType.REFRESH_TOKEN)
+                    .build());
         }
 
         if (dcrClientSecret != null && !dcrClientSecret.isBlank()

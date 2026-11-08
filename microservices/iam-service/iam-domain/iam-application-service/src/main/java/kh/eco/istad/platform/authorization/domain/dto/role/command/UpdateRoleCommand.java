@@ -1,5 +1,7 @@
 package kh.eco.istad.platform.authorization.domain.dto.role.command;
 
 
-public record UpdateRoleCommand(String description) {
+public record UpdateRoleCommand(
+        String description
+) {
 }

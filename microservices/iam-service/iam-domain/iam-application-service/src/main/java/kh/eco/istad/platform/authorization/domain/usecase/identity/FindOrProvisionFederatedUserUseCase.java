@@ -117,13 +117,28 @@ public class FindOrProvisionFederatedUserUseCase {
         return created;
     }
 
-    private static Identity newIdentity(FederatedIdentityCommand command, String actor, Instant now) {
-        return Identity.link(UUID.randomUUID(), command.provider(), command.providerSubject(), command.email(),
-                command.emailVerified(), command.displayName(), command.username(), command.pictureUrl(),
-                actor, now);
+    private static Identity newIdentity(
+            FederatedIdentityCommand command,
+            String actor,
+            Instant now
+    ) {
+        return Identity.link(
+                UUID.randomUUID(),
+                command.provider(),
+                command.providerSubject(),
+                command.email(),
+                command.emailVerified(),
+                command.displayName(),
+                command.username(),
+                command.pictureUrl(),
+                actor, now
+        );
     }
 
-    private Username availableUsername(FederatedIdentityCommand command, EmailAddress email) {
+    private Username availableUsername(
+            FederatedIdentityCommand command,
+            EmailAddress email
+    ) {
         String seed = firstNonBlank(command.username(), email.value().substring(0, email.value().indexOf('@')));
         String base = seed.replaceAll("[^A-Za-z0-9._-]", "");
         if (base.length() < 3) {

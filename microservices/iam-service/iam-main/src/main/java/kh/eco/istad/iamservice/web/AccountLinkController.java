@@ -16,20 +16,20 @@ public class AccountLinkController {
     private final LoadUserForAuthenticationUseCase loadUser;
 
     public AccountLinkController(
-        ClientRegistrationRepository registrations, LoadUserForAuthenticationUseCase loadUser) {
+            ClientRegistrationRepository registrations, LoadUserForAuthenticationUseCase loadUser) {
         this.registrations = registrations;
         this.loadUser = loadUser;
     }
 
     @PostMapping("/profile/accounts/link/{provider}")
     public String beginLink(
-        Authentication authentication, HttpSession session, @PathVariable String provider, RedirectAttributes flash) {
+            Authentication authentication, HttpSession session, @PathVariable String provider, RedirectAttributes flash) {
         if (registrations.findByRegistrationId(provider) == null) {
             flash.addFlashAttribute("errorKey", "accounts.linkFailed");
             return "redirect:/profile/accounts";
         }
         var user = loadUser.execute(authentication.getName())
-                       .orElseThrow(() -> new IllegalStateException("Authenticated IAM user was not found"));
+                .orElseThrow(() -> new IllegalStateException("Authenticated IAM user was not found"));
         session.setAttribute(FederatedLinkIntent.SESSION_ATTRIBUTE, user.uuid().toString());
         return "redirect:/oauth2/authorization/" + provider;
     }

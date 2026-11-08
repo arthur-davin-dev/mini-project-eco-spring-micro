@@ -52,8 +52,8 @@ Use the matching version's [core model and configuration guide](https://docs.spr
   datasource; local OIDC clients use authorization code + PKCE. Confidential
   clients can use refresh-token rotation.
 - Implemented: a local `iam-postman` public client uses authorization code
-  + PKCE with Postman's callback URL, allowing Postman to receive codes without
-  a client secret.
+  + PKCE with Postman's callback URL and supports refresh-token rotation,
+  allowing Postman to receive tokens without a client secret.
 - Implemented: password authentication loads users through the application
   use case; access tokens include the user's IAM authorities.
 - Implemented: access tokens expose stable `sub`/`user_uuid`, `roles`, and
@@ -106,7 +106,7 @@ Use the matching version's [core model and configuration guide](https://docs.spr
 
 ### Get an access token in Postman
 
-Restart IAM once so `iam-postman` is seeded into the registered-client table.
+Restart IAM so `iam-postman` is seeded or upgraded in the registered-client table.
 In Postman, open **Authorization → OAuth 2.0 → Get New Access Token** and use:
 
 | Setting | Value |
@@ -123,10 +123,10 @@ In Postman, open **Authorization → OAuth 2.0 → Get New Access Token** and us
 Click **Get New Access Token**, sign in with an IAM user, then click **Use
 Token**. In Scalar, authorize API requests with `Bearer <access-token>`.
 The seeded `iam-postman` client is public and uses PKCE. Its access token lasts
-5 hours. When it expires, start **Get New Access Token** again and sign in; do
-not configure a client secret for this public client. The authorization-code
-flow redirects through a browser; posting a username/password JSON body to
-`/login` does not issue a token.
+5 hours. Postman can use the returned refresh token to renew it; do not
+configure a client secret for this public client. The authorization-code flow
+redirects through a browser; posting a username/password JSON body to `/login`
+does not issue a token.
 
 ### Token expiration and refresh
 
@@ -138,15 +138,19 @@ The seeded client token settings are:
 | Authorization code | 3 minutes | One-time code used by the callback to get tokens |
 | Refresh token | 7 days | Rotated on use (`reuseRefreshTokens=false`) for clients authorized to use this grant |
 
-The shipped `iam-postman` and `oidc-client` entries are public clients and
-advertise authorization code only. When their access token expires, run the
-browser authorization flow again. A confidential application can use the
-refresh-token grant: keep its client secret and refresh token on the backend,
-submit `grant_type=refresh_token` with the current refresh token to
-`POST /oauth2/token`, and replace the stored refresh token with the newly
-returned one. Rotation invalidates the previous refresh token; retrying a
-rotated token fails. If refresh returns `invalid_grant` (expired, revoked, or
-already rotated), clear the stored tokens and start authorization again.
+The `iam-postman` public client advertises both authorization code and refresh
+token grants. In Postman, use **Refresh Token** with the `refresh_token` from a
+new authorization-code exchange; Postman authenticates as this public client
+using its client ID, without a secret. Refresh tokens rotate on use, so replace
+the old refresh token with each response. The `oidc-client` entry remains
+authorization-code-only. If refresh returns `invalid_grant` (expired, revoked,
+or already rotated), start authorization again.
+
+A confidential application can also use the refresh-token grant: keep its
+client secret and refresh token on the backend, submit `grant_type=refresh_token`
+with the current refresh token to `POST /oauth2/token`, and replace the stored
+refresh token with the newly returned one. Rotation invalidates the previous
+refresh token; retrying a rotated token fails.
 
 For local confidential-client work, register a client with
 `client_secret_basic`, `authorization_code` and `refresh_token` grants,
@@ -154,7 +158,7 @@ For local confidential-client work, register a client with
 confidential client. The integration test demonstrates this flow; never put a
 production client secret in a browser, mobile app, or Postman collection.
 
-Example refresh request (run only from the confidential application's
+Example refresh request for a confidential application (run only from its
 backend):
 
 ```bash
