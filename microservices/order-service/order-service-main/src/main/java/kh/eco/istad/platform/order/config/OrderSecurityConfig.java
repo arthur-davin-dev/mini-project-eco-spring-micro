@@ -20,6 +20,7 @@ public class OrderSecurityConfig {
                 .authorizeHttpRequests(authorize -> authorize
                         .requestMatchers("/customers", "/customer/**").permitAll()
                         .requestMatchers("/actuator/health", "/actuator/health/**", "/flux").permitAll()
+                        .requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html", "/scalar/**").permitAll()
                         .anyRequest().denyAll())
                 .oauth2ResourceServer(resourceServer -> resourceServer.jwt(Customizer.withDefaults()))
                 .build();

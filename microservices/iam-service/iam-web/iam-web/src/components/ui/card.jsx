@@ -11,7 +11,7 @@ function CardHeader({className = '', ...props}) {
 }
 
 function CardTitle({className = '', ...props}) {
-    return <h3 data-slot="card-title" className={withClass('font-semibold leading-none', className)} {...props}/>
+    return <h3 data-slot="card-title" className={withClass('font-medium leading-none', className)} {...props}/>
 }
 
 function CardDescription({className = '', ...props}) {

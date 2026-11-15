@@ -14,7 +14,7 @@ the verification expected before moving on.
 | 2 | Use cases and persistence adapters | Complete; list summary contracts aligned, all output ports implemented, assignment rows audited, PostgreSQL suite passes on existing and clean schemas | [02-persistence.md](02-persistence.md) |
 | 3 | REST API and API security | Complete; Section D routes, authorization, validation, pagination, and Problem Details verified through PostgreSQL-backed MockMvc | [03-rest-api.md](03-rest-api.md) |
 | 4 | Authorization Server, OIDC, DCR, federation | JDBC services, scoped OIDC claims, authority claims, protected DCR, YAML-backed Google/GitHub/Facebook/Telegram federation, and local authorization/refresh flow tests are implemented; real provider callbacks and deployment secrets remain environment setup | [04-authorization-server.md](04-authorization-server.md) |
-| 5 | JTE pages and localization | A Thymeleaf login page exists; assignment-required JTE routes and English/Khmer localization remain | [05-web-and-i18n.md](05-web-and-i18n.md) |
+| 5 | React web pages and localization | React routes for account, sign-in, registration, consent, and connected applications are implemented | [05-web-and-i18n.md](05-web-and-i18n.md) |
 | 6 | Integration, tests, README, Postman | Not complete | [06-verification-and-delivery.md](06-verification-and-delivery.md) |
 
 ## Dependency direction
@@ -28,7 +28,7 @@ The current source layout follows these ownership boundaries:
 | `iam-persistence` | JPA entities/repositories plus the retained legacy JPA model during migration |
 | `iam-infrastructure` | Authorization Server configuration, token customization, and authentication adapters |
 | `iam-rest-api` | API controllers, DTOs, validation, and API security |
-| `iam-web` | Login controller and current template; JTE migration is pending |
+| `iam-web` | React/Vite frontend and Spring MVC page/API controllers |
 | `iam-main` | Boot entry point, application configuration, Liquibase changelogs, and integration tests |
 
 The top-level project is a Gradle aggregator. The old `iam-service/src/` tree

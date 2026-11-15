@@ -40,7 +40,7 @@
    across restarts.
 5. Connect social login to the federated identity use case; do not assume every
    named provider implements the same OAuth/OIDC protocol.
-6. Implement JTE views and message bundles, then finish automated verification,
+6. Implement the React web app and message bundles, then finish automated verification,
    run instructions, and a Postman collection.
 
 ## Baseline verification

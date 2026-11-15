@@ -6,7 +6,7 @@ This project is organized as a Gradle multi-module application. The IAM domain a
 
 ## Assignment objective
 
-Build an IAM service in which `User`, `Role`, and `Permission` are the core domain concepts. Expose domain behavior through single-responsibility use cases. Use Spring Authorization Server as an OAuth/OIDC adapter, alongside Dynamic Client Registration (DCR), federated social login, a secured REST API, and JTE pages in English and Khmer.
+Build an IAM service in which `User`, `Role`, and `Permission` are the core domain concepts. Expose domain behavior through single-responsibility use cases. Use Spring Authorization Server as an OAuth/OIDC adapter, alongside Dynamic Client Registration (DCR), federated social login, a secured REST API, and a React web application.
 
 ## Architecture and module responsibilities
 
@@ -17,7 +17,7 @@ Build an IAM service in which `User`, `Role`, and `Permission` are the core doma
 | `iam-persistence` | Spring Data JPA entities, repositories, mappings, and output-port adapters |
 | `iam-infrastructure` | Spring Authorization Server, OAuth/OIDC, token claims, DCR, and social-login adapters |
 | `iam-rest-api` | REST controllers, DTO mapping, validation, API security, and RFC 9457 Problem Details |
-| `iam-web` | JTE account pages and English/Khmer localization |
+| `iam-web` | React account, sign-in, registration, consent, and connected application pages |
 | `iam-main` | Spring Boot application assembly, configuration, Liquibase migrations, and integration tests |
 
 Dependencies point inward: domain core has no framework dependencies; application service depends on domain core; adapters implement application ports; `iam-main` brings the modules together. Controllers should map DTOs and call use cases, not access repositories directly. Each user-role, role-permission, and user-permission assignment is its own audited persistence entity; do not use JPA `@ManyToMany`.
@@ -49,9 +49,9 @@ Dependencies point inward: domain core has no framework dependencies; applicatio
 - Enable Dynamic Client Registration with protected registrar access.
 - Support Google, GitHub, Facebook, and Telegram login through `FindOrProvisionFederatedUserUseCase`.
 
-### Part 5: JTE and internationalization (+15)
+### Part 5: Web application and internationalization (+15)
 
-- Implement the account pages from assignment Section F in `iam-web` using JTE.
+- Implement the account pages from assignment Section F in `iam-web` using React.
 - Provide English (`en`) and Khmer (`km`) messages.
 
 ### Code quality and delivery (+20)
@@ -64,7 +64,7 @@ Dependencies point inward: domain core has no framework dependencies; applicatio
 
 ## Implementation status
 
-The domain, use cases, persistence adapters, REST API, and Authorization Server flows have substantial implementation and verification. The implementation tracker currently lists JTE migration and the final delivery/verification work as incomplete. See the [IAM implementation guide](../../docs/iam-service/README.md) for the current step-by-step status and [delivery checklist](../../docs/iam-service/06-verification-and-delivery.md). Update this section as remaining work is completed.
+The domain, use cases, persistence adapters, REST API, Authorization Server flows, and React account application are implemented. See the [IAM implementation guide](../../docs/iam-service/README.md) and [delivery checklist](../../docs/iam-service/06-verification-and-delivery.md).
 
 ## Requirements
 
@@ -140,7 +140,7 @@ Spring Authorization Server persists registered clients, authorizations, and con
 
 ## Web pages and localization
 
-The target web experience uses JTE for login, registration, consent, profile, password, linked accounts, and connected applications. English and Khmer message bundles provide `en` and `km` localization. Refer to the [web and i18n implementation notes](../../docs/iam-service/05-web-and-i18n.md) for current implementation status and routes.
+The React/Vite app in `iam-web/iam-web` serves login, registration, consent, connected applications, and the account experience. Spring serves the built app under `/react`; the API and server form endpoints remain in the IAM modules. Refer to the [web and i18n implementation notes](../../docs/iam-service/05-web-and-i18n.md) for routes and localization details.
 
 ## Verification and delivery
 

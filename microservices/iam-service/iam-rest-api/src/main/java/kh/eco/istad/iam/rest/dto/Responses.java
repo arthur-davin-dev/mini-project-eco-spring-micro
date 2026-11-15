@@ -35,6 +35,7 @@ public final class Responses {
             String gender,
             LocalDate birthdate,
             String phoneNumber,
+            String pictureUrl,
             String zoneinfo,
             PostalAddress address,
             boolean accountNonLocked

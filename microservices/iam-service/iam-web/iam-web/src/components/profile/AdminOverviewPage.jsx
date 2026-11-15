@@ -12,7 +12,9 @@ import {
     ShieldCheck,
     UserPlus,
     UsersRound,
-    X
+    Layers,
+    FileText,
+    Settings
 } from 'lucide-react'
 import {adminApi} from '../../features/admin/api/adminApi'
 import Avatar from '../common/Avatar'
@@ -26,23 +28,43 @@ const initialForm = {
     familyName: '',
     password: '',
     confirmPassword: '',
-    locale: 'en'
+    locale: 'en',
 }
 
 function formatDate(value, locale) {
     if (!value) return '—'
-    return new Intl.DateTimeFormat(locale === 'km' ? 'km-KH' : 'en-US', {
-        day: 'numeric',
-        month: 'short',
-        year: 'numeric'
-    }).format(new Date(value))
+    const d = new Date(value)
+    if (isNaN(d.getTime())) return typeof value === 'string' ? value : '—'
+    try {
+        return new Intl.DateTimeFormat(locale === 'km' ? 'km-KH' : 'en-US', {
+            day: 'numeric',
+            month: 'short',
+            year: 'numeric',
+        }).format(d)
+    } catch {
+        return String(value)
+    }
+}
+
+function formatTime(value, locale) {
+    if (!value) return '—'
+    const d = new Date(value)
+    if (isNaN(d.getTime())) return typeof value === 'string' ? value : '—'
+    try {
+        return new Intl.DateTimeFormat(locale === 'km' ? 'km-KH' : 'en-US', {
+            hour: '2-digit',
+            minute: '2-digit',
+        }).format(d)
+    } catch {
+        return String(value)
+    }
 }
 
 function userLabel(user) {
     return user.name || [user.givenName, user.familyName].filter(Boolean).join(' ') || user.username
 }
 
-export function CreateUserDialog({open, onClose, onCreated, token, t}) {
+export function CreateUserDialog({open, onClose, onCreated, token, t, locale}) {
     const [form, setForm] = useState(initialForm)
     const [busy, setBusy] = useState(false)
     const [error, setError] = useState('')
@@ -63,7 +85,7 @@ export function CreateUserDialog({open, onClose, onCreated, token, t}) {
         event.preventDefault()
         setError('')
         if (form.password !== form.confirmPassword) {
-            setError(t.adminPasswordMismatch)
+            setError(t.adminPasswordMismatch || 'The passwords do not match.')
             return
         }
         setBusy(true)
@@ -75,101 +97,92 @@ export function CreateUserDialog({open, onClose, onCreated, token, t}) {
                 phoneNumber: null,
                 zoneinfo: null,
                 address: null,
-                roleUuids: []
+                roleUuids: [],
             })
             setForm(initialForm)
             onCreated()
             onClose()
         } catch (requestError) {
-            setError(requestError.status === 403 ? t.adminForbidden : t.adminCreateError)
+            setError(requestError.status === 403 ? t.adminForbidden : (t.adminCreateError || 'Failed to create user.'))
         } finally {
             setBusy(false)
         }
     }
 
     const fields = [
-        ['username', t.username, 'text', 'username'],
-        ['email', t.email, 'email', 'email'],
-        ['givenName', t.firstName, 'text', 'given-name'],
-        ['familyName', t.lastName, 'text', 'family-name'],
-        ['password', t.adminTemporaryPassword, 'password', 'new-password'],
-        ['confirmPassword', t.confirmPassword, 'password', 'new-password'],
+        ['username', t.username || 'Username', 'text', 'username'],
+        ['email', t.email || 'Email', 'email', 'email'],
+        ['givenName', t.firstName || 'First name', 'text', 'given-name'],
+        ['familyName', t.lastName || 'Last name', 'text', 'family-name'],
+        ['password', t.adminTemporaryPassword || 'Temporary password', 'password', 'new-password'],
+        ['confirmPassword', t.confirmPassword || 'Confirm password', 'password', 'new-password'],
     ]
 
     return (
         <dialog
             ref={setDialog}
-            onCancel={(event) => {
-                event.preventDefault();
-                close()
-            }}
-            onClick={(event) => {
-                if (event.target === dialog) close()
-            }}
-            aria-labelledby="create-user-title"
-            className="fixed left-1/2 top-1/2 m-0 max-h-[min(90dvh,48rem)] w-[calc(100%-2rem)] max-w-lg -translate-x-1/2 -translate-y-1/2 overflow-y-auto rounded-2xl border border-[var(--color-line)] bg-white p-0 text-[var(--color-ink)] shadow-2xl backdrop:bg-slate-950/40 dark:bg-slate-900"
+            onClose={close}
+            className="w-full max-w-lg rounded-2xl border border-slate-200 bg-white p-6 shadow-2xl backdrop:bg-slate-900/50 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-100"
         >
-            <form onSubmit={submit} className="grid gap-5 p-6">
-                <header className="flex items-start justify-between gap-4">
-                    <div>
-                        <h2 id="create-user-title" className="text-lg font-semibold">{t.adminCreateUser}</h2>
-                        <p className="mt-1 text-sm text-slate-500">{t.adminCreateUserHint}</p>
+            <form onSubmit={submit} className="grid gap-4">
+                <header className="flex items-center justify-between border-b border-slate-100 pb-3 dark:border-slate-800">
+                    <div className="flex items-center gap-2">
+                        <UserPlus className="size-5 text-violet-700 dark:text-violet-400" />
+                        <h2 className="text-base font-semibold">{t.adminCreateUser || 'Create User'}</h2>
                     </div>
-                    <button
-                        type="button"
-                        onClick={close}
-                        className="rounded-md p-1 text-slate-500 hover:bg-slate-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-violet-600 dark:hover:bg-slate-800"
-                        aria-label={t.close}
-                    >
-                        <X className="size-5"/>
-                    </button>
+                    <button type="button" onClick={close} className="text-sm font-semibold text-slate-400 hover:text-slate-600">✕</button>
                 </header>
+
                 {error && (
-                    <p role="alert" className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700 dark:border-red-900 dark:bg-red-950 dark:text-red-200">
-                        {error}
-                    </p>
+                    <div role="alert" className="flex items-center gap-2 rounded-lg border border-red-200 bg-red-50 p-3 text-xs text-red-900 dark:border-red-900 dark:bg-red-950 dark:text-red-100">
+                        <CircleAlert className="size-4 shrink-0" />
+                        <span>{error}</span>
+                    </div>
                 )}
-                <div className="grid gap-4 sm:grid-cols-2">
-                    {fields.map(([name, label, type, autocomplete]) => (
-                        <label className="grid gap-1.5 text-sm font-medium" key={name}>
-                            {label}
+
+                <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                    {fields.map(([name, label, type, auto]) => (
+                        <label key={name} className="grid gap-1 text-xs font-medium text-slate-700 dark:text-slate-300">
+                            <span>{label}</span>
                             <input
                                 required
-                                name={name}
                                 type={type}
-                                autoComplete={autocomplete}
-                                minLength={name === 'username' ? 3 : name.includes('Password') || name === 'password' ? 8 : undefined}
+                                name={name}
+                                autoComplete={auto}
                                 value={form[name]}
-                                onChange={(event) => setForm((current) => ({...current, [name]: event.target.value}))}
-                                className="h-10 min-w-0 rounded-lg border border-slate-200 bg-white px-3 text-sm outline-none focus-visible:ring-2 focus-visible:ring-violet-500 dark:border-slate-700 dark:bg-slate-950"
+                                onChange={(event) => setForm((curr) => ({...curr, [name]: event.target.value}))}
+                                className="h-9 rounded-lg border border-slate-200 bg-white px-3 text-xs dark:border-slate-700 dark:bg-slate-950"
                             />
                         </label>
                     ))}
                 </div>
-                <label className="grid gap-1.5 text-sm font-medium">{t.language}
+
+                <label className="grid gap-1 text-xs font-medium text-slate-700 dark:text-slate-300">
+                    <span>{t.language || 'Preferred language'}</span>
                     <select
                         value={form.locale}
-                        onChange={(event) => setForm((current) => ({...current, locale: event.target.value}))}
-                        className="h-10 rounded-lg border border-slate-200 bg-white px-3 text-sm dark:border-slate-700 dark:bg-slate-950"
+                        onChange={(event) => setForm((curr) => ({...curr, locale: event.target.value}))}
+                        className="h-9 rounded-lg border border-slate-200 bg-white px-3 text-xs dark:border-slate-700 dark:bg-slate-950"
                     >
-                        <option value="en">{t.english}</option>
-                        <option value="km">{t.khmer}</option>
+                        <option value="en">{t.english || 'English'}</option>
+                        <option value="km">{t.khmer || 'Khmer'}</option>
                     </select>
                 </label>
-                <footer className="flex justify-end gap-2 border-t border-slate-100 pt-4 dark:border-slate-800">
+
+                <footer className="flex justify-end gap-2 border-t border-slate-100 pt-3 dark:border-slate-800">
                     <button
                         type="button"
                         onClick={close}
-                        className="h-10 rounded-lg border border-slate-200 px-4 text-sm font-medium hover:bg-slate-50 dark:border-slate-700 dark:hover:bg-slate-800"
+                        className="h-9 rounded-lg border border-slate-200 px-3 text-xs font-medium hover:bg-slate-50 dark:border-slate-700"
                     >
-                        {t.cancel}
+                        {t.cancel || 'Cancel'}
                     </button>
                     <button
                         disabled={busy}
-                        className="inline-flex h-10 items-center gap-2 rounded-lg bg-violet-700 px-4 text-sm font-semibold text-white hover:bg-violet-800 disabled:opacity-60"
+                        className="inline-flex h-9 items-center gap-1.5 rounded-lg bg-violet-700 px-4 text-xs font-semibold text-white hover:bg-violet-800 disabled:opacity-60"
                     >
-                        {busy ? <LoaderCircle className="size-4 animate-spin"/> : <UserPlus className="size-4"/>}
-                        {busy ? t.saving : t.adminCreateUser}
+                        {busy ? <LoaderCircle className="size-3.5 animate-spin" /> : <UserPlus className="size-3.5" />}
+                        {busy ? (locale === 'km' ? 'កំពុងបង្កើត...' : 'Creating…') : (t.adminCreateUser || 'Create User')}
                     </button>
                 </footer>
             </form>
@@ -177,30 +190,33 @@ export function CreateUserDialog({open, onClose, onCreated, token, t}) {
     )
 }
 
-function MetricCard({icon: Icon, label, value, detail, tone = 'violet'}) {
+function MetricCard({icon: Icon, label, value, detail, tone = 'violet', onClick}) {
     const tones = {
         violet: 'bg-violet-50 text-violet-700 dark:bg-violet-950/60 dark:text-violet-300',
         green: 'bg-emerald-50 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300',
         amber: 'bg-amber-50 text-amber-700 dark:bg-amber-950/60 dark:text-amber-300',
         blue: 'bg-blue-50 text-blue-700 dark:bg-blue-950/60 dark:text-blue-300',
+        purple: 'bg-purple-50 text-purple-700 dark:bg-purple-950/60 dark:text-purple-300',
     }
     return (
-        <Card className="gap-4 p-5 shadow-none">
-            <div className="flex items-center gap-3">
-                <span className={`grid size-9 place-items-center rounded-lg ${tones[tone]}`}>
-                    <Icon className="size-4" strokeWidth={1.8}/>
+        <Card
+            onClick={onClick}
+            className={`gap-3 p-4 shadow-none transition ${onClick ? 'cursor-pointer hover:border-violet-300 dark:hover:border-violet-700' : ''}`}
+        >
+            <div className="flex items-center justify-between">
+                <span className="text-xs font-medium text-slate-500 dark:text-slate-400 truncate">{label}</span>
+                <span className={`grid size-8 place-items-center rounded-lg ${tones[tone] || tones.violet}`}>
+                    <Icon className="size-4" strokeWidth={1.8} />
                 </span>
-                <span className="text-sm font-medium text-slate-600 dark:text-slate-300">{label}</span>
             </div>
             <div>
-                <p className="text-2xl font-semibold tracking-tight">{value}</p>
-                <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">{detail}</p>
+                <p className="text-2xl font-bold tracking-tight">{value}</p>
+                <p className="mt-0.5 text-[11px] text-slate-400 truncate">{detail}</p>
             </div>
         </Card>
     )
 }
 
-// Added onSelectUser to props here
 export default function AdminOverviewPage({token, locale, t, setPage, onSelectUser}) {
     const [overview, setOverview] = useState(null)
     const [loading, setLoading] = useState(true)
@@ -214,190 +230,281 @@ export default function AdminOverviewPage({token, locale, t, setPage, onSelectUs
         try {
             setOverview(await adminApi.getOverview(token))
         } catch (requestError) {
-            setError(requestError.status === 401 ? t.adminSessionExpired : requestError.status === 403 ? t.adminForbidden : t.adminLoadError)
+            setError(
+                requestError.status === 401
+                    ? t.adminSessionExpired
+                    : requestError.status === 403
+                    ? t.adminForbidden
+                    : (t.adminLoadError || 'Could not load administration overview.')
+            )
         } finally {
             setLoading(false)
         }
     }, [token, t.adminForbidden, t.adminLoadError, t.adminSessionExpired])
 
     useEffect(() => {
-        const task = window.setTimeout(loadOverview, 0)
-        return () => window.clearTimeout(task)
+        loadOverview()
     }, [loadOverview])
 
     function handleCreated() {
         setDialogOpen(false)
-        setNotice(t.adminUserCreated)
+        setNotice(t.adminUserCreated || 'User account created.')
         loadOverview()
-        window.setTimeout(() => setNotice(''), 3500)
+        setTimeout(() => setNotice(''), 3500)
     }
 
-    const metrics = overview ? [
-        {
-            icon: UsersRound,
-            label: t.adminTotalUsers,
-            value: overview.totalUsers,
-            detail: t.adminUsersInDirectory,
-            tone: 'violet'
-        },
-        {
-            icon: CircleCheck,
-            label: t.adminActiveUsers,
-            value: overview.activeUsers,
-            detail: t.adminCanSignIn,
-            tone: 'green'
-        },
-        {
-            icon: CircleAlert,
-            label: t.adminInactiveUsers,
-            value: overview.inactiveUsers,
-            detail: t.adminDisabledAccounts,
-            tone: 'amber'
-        },
-        {
-            icon: ShieldCheck,
-            label: t.adminActiveRoles,
-            value: overview.totalRoles,
-            detail: t.adminAccessRoles,
-            tone: 'blue'
-        },
-        {
-            icon: KeyRound,
-            label: t.adminPermissions,
-            value: overview.totalPermissions,
-            detail: t.adminPermissionRecords,
-            tone: 'violet'
-        },
-    ] : []
+    const metrics = overview
+        ? [
+              {
+                  icon: UsersRound,
+                  label: t.adminTotalUsers || 'Total Users',
+                  value: overview.totalUsers,
+                  detail: t.adminUsersInDirectory || 'Accounts in directory',
+                  tone: 'violet',
+                  action: () => setPage('users'),
+              },
+              {
+                  icon: CircleCheck,
+                  label: t.adminActiveUsers || 'Active Users',
+                  value: overview.activeUsers,
+                  detail: t.adminCanSignIn || 'Can sign in',
+                  tone: 'green',
+                  action: () => setPage('users'),
+              },
+              {
+                  icon: CircleAlert,
+                  label: t.adminInactiveUsers || 'Inactive / Locked',
+                  value: overview.inactiveUsers,
+                  detail: t.adminDisabledAccounts || 'Disabled or locked',
+                  tone: 'amber',
+                  action: () => setPage('users'),
+              },
+              {
+                  icon: ShieldCheck,
+                  label: t.adminActiveRoles || 'Roles',
+                  value: overview.totalRoles,
+                  detail: t.adminAccessRoles || 'Role definitions',
+                  tone: 'blue',
+                  action: () => setPage('roles'),
+              },
+              {
+                  icon: KeyRound,
+                  label: t.adminPermissions || 'Permissions',
+                  value: overview.totalPermissions,
+                  detail: t.adminPermissionRecords || 'Permission rules',
+                  tone: 'purple',
+                  action: () => setPage('permissions'),
+              },
+              {
+                  icon: Layers,
+                  label: locale === 'km' ? 'អតិថិជន OAuth2' : 'OAuth2 Clients',
+                  value: overview.totalClients,
+                  detail: locale === 'km' ? 'កម្មវិធីដែលបានចុះឈ្មោះ' : 'Registered apps',
+                  tone: 'violet',
+                  action: () => setPage('clients'),
+              },
+          ]
+        : []
 
     return (
         <>
             <section className="mb-6 flex flex-wrap items-center justify-between gap-3">
-                <div><p className="text-sm text-slate-500 dark:text-slate-400">{t.adminOverviewIntro}</p></div>
-                <div className="flex gap-2">
+                <div>
+                    <h2 className="text-base font-medium text-slate-800 dark:text-white">
+                        {t.adminOverview || 'Admin Overview'}
+                    </h2>
+                    <p className="text-xs text-slate-500 dark:text-slate-400">
+                        {t.adminOverviewIntro || 'Manage identity accounts, roles, permissions, OAuth2 clients, and system security.'}
+                    </p>
+                </div>
+                <div className="flex flex-wrap items-center gap-2">
                     <button
                         onClick={loadOverview}
                         disabled={loading}
-                        className="inline-flex h-10 items-center gap-2 rounded-lg border border-slate-200 bg-white px-3 text-sm font-medium hover:bg-slate-50 disabled:opacity-50 dark:border-slate-700 dark:bg-slate-900 dark:hover:bg-slate-800"
+                        className="inline-flex h-9 items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 text-xs font-semibold hover:bg-slate-50 disabled:opacity-50 dark:border-slate-700 dark:bg-slate-900"
                     >
-                        <RefreshCw className={`size-4 ${loading ? 'animate-spin' : ''}`}/><span>{t.refresh}</span>
+                        <RefreshCw className={`size-3.5 ${loading ? 'animate-spin' : ''}`} />
+                        <span>{t.refresh || 'Refresh'}</span>
                     </button>
                     <button
                         onClick={() => setDialogOpen(true)}
-                        className="inline-flex h-10 items-center gap-2 rounded-lg bg-violet-700 px-4 text-sm font-semibold text-white shadow-sm transition hover:bg-violet-800 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-violet-600"
+                        className="inline-flex h-9 items-center gap-1.5 rounded-lg bg-violet-700 px-3.5 text-xs font-semibold text-white shadow-xs hover:bg-violet-800"
                     >
-                        <Plus className="size-4"/>{t.adminCreateUser}
+                        <Plus className="size-4" />
+                        {t.adminCreateUser || 'Create User'}
                     </button>
                 </div>
             </section>
 
             {error && (
-                <div className="mb-5 flex items-start gap-3 rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900 dark:border-amber-900 dark:bg-amber-950/40 dark:text-amber-100" role="alert">
-                    <CircleAlert className="mt-0.5 size-4 shrink-0"/>
+                <div className="mb-5 flex items-start gap-3 rounded-xl border border-amber-200 bg-amber-50 p-4 text-xs text-amber-900 dark:border-amber-900 dark:bg-amber-950/40 dark:text-amber-100" role="alert">
+                    <CircleAlert className="mt-0.5 size-4 shrink-0" />
                     <div className="min-w-0 flex-1">
-                        <p className="font-semibold">{t.adminDataUnavailable}</p>
-                        <p className="mt-1">{error}</p>
+                        <p className="font-semibold">{t.adminDataUnavailable || 'Overview data unavailable'}</p>
+                        <p className="mt-0.5">{error}</p>
                     </div>
-                    <button onClick={loadOverview} className="font-semibold underline underline-offset-4">{t.retry}</button>
+                    <button onClick={loadOverview} className="font-semibold underline underline-offset-4">{t.retry || 'Retry'}</button>
                 </div>
             )}
 
             {notice && (
-                <div className="mb-5 flex items-center gap-2 rounded-xl border border-emerald-200 bg-emerald-50 p-3 text-sm text-emerald-800 dark:border-emerald-900 dark:bg-emerald-950 dark:text-emerald-200" role="status">
-                    <Check className="size-4"/>{notice}
+                <div className="mb-5 flex items-center gap-2 rounded-xl border border-emerald-200 bg-emerald-50 p-3 text-xs text-emerald-800 dark:border-emerald-900 dark:bg-emerald-950 dark:text-emerald-200" role="status">
+                    <Check className="size-4" />
+                    {notice}
                 </div>
             )}
 
-            <section aria-label={t.adminStatistics} className="mb-6 grid gap-3 sm:grid-cols-2 xl:grid-cols-5">
+            {/* Metric Statistics */}
+            <section aria-label="Statistics" className="mb-6 grid gap-3 grid-cols-2 md:grid-cols-3 xl:grid-cols-6">
                 {loading && !overview
-                    ? Array.from({length: 5}, (_, index) => (
-                        <div key={index} className="h-32 animate-pulse rounded-xl border border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-900"/>
-                    ))
-                    : metrics.map((metric) => <MetricCard key={metric.label} {...metric}/>)
-                }
+                    ? Array.from({length: 6}, (_, index) => (
+                          <div key={index} className="h-24 animate-pulse rounded-xl border border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-900" />
+                      ))
+                    : metrics.map((m) => <MetricCard key={m.label} {...m} onClick={m.action} />)}
             </section>
 
-            <div className="grid items-start gap-5 xl:grid-cols-[minmax(0,1.5fr)_minmax(18rem,.8fr)]">
+            {/* Quick Action Shortcuts */}
+            <section className="mb-6">
+                <Card className="p-4 shadow-none">
+                    <p className="text-xs font-bold text-slate-700 dark:text-slate-300 mb-3">
+                        {locale === 'km' ? 'ផ្លូវកាត់គ្រប់គ្រងរហ័ស' : 'Administration Quick Shortcuts'}
+                    </p>
+                    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2">
+                        {[
+                            {label: t.adminCreateUser || 'New User', icon: UserPlus, page: 'users'},
+                            {label: t.adminCreateRole || 'New Role', icon: ShieldCheck, page: 'roles'},
+                            {label: t.adminCreatePermission || 'New Permission', icon: KeyRound, page: 'permissions'},
+                            {label: locale === 'km' ? 'អតិថិជន OAuth2' : 'OAuth2 Client', icon: Layers, page: 'clients'},
+                            {label: locale === 'km' ? 'កំណត់ត្រាសវនកម្ម' : 'Audit Logs', icon: FileText, page: 'auditLogs'},
+                            {label: locale === 'km' ? 'ការកំណត់ប្រព័ន្ធ' : 'System Config', icon: Settings, page: 'systemConfig'},
+                        ].map((btn, idx) => {
+                            const Icon = btn.icon
+                            return (
+                                <button
+                                    key={idx}
+                                    onClick={() => setPage(btn.page)}
+                                    className="flex items-center gap-2 rounded-lg border border-slate-200 bg-slate-50/60 p-2.5 text-xs font-semibold text-slate-700 hover:border-violet-300 hover:bg-violet-50 hover:text-violet-700 dark:border-slate-800 dark:bg-slate-800/40 dark:text-slate-300 dark:hover:bg-violet-950/30 transition text-left cursor-pointer"
+                                >
+                                    <Icon className="size-4 shrink-0 text-violet-600 dark:text-violet-400" />
+                                    <span className="truncate">{btn.label}</span>
+                                </button>
+                            )
+                        })}
+                    </div>
+                </Card>
+            </section>
+
+            {/* Split layout: Newest Users & Live Recent Activity */}
+            <div className="grid items-start gap-5 lg:grid-cols-2">
+                {/* Newest Users */}
                 <Card className="gap-0 overflow-hidden shadow-none">
-                    <header className="flex items-center justify-between border-b border-slate-100 px-5 py-4 dark:border-slate-800">
+                    <header className="flex items-center justify-between border-b border-slate-100 px-5 py-3.5 dark:border-slate-800">
                         <div>
-                            <h2 className="text-sm font-semibold">{t.adminNewestUsers}</h2>
-                            <p className="mt-1 text-xs text-slate-500">{t.adminNewestUsersHint}</p>
+                            <h3 className="text-sm font-bold text-slate-800 dark:text-white">
+                                {t.adminNewestUsers || 'Newest Users'}
+                            </h3>
+                            <p className="text-[11px] text-slate-500">
+                                {t.adminNewestUsersHint || 'Recently provisioned user accounts'}
+                            </p>
                         </div>
                         <button
                             onClick={() => setPage('users')}
-                            className="inline-flex items-center gap-1 text-xs font-semibold text-violet-700 hover:text-violet-900 dark:text-violet-300"
+                            className="inline-flex items-center gap-1 text-xs font-semibold text-violet-700 hover:underline dark:text-violet-400"
                         >
-                            {t.adminViewUsers}<ArrowRight className="size-3.5"/>
+                            {t.adminViewUsers || 'View all'}
+                            <ArrowRight className="size-3" />
                         </button>
                     </header>
-                    {loading && !overview ? (
-                        <div className="grid gap-px">
-                            {Array.from({length: 4}, (_, index) => (
-                                <div key={index} className="h-16 animate-pulse bg-slate-50 dark:bg-slate-800/50"/>
-                            ))}
-                        </div>
-                    ) : overview?.newestUsers.length ? (
-                        <div className="divide-y divide-slate-100 dark:divide-slate-800">
-                            {overview.newestUsers.map((entry) => (
-                                <div key={entry.uuid} className="flex min-w-0 items-center gap-3 px-5 py-3.5">
-                                    <Avatar user={entry} className="size-9 text-xs"/>
-                                    <div className="min-w-0 flex-1">
-                                        {/* Added button here to trigger onSelectUser */}
-                                        <button
-                                            type="button"
-                                            onClick={() => onSelectUser(entry.uuid)}
-                                            className="truncate text-left text-sm font-medium text-slate-800 hover:text-violet-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-violet-600 dark:text-slate-100 dark:hover:text-violet-300"
-                                        >
-                                            {userLabel(entry)}
-                                        </button>
-                                        <p className="truncate text-xs text-slate-500">{entry.email}</p>
+
+                    <div className="divide-y divide-slate-100 dark:divide-slate-800">
+                        {overview?.newestUsers?.length ? (
+                            overview.newestUsers.slice(0, 5).map((user) => (
+                                <div
+                                    key={user.uuid || user.id}
+                                    onClick={() => onSelectUser?.(user.uuid || user.id)}
+                                    className="flex items-center justify-between gap-3 px-5 py-3 transition hover:bg-slate-50/70 dark:hover:bg-slate-800/40 cursor-pointer"
+                                >
+                                    <div className="flex items-center gap-3 min-w-0">
+                                        <Avatar user={user} className="size-8 text-xs shrink-0" />
+                                        <div className="min-w-0">
+                                            <p className="truncate text-xs font-bold text-slate-900 dark:text-white">
+                                                {userLabel(user)}
+                                            </p>
+                                            <p className="truncate text-[11px] text-slate-500">
+                                                @{user.username} <span className="px-0.5">·</span> {user.email}
+                                            </p>
+                                        </div>
                                     </div>
-                                    <span className="hidden shrink-0 text-xs text-slate-500 sm:block">
-                                        {formatDate(entry.createdAt, locale)}
-                                    </span>
-                                    <Badge variant={entry.enabled && entry.accountNonLocked ? 'success' : 'secondary'}>
-                                        <span className={`size-1.5 rounded-full ${entry.enabled && entry.accountNonLocked ? 'bg-emerald-500' : 'bg-slate-400'}`}/>
-                                        {entry.enabled && entry.accountNonLocked ? t.active : t.inactive}
-                                    </Badge>
+                                    <div className="flex items-center gap-2 shrink-0">
+                                        <Badge variant={user.enabled ? 'success' : 'secondary'} className="text-[9px]">
+                                            {user.enabled ? (t.active || 'Active') : (t.inactive || 'Inactive')}
+                                        </Badge>
+                                        <span className="text-[10px] text-slate-400">{formatDate(user.createdAt, locale)}</span>
+                                    </div>
                                 </div>
-                            ))}
-                        </div>
-                    ) : (
-                        <div className="grid min-h-40 place-items-center px-5 text-sm text-slate-500">{t.adminNoUsers}</div>
-                    )}
+                            ))
+                        ) : (
+                            <div className="p-8 text-center text-xs text-slate-400">
+                                {t.adminNoUsers || 'No users found'}
+                            </div>
+                        )}
+                    </div>
                 </Card>
 
-                <Card className="gap-0 shadow-none">
-                    <header className="border-b border-slate-100 px-5 py-4 dark:border-slate-800">
-                        <h2 className="text-sm font-semibold">{t.adminQuickLinks}</h2>
-                        <p className="mt-1 text-xs text-slate-500">{t.adminQuickLinksHint}</p>
+                {/* Live Recent System Activities */}
+                <Card className="gap-0 overflow-hidden shadow-none">
+                    <header className="flex items-center justify-between border-b border-slate-100 px-5 py-3.5 dark:border-slate-800">
+                        <div>
+                            <h3 className="text-sm font-bold text-slate-800 dark:text-white flex items-center gap-2">
+                                <Activity className="size-4 text-violet-600" />
+                                {locale === 'km' ? 'សកម្មភាពប្រព័ន្ធថ្មីៗ' : 'Recent System Activities'}
+                            </h3>
+                            <p className="text-[11px] text-slate-500">
+                                {locale === 'km' ? 'កំណត់ត្រាសវនកម្ម និងការចូលប្រើប្រាស់' : 'Real-time security and administrative events'}
+                            </p>
+                        </div>
+                        <button
+                            onClick={() => setPage('auditLogs')}
+                            className="inline-flex items-center gap-1 text-xs font-semibold text-violet-700 hover:underline dark:text-violet-400"
+                        >
+                            {locale === 'km' ? 'មើលទាំងអស់' : 'Audit logs'}
+                            <ArrowRight className="size-3" />
+                        </button>
                     </header>
-                    <nav aria-label={t.adminQuickLinks} className="grid p-2">
-                        {[
-                            [UsersRound, 'users', t.navUsers, t.adminManageUsers],
-                            [ShieldCheck, 'roles', t.navRoles, t.adminManageRoles],
-                            [KeyRound, 'userPermissions', t.navUserPermissions, t.adminManagePermissions]
-                        ].map(([Icon, page, label, hint]) => (
-                            <button
-                                key={page}
-                                onClick={() => setPage(page)}
-                                className="flex items-center gap-3 rounded-lg p-3 text-left transition hover:bg-slate-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-violet-600 dark:hover:bg-slate-800"
-                            >
-                                <span className="grid size-9 place-items-center rounded-lg bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300">
-                                    <Icon className="size-4"/>
-                                </span>
-                                <span className="min-w-0 flex-1">
-                                    <span className="block text-sm font-medium">{label}</span>
-                                    <span className="mt-0.5 block text-xs text-slate-500">{hint}</span>
-                                </span>
-                                <ArrowRight className="size-4 text-slate-400"/>
-                            </button>
-                        ))}
-                    </nav>
-                    <div className="mx-4 mb-4 flex gap-3 rounded-lg bg-slate-50 p-3 text-xs leading-5 text-slate-600 dark:bg-slate-800/70 dark:text-slate-300">
-                        <Activity className="mt-0.5 size-4 shrink-0 text-violet-600"/>
-                        {t.adminStatsNote}
+
+                    <div className="divide-y divide-slate-100 dark:divide-slate-800">
+                        {overview?.recentActivities?.length ? (
+                            overview.recentActivities.slice(0, 5).map((act) => (
+                                <div key={act.id} className="flex items-start justify-between gap-3 px-5 py-3">
+                                    <div className="min-w-0">
+                                        <div className="flex items-center gap-2">
+                                            <span className="text-xs font-bold text-slate-900 dark:text-white">
+                                                {act.action}
+                                            </span>
+                                            <Badge
+                                                variant={act.status === 'SUCCESS' ? 'success' : 'destructive'}
+                                                className="text-[9px]"
+                                            >
+                                                {act.status}
+                                            </Badge>
+                                            <span className="text-[10px] text-slate-400 font-mono">
+                                                by {act.actor}
+                                            </span>
+                                        </div>
+                                        <p className="mt-0.5 truncate text-[11px] text-slate-500 dark:text-slate-400">
+                                            {act.details}
+                                        </p>
+                                    </div>
+                                    <span className="shrink-0 text-[10px] text-slate-400 font-medium">
+                                        {formatTime(act.timestamp, locale)}
+                                    </span>
+                                </div>
+                            ))
+                        ) : (
+                            <div className="p-8 text-center text-xs text-slate-400">
+                                {locale === 'km' ? 'មិនមានសកម្មភាពថ្មីៗទេ' : 'No recent activities'}
+                            </div>
+                        )}
                     </div>
                 </Card>
             </div>
@@ -408,6 +515,7 @@ export default function AdminOverviewPage({token, locale, t, setPage, onSelectUs
                 onCreated={handleCreated}
                 token={token}
                 t={t}
+                locale={locale}
             />
         </>
     )

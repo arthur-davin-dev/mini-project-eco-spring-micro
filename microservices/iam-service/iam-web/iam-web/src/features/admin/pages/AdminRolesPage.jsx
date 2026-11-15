@@ -1,346 +1,3 @@
-// import {useCallback, useEffect, useRef, useState} from 'react'
-// import {
-//     ArrowDown,
-//     ArrowUp,
-//     ArrowUpDown,
-//     ArrowLeft,
-//     ChevronLeft,
-//     ChevronRight,
-//     CircleAlert,
-//     Plus,
-//     RefreshCw,
-//     Search,
-//     ShieldCheck
-// } from 'lucide-react'
-// import {adminApi} from '../api/adminApi'
-// import {Badge} from '../../../components/ui/badge'
-// import {Button} from '../../../components/ui/button'
-// import {Card} from '../../../components/ui/card'
-// import {Input} from '../../../components/ui/input'
-// import {Table, TableBody, TableCell, TableHead, TableHeader, TableRow} from '../../../components/ui/table'
-//
-// const pageSize = 20
-//
-// function SortLabel({field, current, direction, children}) {
-//     const Icon = current !== field ? ArrowUpDown : direction === 'asc' ? ArrowUp : ArrowDown
-//     return <>{children}<Icon aria-hidden="true" className="ml-1 inline size-3.5"/></>
-// }
-//
-// function CreateRoleDialog({open, onClose, onCreated, token, t}) {
-//     const [dialog, setDialog] = useState(null)
-//     const [name, setName] = useState('')
-//     const [description, setDescription] = useState('')
-//     const [busy, setBusy] = useState(false)
-//     const [error, setError] = useState('')
-//
-//     useEffect(() => {
-//         if (open && dialog && !dialog.open) dialog.showModal()
-//         if (!open && dialog?.open) dialog.close()
-//     }, [dialog, open])
-//
-//     function close() {
-//         setName('')
-//         setDescription('')
-//         setError('')
-//         onClose()
-//     }
-//
-//     async function submit(event) {
-//         event.preventDefault()
-//         setBusy(true)
-//         setError('')
-//         try {
-//             await adminApi.createRole(token, {name: name.trim(), description: description.trim(), permissionUuids: []})
-//             close()
-//             onCreated()
-//         } catch (requestError) {
-//             setError(requestError.status === 403 ? t.adminForbidden
-//                 : requestError.status === 409 ? t.adminRoleConflict : t.adminRoleCreateError)
-//         } finally {
-//             setBusy(false)
-//         }
-//     }
-//
-//     return <dialog ref={setDialog} aria-labelledby="create-role-title" onCancel={(event) => {
-//         event.preventDefault();
-//         close()
-//     }}
-//                    onClick={(event) => {
-//                        if (event.target === dialog) close()
-//                    }}
-//                    className="fixed left-1/2 top-1/2 m-0 max-h-[min(90dvh,44rem)] w-[calc(100%-2rem)] max-w-lg -translate-x-1/2 -translate-y-1/2 overflow-y-auto rounded-2xl border border-border bg-white p-0 text-slate-900 shadow-2xl backdrop:bg-slate-950/40 dark:bg-slate-900 dark:text-slate-100">
-//         <form onSubmit={submit} className="grid gap-5 p-6">
-//             <header><h2 id="create-role-title" className="text-lg font-semibold">{t.adminCreateRole}</h2><p
-//                 className="mt-1 text-sm text-slate-500">{t.adminCreateRoleHint}</p></header>
-//             {error && <p role="alert"
-//                          className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700 dark:border-red-900 dark:bg-red-950 dark:text-red-200">{error}</p>}
-//             <label className="grid gap-1.5 text-sm font-medium">{t.adminRoleName}
-//                 <Input autoFocus required minLength={2} maxLength={50} value={name}
-//                        onChange={(event) => setName(event.target.value)} placeholder={t.adminRoleNamePlaceholder}
-//                        className="h-10"/>
-//             </label>
-//             <label className="grid gap-1.5 text-sm font-medium">{t.adminRoleDescription}
-//                 <textarea maxLength={255} rows={4} value={description}
-//                           onChange={(event) => setDescription(event.target.value)}
-//                           placeholder={t.adminRoleDescriptionPlaceholder}
-//                           className="resize-y rounded-lg border border-input bg-transparent px-3 py-2 text-sm outline-none focus-visible:ring-2 focus-visible:ring-ring dark:bg-input/30"/>
-//             </label>
-//             <p className="rounded-lg bg-slate-50 p-3 text-xs leading-5 text-slate-600 dark:bg-slate-800 dark:text-slate-300">{t.adminRolePermissionsAfterCreate}</p>
-//             <footer className="flex justify-end gap-2 border-t border-border pt-4">
-//                 <Button type="button" variant="outline" onClick={close}>{t.cancel}</Button>
-//                 <Button type="submit" disabled={busy}><Plus className="size-4"/>{busy ? t.saving : t.adminCreateRole}
-//                 </Button>
-//             </footer>
-//         </form>
-//     </dialog>
-// }
-//
-// function RoleDetail({token, roleId, onBack, t}) {
-//     const [role, setRole] = useState(null)
-//     const [keyword, setKeyword] = useState('')
-//     const [loading, setLoading] = useState(true)
-//     const [error, setError] = useState('')
-//
-//     useEffect(() => {
-//         let active = true
-//         setLoading(true)
-//         setError('')
-//         adminApi.getRole(token, roleId).then((data) => {
-//             if (active) setRole(data)
-//         }).catch((requestError) => {
-//             if (active) setError(requestError.status === 403 ? t.adminForbidden
-//                 : requestError.status === 401 ? t.adminSessionExpired : t.adminRoleDetailLoadError)
-//         }).finally(() => {
-//             if (active) setLoading(false)
-//         })
-//         return () => {
-//             active = false
-//         }
-//     }, [roleId, t.adminForbidden, t.adminRoleDetailLoadError, t.adminSessionExpired, token])
-//
-//     const permissions = (role?.permissions || []).filter((permission) =>
-//         permission.toLocaleLowerCase().includes(keyword.trim().toLocaleLowerCase()))
-//     const groups = permissions.reduce((grouped, permission) => {
-//         const service = permission.split(':')[0] || t.adminOtherGroup
-//         grouped[service] = [...(grouped[service] || []), permission]
-//         return grouped
-//     }, {})
-//
-//     return <div className="space-y-5">
-//         <Button variant="ghost" onClick={onBack} className="-ml-2"><ArrowLeft className="size-4"/>{t.adminBackToRoles}
-//         </Button>
-//         {error && <div role="alert"
-//                        className="rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-800 dark:border-red-900 dark:bg-red-950 dark:text-red-200">{error}</div>}
-//         {loading ? <Card className="space-y-4 p-6 shadow-none">
-//             <div className="h-5 w-40 animate-pulse rounded bg-slate-100 dark:bg-slate-800"/>
-//             <div className="h-10 w-full animate-pulse rounded bg-slate-100 dark:bg-slate-800"/>
-//             <div className="h-48 w-full animate-pulse rounded bg-slate-100 dark:bg-slate-800"/>
-//         </Card> : !error && role && <>
-//             <Card className="flex flex-wrap items-center gap-4 p-5 shadow-none">
-//                 <span
-//                     className="grid size-12 place-items-center rounded-xl bg-violet-50 text-violet-700 dark:bg-violet-950 dark:text-violet-300"><ShieldCheck
-//                     className="size-5"/></span>
-//                 <div className="min-w-0 flex-1">
-//                     <div className="flex flex-wrap items-center gap-2"><h2
-//                         className="m-0 text-xl font-semibold">{role.name}</h2>
-//                         <Badge variant="outline">{role.system ? t.adminBuiltIn : t.adminCustom}</Badge>
-//                         <Badge
-//                             variant={role.active ? 'success' : 'secondary'}>{role.active ? t.active : t.inactive}</Badge>
-//                     </div>
-//                     <p className="mt-1 text-sm text-muted-foreground">{role.description || t.adminNoRoleDescription}</p>
-//                 </div>
-//                 <div className="text-right"><p className="text-2xl font-semibold">{role.permissions?.length || 0}</p><p
-//                     className="text-xs text-muted-foreground">{t.adminRolePermissions}</p></div>
-//             </Card>
-//             <Card className="w-full min-w-0 gap-0 overflow-hidden shadow-none">
-//                 <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border p-4">
-//                     <div>
-//                         <h3 className="m-0 text-base font-semibold">{t.adminRolePermissions} <span
-//                             className="text-muted-foreground">({role.permissions?.length || 0})</span></h3>
-//                         <p className="mt-1 text-xs text-muted-foreground">{t.adminPermissionsGroupedHint}</p>
-//                     </div>
-//                     <label className="relative w-full sm:w-64"><span
-//                         className="sr-only">{t.adminFilterPermissions}</span>
-//                         <Search aria-hidden="true"
-//                                 className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-slate-400"/>
-//                         <Input type="search" value={keyword} onChange={(event) => setKeyword(event.target.value)}
-//                                placeholder={t.adminFilterPermissions} className="h-10 pl-9"/>
-//                     </label></div>
-//                 {Object.keys(groups).length ? <div
-//                         className="space-y-6 p-5">{Object.entries(groups).sort(([a], [b]) => a.localeCompare(b)).map(([service, items]) =>
-//                         <section key={service} aria-labelledby={`role-permissions-${service}`}>
-//                             <h4 id={`role-permissions-${service}`}
-//                                 className="mb-3 text-xs font-semibold uppercase tracking-wide text-muted-foreground">{service}
-//                                 <span className="font-normal">({items.length})</span></h4>
-//                             <ul className="grid list-none grid-cols-1 gap-2 p-0 md:grid-cols-2 xl:grid-cols-3">{items.map((permission) =>
-//                                 <li key={permission}
-//                                     className="flex min-h-10 items-center rounded-lg border border-border bg-background px-3 py-2 font-mono text-xs text-foreground">{permission}</li>)}</ul>
-//                         </section>)}</div> :
-//                     <p className="px-5 py-12 text-center text-sm text-muted-foreground">{keyword ? t.adminNoMatchingRolePermissions : t.adminRoleHasNoPermissions}</p>}
-//             </Card>
-//         </>}
-//     </div>
-// }
-//
-// export default function AdminRolesPage({token, t, selectedRoleId, onSelectRole, onBack}) {
-//     const [keyword, setKeyword] = useState('')
-//     const [active, setActive] = useState('all')
-//     const [type, setType] = useState('all')
-//     const [sort, setSort] = useState('name')
-//     const [direction, setDirection] = useState('asc')
-//     const [page, setPage] = useState(0)
-//     const [result, setResult] = useState(null)
-//     const [loading, setLoading] = useState(true)
-//     const [error, setError] = useState('')
-//     const [createOpen, setCreateOpen] = useState(false)
-//     const requestId = useRef(0)
-//
-//     const loadRoles = useCallback(async () => {
-//         const currentRequest = ++requestId.current
-//         setLoading(true)
-//         setError('')
-//         const params = {page, size: pageSize, keyword: keyword.trim(), sort: `${sort},${direction}`}
-//         if (active !== 'all') params.active = active === 'active'
-//         if (type !== 'all') params.system = type === 'builtIn'
-//         try {
-//             const data = await adminApi.listRoles(token, params)
-//             if (requestId.current === currentRequest) setResult(data)
-//         } catch (requestError) {
-//             if (requestId.current === currentRequest) setError(requestError.status === 403 ? t.adminForbidden : requestError.status === 401 ? t.adminSessionExpired : t.adminRolesLoadError)
-//         } finally {
-//             if (requestId.current === currentRequest) setLoading(false)
-//         }
-//     }, [active, direction, keyword, page, sort, t.adminForbidden, t.adminRolesLoadError, t.adminSessionExpired, token, type])
-//
-//     useEffect(() => {
-//         const timer = window.setTimeout(loadRoles, keyword ? 250 : 0)
-//         return () => window.clearTimeout(timer)
-//     }, [keyword, loadRoles])
-//
-//     function changeSort(field) {
-//         if (sort === field) setDirection((current) => current === 'asc' ? 'desc' : 'asc')
-//         else {
-//             setSort(field)
-//             setDirection('asc')
-//         }
-//         setPage(0)
-//     }
-//
-//     const total = result?.totalElements || 0
-//     const pages = result?.totalPages || 0
-//     const start = total ? page * pageSize + 1 : 0
-//     const end = Math.min((page + 1) * pageSize, total)
-//     const range = t.adminShowingRoles.replace('{start}', String(start)).replace('{end}', String(end)).replace('{total}', String(total))
-//
-//     if (selectedRoleId) return <RoleDetail token={token} roleId={selectedRoleId} onBack={onBack} t={t}/>
-//
-//     return <>
-//         <section className="mb-5 flex items-center justify-end">
-//             <Button onClick={() => setCreateOpen(true)}><Plus className="size-4"/>{t.adminCreateRole}</Button>
-//         </section>
-//
-//         <Card className="w-full min-w-0 gap-0 overflow-hidden shadow-none">
-//             <div className="flex flex-wrap items-center gap-3 border-b border-border p-4">
-//                 <label className="relative min-w-[min(100%,18rem)] flex-1">
-//                     <span className="sr-only">{t.adminSearchRoles}</span><Search aria-hidden="true"
-//                                                                                  className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-slate-400"/>
-//                     <Input type="search" value={keyword} onChange={(event) => {
-//                         setKeyword(event.target.value);
-//                         setPage(0)
-//                     }} placeholder={t.adminSearchRoles} className="h-10 pl-9"/>
-//                 </label>
-//                 <label
-//                     className="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-300"><span>{t.adminStatus}</span>
-//                     <select value={active} onChange={(event) => {
-//                         setActive(event.target.value);
-//                         setPage(0)
-//                     }} className="h-10 min-w-36 rounded-lg border border-input bg-white px-3 text-sm dark:bg-slate-950">
-//                         <option value="all">{t.adminAllStatuses}</option>
-//                         <option value="active">{t.active}</option>
-//                         <option value="inactive">{t.inactive}</option>
-//                     </select>
-//                 </label>
-//                 <label
-//                     className="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-300"><span>{t.adminRoleType}</span>
-//                     <select value={type} onChange={(event) => {
-//                         setType(event.target.value);
-//                         setPage(0)
-//                     }} className="h-10 min-w-36 rounded-lg border border-input bg-white px-3 text-sm dark:bg-slate-950">
-//                         <option value="all">{t.adminAllTypes}</option>
-//                         <option value="builtIn">{t.adminBuiltIn}</option>
-//                         <option value="custom">{t.adminCustom}</option>
-//                     </select>
-//                 </label>
-//                 <Button variant="outline" size="icon" aria-label={t.refresh} onClick={loadRoles}
-//                         disabled={loading}><RefreshCw className={`size-4 ${loading ? 'animate-spin' : ''}`}/></Button>
-//             </div>
-//
-//             {error && <div role="alert"
-//                            className="m-4 flex items-center gap-3 rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-800 dark:border-red-900 dark:bg-red-950 dark:text-red-200">
-//                 <CircleAlert className="size-4 shrink-0"/><span className="flex-1">{error}</span>
-//                 <button onClick={loadRoles} className="font-semibold underline">{t.retry}</button>
-//             </div>}
-//
-//             <Table>
-//                 <TableHeader className="bg-slate-50/80 dark:bg-slate-800/50"><TableRow className="hover:bg-transparent">
-//                     <TableHead>
-//                         <button onClick={() => changeSort('name')}
-//                                 aria-sort={sort === 'name' ? direction === 'asc' ? 'ascending' : 'descending' : 'none'}
-//                                 className="inline-flex items-center font-semibold"><SortLabel field="name"
-//                                                                                               current={sort}
-//                                                                                               direction={direction}>{t.adminRoleName}</SortLabel>
-//                         </button>
-//                     </TableHead>
-//                     <TableHead>{t.adminRoleDescription}</TableHead><TableHead>{t.adminRoleType}</TableHead><TableHead>{t.adminStatus}</TableHead>
-//                 </TableRow></TableHeader>
-//                 <TableBody>
-//                     {loading && !result && Array.from({length: 5}, (_, row) => <TableRow
-//                         key={row}>{Array.from({length: 4}, (_, cell) => <TableCell key={cell}>
-//                         <div className="h-4 animate-pulse rounded bg-slate-100 dark:bg-slate-800"/>
-//                     </TableCell>)}</TableRow>)}
-//                     {!loading && !error && !result?.content.length && <TableRow><TableCell colSpan={4}
-//                                                                                            className="h-36 text-center text-sm text-slate-500">{keyword || active !== 'all' || type !== 'all' ? t.adminNoMatchingRoles : t.adminNoRolesFound}</TableCell></TableRow>}
-//                     {result?.content.map((role) => <TableRow key={role.uuid}>
-//                         <TableCell className="min-w-48">
-//                             <button type="button" onClick={() => onSelectRole?.(role.uuid)}
-//                                     className="flex items-center gap-3 rounded-md text-left outline-none focus-visible:ring-2 focus-visible:ring-ring"><span
-//                                 className="grid size-9 place-items-center rounded-lg bg-violet-50 text-violet-700 dark:bg-violet-950 dark:text-violet-300"><ShieldCheck
-//                                 className="size-4"/></span><span
-//                                 className="font-semibold tracking-wide hover:text-violet-700 dark:hover:text-violet-300">{role.name}</span>
-//                             </button>
-//                         </TableCell>
-//                         <TableCell
-//                             className="min-w-56 max-w-xl text-slate-600 dark:text-slate-300">{role.description || '—'}</TableCell>
-//                         <TableCell><Badge
-//                             variant="outline">{role.system ? t.adminBuiltIn : t.adminCustom}</Badge></TableCell>
-//                         <TableCell><Badge variant={role.active ? 'success' : 'secondary'}><span
-//                             className={`size-1.5 rounded-full ${role.active ? 'bg-emerald-500' : 'bg-slate-400'}`}/>{role.active ? t.active : t.inactive}
-//                         </Badge></TableCell>
-//                     </TableRow>)}
-//                 </TableBody>
-//             </Table>
-//
-//             <footer className="flex flex-wrap items-center justify-between gap-3 border-t border-border px-4 py-3"><p
-//                 aria-live="polite" className="text-xs text-slate-500">{loading ? t.loading : range}</p>
-//                 <div className="flex items-center gap-2"><span
-//                     className="text-xs text-slate-500">{t.adminPageOf.replace('{page}', String(pages ? page + 1 : 0)).replace('{pages}', String(pages))}</span>
-//                     <Button variant="outline" size="sm" onClick={() => setPage((current) => Math.max(0, current - 1))}
-//                             disabled={page === 0 || loading}><ChevronLeft className="size-4"/>{t.adminPreviousPage}
-//                     </Button>
-//                     <Button variant="outline" size="sm"
-//                             onClick={() => setPage((current) => Math.min(pages - 1, current + 1))}
-//                             disabled={!pages || page >= pages - 1 || loading}>{t.adminNextPage}<ChevronRight
-//                         className="size-4"/></Button>
-//                 </div>
-//             </footer>
-//         </Card>
-//
-//         <CreateRoleDialog open={createOpen} onClose={() => setCreateOpen(false)} onCreated={loadRoles} token={token}
-//                           t={t}/>
-//     </>
-// }
-
-
 import {useCallback, useEffect, useRef, useState} from 'react'
 import {
     ArrowDown,
@@ -350,13 +7,18 @@ import {
     ChevronLeft,
     ChevronRight,
     CircleAlert,
-    Edit,
     Plus,
-    Power,
+    PlusCircle,
     RefreshCw,
     Search,
     ShieldCheck,
-    Trash2
+    Edit,
+    Power,
+    Trash2,
+    Check,
+    KeyRound,
+    X,
+    LoaderCircle
 } from 'lucide-react'
 import {adminApi} from '../api/adminApi'
 import {Badge} from '../../../components/ui/badge'
@@ -365,101 +27,359 @@ import {Card} from '../../../components/ui/card'
 import {Input} from '../../../components/ui/input'
 import {Table, TableBody, TableCell, TableHead, TableHeader, TableRow} from '../../../components/ui/table'
 
-const pageSize = 20
+const pageSize = 15
 
 function SortLabel({field, current, direction, children}) {
     const Icon = current !== field ? ArrowUpDown : direction === 'asc' ? ArrowUp : ArrowDown
-    return <>{children}<Icon aria-hidden="true" className="ml-1 inline size-3.5"/></>
+    return (
+        <>
+            {children}
+            <Icon aria-hidden="true" className="ml-1 inline size-3.5" />
+        </>
+    )
 }
 
-function CreateRoleDialog({open, onClose, onCreated, token, t}) {
-    const [dialog, setDialog] = useState(null)
+function CreateRoleDialog({open, onClose, onCreated, token, t, locale}) {
     const [name, setName] = useState('')
     const [description, setDescription] = useState('')
+    const [permissions, setPermissions] = useState([])
+    const [selectedPermissions, setSelectedPermissions] = useState([])
     const [busy, setBusy] = useState(false)
     const [error, setError] = useState('')
 
     useEffect(() => {
-        if (open && dialog && !dialog.open) dialog.showModal()
-        if (!open && dialog?.open) dialog.close()
-    }, [dialog, open])
+        if (open) {
+            adminApi.listPermissions(token, {page: 0, size: 100}).then((data) => {
+                setPermissions(data.content || [])
+            }).catch(() => {})
+        }
+    }, [open, token])
 
-    function close() {
-        setName('')
-        setDescription('')
-        setError('')
-        onClose()
+    if (!open) return null
+
+    function togglePermission(permUuid) {
+        setSelectedPermissions((curr) =>
+            curr.includes(permUuid) ? curr.filter((id) => id !== permUuid) : [...curr, permUuid]
+        )
     }
 
     async function submit(event) {
         event.preventDefault()
+        if (!name.trim()) return
         setBusy(true)
         setError('')
         try {
-            await adminApi.createRole(token, {name: name.trim(), description: description.trim(), permissionUuids: []})
-            close()
+            await adminApi.createRole(token, {
+                name: name.trim().toUpperCase(),
+                description: description.trim(),
+                permissionUuids: selectedPermissions,
+            })
+            setName('')
+            setDescription('')
+            setSelectedPermissions([])
             onCreated()
+            onClose()
         } catch (requestError) {
-            setError(requestError.status === 403 ? t.adminForbidden : requestError.status === 409 ? t.adminRoleConflict : t.adminRoleCreateError)
+            setError(
+                requestError.status === 409
+                    ? (t.adminRoleConflict || 'A role with this name already exists.')
+                    : requestError.status === 403
+                    ? t.adminForbidden
+                    : (t.adminRoleCreateError || 'Failed to create role.')
+            )
         } finally {
             setBusy(false)
         }
     }
 
     return (
-        <dialog
-            ref={setDialog}
-            aria-labelledby="create-role-title"
-            onCancel={(event) => { event.preventDefault(); close() }}
-            onClick={(event) => { if (event.target === dialog) close() }}
-            className="fixed left-1/2 top-1/2 m-0 max-h-[min(90dvh,44rem)] w-[calc(100%-2rem)] max-w-lg -translate-x-1/2 -translate-y-1/2 overflow-y-auto rounded-2xl border border-border bg-white p-0 text-slate-900 shadow-2xl backdrop:bg-slate-950/40 dark:bg-slate-900 dark:text-slate-100"
-        >
-            <form onSubmit={submit} className="grid gap-5 p-6">
-                <header>
-                    <h2 id="create-role-title" className="text-lg font-semibold">{t.adminCreateRole}</h2>
-                    <p className="mt-1 text-sm text-slate-500">{t.adminCreateRoleHint}</p>
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+            <div className="w-full max-w-lg rounded-2xl bg-white p-6 shadow-2xl dark:bg-slate-900 border border-slate-200 dark:border-slate-800 animate-in fade-in zoom-in-95">
+                <header className="flex items-center justify-between border-b border-slate-100 pb-3 dark:border-slate-800">
+                    <h3 className="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                        <ShieldCheck className="size-5 text-violet-600" />
+                        {t.adminCreateRole || 'Create Role'}
+                    </h3>
+                    <button onClick={onClose} className="text-slate-400 hover:text-slate-600">✕</button>
                 </header>
-                {error && <p role="alert" className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700 dark:border-red-900 dark:bg-red-950 dark:text-red-200">{error}</p>}
-                <label className="grid gap-1.5 text-sm font-medium">{t.adminRoleName}
-                    <Input autoFocus required minLength={2} maxLength={50} value={name} onChange={(event) => setName(event.target.value)} placeholder={t.adminRoleNamePlaceholder} className="h-10"/>
-                </label>
-                <label className="grid gap-1.5 text-sm font-medium">{t.adminRoleDescription}
-                    <textarea maxLength={255} rows={4} value={description} onChange={(event) => setDescription(event.target.value)} placeholder={t.adminRoleDescriptionPlaceholder} className="resize-y rounded-lg border border-input bg-transparent px-3 py-2 text-sm outline-none focus-visible:ring-2 focus-visible:ring-ring dark:bg-input/30"/>
-                </label>
-                <p className="rounded-lg bg-slate-50 p-3 text-xs leading-5 text-slate-600 dark:bg-slate-800 dark:text-slate-300">{t.adminRolePermissionsAfterCreate}</p>
-                <footer className="flex justify-end gap-2 border-t border-border pt-4">
-                    <Button type="button" variant="outline" onClick={close}>{t.cancel}</Button>
-                    <Button type="submit" disabled={busy}><Plus className="size-4 mr-2"/>{busy ? t.saving : t.adminCreateRole}</Button>
-                </footer>
-            </form>
-        </dialog>
+
+                {error && (
+                    <div className="mt-3 rounded-lg bg-red-50 p-3 text-xs text-red-700 dark:bg-red-950 dark:text-red-300">
+                        {error}
+                    </div>
+                )}
+
+                <form onSubmit={submit} className="mt-4 grid gap-4">
+                    <label className="grid gap-1 text-xs font-semibold text-slate-700 dark:text-slate-300">
+                        <span>{t.adminRoleName || 'Role Name'} *</span>
+                        <Input
+                            required
+                            placeholder={t.adminRoleNamePlaceholder || 'For example, SUPPORT_AGENT'}
+                            value={name}
+                            onChange={(e) => setName(e.target.value)}
+                            className="text-xs uppercase"
+                        />
+                    </label>
+
+                    <label className="grid gap-1 text-xs font-semibold text-slate-700 dark:text-slate-300">
+                        <span>{t.adminRoleDescription || 'Description'}</span>
+                        <Input
+                            placeholder={t.adminRoleDescriptionPlaceholder || 'Describe what this role is used for.'}
+                            value={description}
+                            onChange={(e) => setDescription(e.target.value)}
+                            className="text-xs"
+                        />
+                    </label>
+
+                    <div>
+                        <span className="text-xs font-semibold text-slate-700 dark:text-slate-300 block mb-1">
+                            {locale === 'km' ? 'ជ្រើសរើសសិទ្ធិចាប់ផ្តើម (មិនបង្ខំ):' : 'Initial Permissions (optional):'}
+                        </span>
+                        <div className="max-h-36 overflow-y-auto rounded-lg border border-slate-200 p-2 dark:border-slate-800 grid grid-cols-2 gap-1.5 text-[11px]">
+                            {permissions.map((p) => {
+                                const checked = selectedPermissions.includes(p.uuid)
+                                return (
+                                    <label
+                                        key={p.uuid}
+                                        onClick={() => togglePermission(p.uuid)}
+                                        className={`flex items-center gap-2 p-1.5 rounded cursor-pointer transition ${
+                                            checked ? 'bg-violet-50 font-bold text-violet-800 dark:bg-violet-950 dark:text-violet-200' : 'hover:bg-slate-50'
+                                        }`}
+                                    >
+                                        <input
+                                            type="checkbox"
+                                            checked={checked}
+                                            onChange={() => {}}
+                                            className="accent-violet-700"
+                                        />
+                                        <span className="truncate font-mono">{p.name}</span>
+                                    </label>
+                                )
+                            })}
+                        </div>
+                    </div>
+
+                    <div className="flex justify-end gap-2 border-t border-slate-100 pt-4 dark:border-slate-800">
+                        <Button type="button" variant="outline" size="sm" onClick={onClose}>
+                            {t.cancel || 'Cancel'}
+                        </Button>
+                        <Button type="submit" variant="default" size="sm" disabled={busy} className="bg-violet-700 text-white">
+                            {busy ? '…' : (t.adminCreateRole || 'Create Role')}
+                        </Button>
+                    </div>
+                </form>
+            </div>
+        </div>
     )
 }
 
-function RoleDetail({token, roleId, onBack, t}) {
+function AssignPermissionsToRoleModal({open, onClose, onAssigned, token, role, t, locale}) {
+    const [availablePermissions, setAvailablePermissions] = useState([])
+    const [selectedPermissions, setSelectedPermissions] = useState([])
+    const [busy, setBusy] = useState(false)
+    const [error, setError] = useState('')
+
+    useEffect(() => {
+        if (open) {
+            setError('')
+            adminApi.listPermissions(token, {page: 0, size: 100}).then((data) => {
+                const existing = new Set(role?.permissions || [])
+                const unassigned = (data.content || []).filter((p) => !existing.has(p.name))
+                setAvailablePermissions(unassigned)
+            }).catch(() => setError('Failed to load permissions'))
+        }
+    }, [open, role, token])
+
+    if (!open) return null
+
+    function toggle(uuid) {
+        setSelectedPermissions((curr) =>
+            curr.includes(uuid) ? curr.filter((id) => id !== uuid) : [...curr, uuid]
+        )
+    }
+
+    async function submit(e) {
+        e.preventDefault()
+        if (selectedPermissions.length === 0) return
+        setBusy(true)
+        setError('')
+        try {
+            await adminApi.assignPermissionsToRole(token, role.uuid, selectedPermissions)
+            onAssigned()
+            onClose()
+        } catch (err) {
+            setError(err.message || 'Failed to assign permissions')
+        } finally {
+            setBusy(false)
+        }
+    }
+
+    return (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+            <div className="w-full max-w-md rounded-2xl bg-white p-6 shadow-2xl dark:bg-slate-900 border border-slate-200 dark:border-slate-800 animate-in fade-in zoom-in-95">
+                <header className="flex items-center justify-between border-b border-slate-100 pb-3 dark:border-slate-800">
+                    <h3 className="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                        <KeyRound className="size-4 text-violet-600" />
+                        {locale === 'km' ? 'បន្ថែមសិទ្ធិទៅក្នុងតួនាទី' : 'Assign Permissions to Role'}
+                    </h3>
+                    <button onClick={onClose} className="text-slate-400 hover:text-slate-600">✕</button>
+                </header>
+
+                <p className="mt-2 text-xs text-slate-500">
+                    {locale === 'km' ? `ជ្រើសរើសសិទ្ធិដើម្បីបន្ថែមទៅកាន់តួនាទី ${role?.name}` : `Select permissions to grant to ${role?.name}`}
+                </p>
+
+                {error && (
+                    <div className="mt-3 rounded-lg bg-red-50 p-2 text-xs text-red-700 dark:bg-red-950 dark:text-red-300">
+                        {error}
+                    </div>
+                )}
+
+                <form onSubmit={submit} className="mt-4 grid gap-3">
+                    <div className="max-h-60 overflow-y-auto rounded-lg border border-slate-200 p-2 dark:border-slate-800 grid gap-1">
+                        {availablePermissions.map((p) => {
+                            const checked = selectedPermissions.includes(p.uuid)
+                            return (
+                                <label
+                                    key={p.uuid}
+                                    onClick={() => toggle(p.uuid)}
+                                    className={`flex items-center justify-between p-2 rounded cursor-pointer transition ${
+                                        checked ? 'bg-violet-50 font-bold text-violet-800 dark:bg-violet-950 dark:text-violet-200' : 'hover:bg-slate-50'
+                                    }`}
+                                >
+                                    <div className="flex items-center gap-2">
+                                        <input
+                                            type="checkbox"
+                                            checked={checked}
+                                            onChange={() => {}}
+                                            className="accent-violet-700"
+                                        />
+                                        <span className="font-mono text-xs">{p.name}</span>
+                                    </div>
+                                    <Badge variant="outline" className="text-[9px]">{p.resource}</Badge>
+                                </label>
+                            )
+                        })}
+
+                        {availablePermissions.length === 0 && (
+                            <p className="text-xs text-slate-400 p-4 text-center">
+                                {locale === 'km' ? 'សិទ្ធិទាំងអស់ត្រូវបានផ្តល់រួចរាល់ហើយ' : 'All available permissions are already assigned.'}
+                            </p>
+                        )}
+                    </div>
+
+                    <div className="flex justify-end gap-2 border-t border-slate-100 pt-3 dark:border-slate-800">
+                        <Button type="button" variant="outline" size="sm" onClick={onClose}>
+                            {t.cancel || 'Cancel'}
+                        </Button>
+                        <Button
+                            type="submit"
+                            variant="default"
+                            size="sm"
+                            disabled={busy || selectedPermissions.length === 0}
+                            className="bg-violet-700 text-white"
+                        >
+                            {busy ? '…' : (locale === 'km' ? 'បន្ថែមសិទ្ធិ' : `Add ${selectedPermissions.length} Permissions`)}
+                        </Button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    )
+}
+
+function RoleDetail({token, roleId, onBack, t, locale}) {
     const [role, setRole] = useState(null)
     const [keyword, setKeyword] = useState('')
     const [loading, setLoading] = useState(true)
     const [error, setError] = useState('')
+    const [notice, setNotice] = useState('')
+    const [addPermOpen, setAddPermOpen] = useState(false)
+    const [actioning, setActioning] = useState(false)
 
-    useEffect(() => {
-        let active = true
+    const loadRole = useCallback(() => {
         setLoading(true)
         setError('')
-        adminApi.getRole(token, roleId).then((data) => {
-            if (active) setRole(data)
-        }).catch((requestError) => {
-            if (active) setError(requestError.status === 403 ? t.adminForbidden : requestError.status === 401 ? t.adminSessionExpired : t.adminRoleDetailLoadError)
-        }).finally(() => {
-            if (active) setLoading(false)
-        })
-        return () => { active = false }
+        adminApi
+            .getRole(token, roleId)
+            .then((data) => setRole(data))
+            .catch((requestError) => {
+                setError(
+                    requestError.status === 403
+                        ? t.adminForbidden
+                        : requestError.status === 401
+                        ? t.adminSessionExpired
+                        : (t.adminRoleDetailLoadError || 'Failed to load role')
+                )
+            })
+            .finally(() => setLoading(false))
     }, [roleId, t, token])
 
+    useEffect(() => {
+        loadRole()
+    }, [loadRole])
+
+    function notify(msg) {
+        setNotice(msg)
+        setTimeout(() => setNotice(''), 3500)
+    }
+
+    async function handleToggleActive() {
+        if (!role) return
+        setActioning(true)
+        try {
+            if (role.active) {
+                await adminApi.deactivateRole(token, roleId)
+                notify('Role deactivated')
+            } else {
+                await adminApi.activateRole(token, roleId)
+                notify('Role activated')
+            }
+            loadRole()
+        } catch (err) {
+            setError(err.message || 'Status change failed')
+        } finally {
+            setActioning(false)
+        }
+    }
+
+    async function handleDeleteRole() {
+        if (role.system) {
+            alert('Built-in system roles cannot be deleted.')
+            return
+        }
+        if (!window.confirm(`Are you sure you want to delete role "${role.name}"?`)) return
+        setActioning(true)
+        try {
+            await adminApi.deleteRole(token, roleId)
+            onBack()
+        } catch (err) {
+            setError(err.message || 'Failed to delete role')
+            setActioning(false)
+        }
+    }
+
+    async function handleRevokePermission(permName) {
+        if (!window.confirm(`Remove permission "${permName}" from role "${role.name}"?`)) return
+        try {
+            // Find permission UUID by listing permissions
+            const data = await adminApi.listPermissions(token, {keyword: permName, size: 5})
+            const match = data.content?.find((p) => p.name === permName)
+            if (match) {
+                await adminApi.revokePermissionFromRole(token, roleId, match.uuid)
+                notify(`Removed ${permName}`)
+                loadRole()
+            }
+        } catch (err) {
+            setError(err.message || 'Failed to revoke permission')
+        }
+    }
+
     const permissions = (role?.permissions || []).filter((permission) =>
-        permission.toLocaleLowerCase().includes(keyword.trim().toLocaleLowerCase()))
+        permission.toLowerCase().includes(keyword.trim().toLowerCase())
+    )
     const groups = permissions.reduce((grouped, permission) => {
-        const service = permission.split(':')[0] || t.adminOtherGroup
+        const service = permission.split(':')[0] || 'other'
         grouped[service] = [...(grouped[service] || []), permission]
         return grouped
     }, {})
@@ -467,97 +387,157 @@ function RoleDetail({token, roleId, onBack, t}) {
     return (
         <div className="space-y-5">
             <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-                <Button variant="ghost" onClick={onBack} className="-ml-2">
-                    <ArrowLeft className="size-4 mr-2"/>{t.adminBackToRoles}
+                <Button variant="ghost" onClick={onBack} className="-ml-2 text-slate-500">
+                    <ArrowLeft className="size-4 mr-1.5" />
+                    {t.adminBackToRoles || 'Back to roles'}
                 </Button>
-                {/* Added Role Management Actions */}
+
                 {!loading && role && (
                     <div className="flex items-center gap-2">
-                        <Button variant="outline" size="sm">
-                            <Edit className="size-4 mr-2"/> Edit
+                        <Button
+                            variant={role.active ? 'outline' : 'default'}
+                            size="sm"
+                            disabled={actioning}
+                            onClick={handleToggleActive}
+                        >
+                            <Power className="size-3.5 mr-1" />
+                            {role.active ? 'Deactivate' : 'Activate'}
                         </Button>
-                        <Button variant={role.active ? "outline" : "default"} size="sm">
-                            <Power className="size-4 mr-2"/> {role.active ? 'Deactivate' : 'Activate'}
-                        </Button>
-                        <Button variant="destructive" size="sm">
-                            <Trash2 className="size-4 mr-2"/> Delete
-                        </Button>
+                        {!role.system && (
+                            <Button
+                                variant="destructive"
+                                size="sm"
+                                disabled={actioning}
+                                onClick={handleDeleteRole}
+                            >
+                                <Trash2 className="size-3.5 mr-1" /> Delete
+                            </Button>
+                        )}
                     </div>
                 )}
             </div>
 
-            {error && <div role="alert" className="rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-800 dark:border-red-900 dark:bg-red-950 dark:text-red-200">{error}</div>}
+            {notice && (
+                <div className="flex items-center gap-2 rounded-lg border border-emerald-200 bg-emerald-50 p-3 text-xs text-emerald-800 dark:border-emerald-900 dark:bg-emerald-950 dark:text-emerald-200">
+                    <Check className="size-4" />
+                    <span>{notice}</span>
+                </div>
+            )}
+
+            {error && (
+                <div role="alert" className="rounded-lg border border-red-200 bg-red-50 p-4 text-xs text-red-800 dark:border-red-900 dark:bg-red-950 dark:text-red-200">
+                    {error}
+                </div>
+            )}
 
             {loading ? (
-                <Card className="space-y-4 p-6 shadow-none">
-                    <div className="h-5 w-40 animate-pulse rounded bg-slate-100 dark:bg-slate-800"/>
-                    <div className="h-10 w-full animate-pulse rounded bg-slate-100 dark:bg-slate-800"/>
-                    <div className="h-48 w-full animate-pulse rounded bg-slate-100 dark:bg-slate-800"/>
-                </Card>
-            ) : !error && role && (
+                <div className="flex h-48 items-center justify-center">
+                    <LoaderCircle className="size-6 animate-spin text-violet-700" />
+                </div>
+            ) : !error && role ? (
                 <>
                     <Card className="flex flex-wrap items-center gap-4 p-5 shadow-none">
                         <span className="grid size-12 place-items-center rounded-xl bg-violet-50 text-violet-700 dark:bg-violet-950 dark:text-violet-300">
-                            <ShieldCheck className="size-5"/>
+                            <ShieldCheck className="size-6" />
                         </span>
                         <div className="min-w-0 flex-1">
                             <div className="flex flex-wrap items-center gap-2">
-                                <h2 className="m-0 text-xl font-semibold">{role.name}</h2>
-                                <Badge variant="outline">{role.system ? t.adminBuiltIn : t.adminCustom}</Badge>
-                                <Badge variant={role.active ? 'success' : 'secondary'}>{role.active ? t.active : t.inactive}</Badge>
+                                <h2 className="text-xl font-bold tracking-tight text-slate-900 dark:text-white">{role.name}</h2>
+                                <Badge variant="outline">{role.system ? (t.adminBuiltIn || 'Built-in') : (t.adminCustom || 'Custom')}</Badge>
+                                <Badge variant={role.active ? 'success' : 'secondary'}>
+                                    {role.active ? (t.active || 'Active') : (t.inactive || 'Inactive')}
+                                </Badge>
                             </div>
-                            <p className="mt-1 text-sm text-muted-foreground">{role.description || t.adminNoRoleDescription}</p>
+                            <p className="mt-1 text-xs text-slate-500">{role.description || t.adminNoRoleDescription || 'No description provided.'}</p>
                         </div>
                         <div className="text-right">
-                            <p className="text-2xl font-semibold">{role.permissions?.length || 0}</p>
-                            <p className="text-xs text-muted-foreground">{t.adminRolePermissions}</p>
+                            <p className="text-2xl font-bold text-slate-900 dark:text-white">{role.permissions?.length || 0}</p>
+                            <p className="text-[11px] text-slate-400">{t.adminRolePermissions || 'Permissions'}</p>
                         </div>
                     </Card>
 
                     <Card className="w-full min-w-0 gap-0 overflow-hidden shadow-none">
-                        <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border p-4">
+                        <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-100 p-4 dark:border-slate-800">
                             <div>
-                                <h3 className="m-0 text-base font-semibold">{t.adminRolePermissions} <span className="text-muted-foreground">({role.permissions?.length || 0})</span></h3>
-                                <p className="mt-1 text-xs text-muted-foreground">{t.adminPermissionsGroupedHint}</p>
+                                <h3 className="text-sm font-bold text-slate-900 dark:text-white">
+                                    {t.adminRolePermissions || 'Permissions'} ({role.permissions?.length || 0})
+                                </h3>
+                                <p className="text-[11px] text-slate-400">{t.adminPermissionsGroupedHint || 'Permissions assigned to this role, grouped by resource'}</p>
                             </div>
-                            <label className="relative w-full sm:w-64">
-                                <span className="sr-only">{t.adminFilterPermissions}</span>
-                                <Search aria-hidden="true" className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-slate-400"/>
-                                <Input type="search" value={keyword} onChange={(event) => setKeyword(event.target.value)} placeholder={t.adminFilterPermissions} className="h-10 pl-9"/>
-                            </label>
+                            <div className="flex items-center gap-2">
+                                <div className="relative w-full sm:w-60">
+                                    <Search className="absolute left-3 top-2.5 size-3.5 text-slate-400" />
+                                    <Input
+                                        value={keyword}
+                                        onChange={(e) => setKeyword(e.target.value)}
+                                        placeholder={t.adminFilterPermissions || 'Filter permissions…'}
+                                        className="h-8 pl-8 text-xs"
+                                    />
+                                </div>
+                                <Button
+                                    size="sm"
+                                    onClick={() => setAddPermOpen(true)}
+                                    className="bg-violet-700 text-white text-xs"
+                                >
+                                    <PlusCircle className="size-3.5 mr-1" />
+                                    Add Permissions
+                                </Button>
+                            </div>
                         </div>
-                        {Object.keys(groups).length ? (
+
+                        {Object.keys(groups).length > 0 ? (
                             <div className="space-y-6 p-5">
-                                {Object.entries(groups).sort(([a], [b]) => a.localeCompare(b)).map(([service, items]) => (
-                                    <section key={service} aria-labelledby={`role-permissions-${service}`}>
-                                        <h4 id={`role-permissions-${service}`} className="mb-3 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-                                            {service} <span className="font-normal">({items.length})</span>
-                                        </h4>
-                                        <ul className="grid list-none grid-cols-1 gap-2 p-0 md:grid-cols-2 xl:grid-cols-3">
-                                            {items.map((permission) => (
-                                                <li key={permission} className="flex min-h-10 items-center justify-between rounded-lg border border-border bg-background px-3 py-2 font-mono text-xs text-foreground">
-                                                    <span>{permission}</span>
-                                                    {/* Row action to revoke permission from role */}
-                                                    <Button size="icon" variant="ghost" className="h-6 w-6 text-red-500 hover:bg-red-50 hover:text-red-700">
-                                                        <Trash2 className="size-3"/>
-                                                    </Button>
-                                                </li>
-                                            ))}
-                                        </ul>
-                                    </section>
-                                ))}
+                                {Object.entries(groups)
+                                    .sort(([a], [b]) => a.localeCompare(b))
+                                    .map(([service, items]) => (
+                                        <section key={service}>
+                                            <h4 className="mb-2 text-[11px] font-bold uppercase tracking-wider text-slate-400">
+                                                {service} ({items.length})
+                                            </h4>
+                                            <ul className="grid list-none grid-cols-1 gap-2 p-0 md:grid-cols-2 xl:grid-cols-3">
+                                                {items.map((permission) => (
+                                                    <li
+                                                        key={permission}
+                                                        className="flex items-center justify-between rounded-lg border border-slate-100 bg-slate-50/50 p-2.5 font-mono text-xs dark:border-slate-800 dark:bg-slate-800/40"
+                                                    >
+                                                        <span className="truncate">{permission}</span>
+                                                        <Button
+                                                            size="xs"
+                                                            variant="ghost"
+                                                            onClick={() => handleRevokePermission(permission)}
+                                                            className="text-red-500 hover:bg-red-50 hover:text-red-700"
+                                                        >
+                                                            <X className="size-3.5" />
+                                                        </Button>
+                                                    </li>
+                                                ))}
+                                            </ul>
+                                        </section>
+                                    ))}
                             </div>
                         ) : (
-                            <p className="px-5 py-12 text-center text-sm text-muted-foreground">{keyword ? t.adminNoMatchingRolePermissions : t.adminRoleHasNoPermissions}</p>
+                            <p className="px-5 py-12 text-center text-xs text-slate-400">
+                                {keyword ? (t.adminNoMatchingRolePermissions || 'No matching permissions.') : (t.adminRoleHasNoPermissions || 'No permissions assigned to this role.')}
+                            </p>
                         )}
                     </Card>
+
+                    <AssignPermissionsToRoleModal
+                        open={addPermOpen}
+                        onClose={() => setAddPermOpen(false)}
+                        onAssigned={loadRole}
+                        token={token}
+                        role={role}
+                        t={t}
+                        locale={locale}
+                    />
                 </>
-            )}
+            ) : null}
         </div>
     )
 }
 
-export default function AdminRolesPage({token, t, selectedRoleId, onSelectRole, onBack}) {
+export default function AdminRolesPage({token, t, selectedRoleId, onSelectRole, onBack, locale}) {
     const [keyword, setKeyword] = useState('')
     const [active, setActive] = useState('all')
     const [type, setType] = useState('all')
@@ -571,161 +551,244 @@ export default function AdminRolesPage({token, t, selectedRoleId, onSelectRole, 
     const requestId = useRef(0)
 
     const loadRoles = useCallback(async () => {
-        const currentRequest = ++requestId.current
+        const current = ++requestId.current
         setLoading(true)
         setError('')
         const params = {page, size: pageSize, keyword: keyword.trim(), sort: `${sort},${direction}`}
         if (active !== 'all') params.active = active === 'active'
-        if (type !== 'all') params.system = type === 'builtIn'
+        if (type !== 'all') params.system = type === 'builtin'
+
         try {
             const data = await adminApi.listRoles(token, params)
-            if (requestId.current === currentRequest) setResult(data)
+            if (current === requestId.current) setResult(data)
         } catch (requestError) {
-            if (requestId.current === currentRequest) setError(requestError.status === 403 ? t.adminForbidden : requestError.status === 401 ? t.adminSessionExpired : t.adminRolesLoadError)
+            if (current === requestId.current) {
+                setError(
+                    requestError.status === 403
+                        ? t.adminForbidden
+                        : requestError.status === 401
+                        ? t.adminSessionExpired
+                        : 'Could not load roles'
+                )
+            }
         } finally {
-            if (requestId.current === currentRequest) setLoading(false)
+            if (current === requestId.current) setLoading(false)
         }
     }, [active, direction, keyword, page, sort, t, token, type])
 
     useEffect(() => {
-        const timer = window.setTimeout(loadRoles, keyword ? 250 : 0)
-        return () => window.clearTimeout(timer)
+        const timer = setTimeout(loadRoles, keyword ? 250 : 0)
+        return () => clearTimeout(timer)
     }, [keyword, loadRoles])
 
+    if (selectedRoleId) {
+        return (
+            <RoleDetail
+                token={token}
+                roleId={selectedRoleId}
+                onBack={onBack}
+                t={t}
+                locale={locale}
+            />
+        )
+    }
+
+    const pages = result?.totalPages || 0
+    const total = result?.totalElements || 0
+    const start = total === 0 ? 0 : page * pageSize + 1
+    const end = Math.min(total, (page + 1) * pageSize)
+    const range = (t.adminShowingRoles || '{start}–{end} of {total} roles')
+        .replace('{start}', String(start))
+        .replace('{end}', String(end))
+        .replace('{total}', String(total))
+
     function changeSort(field) {
-        if (sort === field) setDirection((current) => current === 'asc' ? 'desc' : 'asc')
-        else {
+        if (sort === field) {
+            setDirection((d) => (d === 'asc' ? 'desc' : 'asc'))
+        } else {
             setSort(field)
             setDirection('asc')
         }
         setPage(0)
     }
 
-    const total = result?.totalElements || 0
-    const pages = result?.totalPages || 0
-    const start = total ? page * pageSize + 1 : 0
-    const end = Math.min((page + 1) * pageSize, total)
-    const range = t.adminShowingRoles.replace('{start}', String(start)).replace('{end}', String(end)).replace('{total}', String(total))
-
-    if (selectedRoleId) return <RoleDetail token={token} roleId={selectedRoleId} onBack={onBack} t={t}/>
-
     return (
         <>
-            <section className="mb-5 flex items-center justify-end">
-                <Button onClick={() => setCreateOpen(true)}><Plus className="size-4 mr-2"/>{t.adminCreateRole}</Button>
-            </section>
-
-            <Card className="w-full min-w-0 gap-0 overflow-hidden shadow-none">
-                <div className="flex flex-wrap items-center gap-3 border-b border-border p-4">
-                    <label className="relative min-w-[min(100%,18rem)] flex-1">
-                        <span className="sr-only">{t.adminSearchRoles}</span>
-                        <Search aria-hidden="true" className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-slate-400"/>
-                        <Input type="search" value={keyword} onChange={(event) => { setKeyword(event.target.value); setPage(0) }} placeholder={t.adminSearchRoles} className="h-10 pl-9"/>
-                    </label>
-                    <label className="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-300"><span>{t.adminStatus}</span>
-                        <select value={active} onChange={(event) => { setActive(event.target.value); setPage(0) }} className="h-10 min-w-36 rounded-lg border border-input bg-white px-3 text-sm dark:bg-slate-950">
-                            <option value="all">{t.adminAllStatuses}</option>
-                            <option value="active">{t.active}</option>
-                            <option value="inactive">{t.inactive}</option>
-                        </select>
-                    </label>
-                    <label className="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-300"><span>{t.adminRoleType}</span>
-                        <select value={type} onChange={(event) => { setType(event.target.value); setPage(0) }} className="h-10 min-w-36 rounded-lg border border-input bg-white px-3 text-sm dark:bg-slate-950">
-                            <option value="all">{t.adminAllTypes}</option>
-                            <option value="builtIn">{t.adminBuiltIn}</option>
-                            <option value="custom">{t.adminCustom}</option>
-                        </select>
-                    </label>
-                    <Button variant="outline" size="icon" aria-label={t.refresh} onClick={loadRoles} disabled={loading}>
-                        <RefreshCw className={`size-4 ${loading ? 'animate-spin' : ''}`}/>
+            <section className="mb-6 flex flex-wrap items-center justify-between gap-3">
+                <div>
+                    <h2 className="text-base font-medium text-slate-800 dark:text-white">
+                        {t.roleManagement || 'Roles'}
+                    </h2>
+                    <p className="text-xs text-slate-500">
+                        {t.rolesDesc || 'Roles group permissions that can be assigned to user accounts.'}
+                    </p>
+                </div>
+                <div className="flex items-center gap-2">
+                    <Button variant="outline" size="sm" onClick={loadRoles} disabled={loading}>
+                        <RefreshCw className={`size-3.5 mr-1.5 ${loading ? 'animate-spin' : ''}`} />
+                        {t.refresh || 'Refresh'}
+                    </Button>
+                    <Button
+                        size="sm"
+                        onClick={() => setCreateOpen(true)}
+                        className="bg-violet-700 hover:bg-violet-800 text-white font-semibold text-xs"
+                    >
+                        <Plus className="size-4 mr-1" />
+                        {t.adminCreateRole || 'Create Role'}
                     </Button>
                 </div>
+            </section>
 
-                {error && (
-                    <div role="alert" className="m-4 flex items-center gap-3 rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-800 dark:border-red-900 dark:bg-red-950 dark:text-red-200">
-                        <CircleAlert className="size-4 shrink-0"/><span className="flex-1">{error}</span>
-                        <button onClick={loadRoles} className="font-semibold underline">{t.retry}</button>
+            {error && (
+                <div role="alert" className="mb-4 flex items-center gap-2 rounded-xl border border-red-200 bg-red-50 p-4 text-xs text-red-800 dark:border-red-900 dark:bg-red-950 dark:text-red-200">
+                    <CircleAlert className="size-4" />
+                    <span>{error}</span>
+                </div>
+            )}
+
+            <Card className="gap-0 overflow-hidden shadow-none">
+                <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-100 p-4 dark:border-slate-800">
+                    <div className="relative w-full sm:w-72">
+                        <Search className="absolute left-3 top-2.5 size-3.5 text-slate-400" />
+                        <Input
+                            placeholder={t.adminSearchRoles || 'Search roles…'}
+                            value={keyword}
+                            onChange={(e) => {
+                                setKeyword(e.target.value)
+                                setPage(0)
+                            }}
+                            className="h-8 pl-8 text-xs"
+                        />
                     </div>
-                )}
+
+                    <div className="flex flex-wrap items-center gap-2 text-xs">
+                        <select
+                            value={type}
+                            onChange={(e) => {
+                                setType(e.target.value)
+                                setPage(0)
+                            }}
+                            className="h-8 rounded-lg border border-slate-200 bg-white px-2.5 text-xs dark:border-slate-700 dark:bg-slate-950"
+                        >
+                            <option value="all">{t.adminAllTypes || 'All types'}</option>
+                            <option value="builtin">{t.adminBuiltIn || 'Built-in'}</option>
+                            <option value="custom">{t.adminCustom || 'Custom'}</option>
+                        </select>
+
+                        <select
+                            value={active}
+                            onChange={(e) => {
+                                setActive(e.target.value)
+                                setPage(0)
+                            }}
+                            className="h-8 rounded-lg border border-slate-200 bg-white px-2.5 text-xs dark:border-slate-700 dark:bg-slate-950"
+                        >
+                            <option value="all">{t.adminAllStatuses || 'All statuses'}</option>
+                            <option value="active">{t.active || 'Active'}</option>
+                            <option value="inactive">{t.inactive || 'Inactive'}</option>
+                        </select>
+                    </div>
+                </div>
 
                 <Table>
                     <TableHeader className="bg-slate-50/80 dark:bg-slate-800/50">
-                        <TableRow className="hover:bg-transparent">
+                        <TableRow>
                             <TableHead>
-                                <button onClick={() => changeSort('name')} aria-sort={sort === 'name' ? direction === 'asc' ? 'ascending' : 'descending' : 'none'} className="inline-flex items-center font-semibold">
-                                    <SortLabel field="name" current={sort} direction={direction}>{t.adminRoleName}</SortLabel>
+                                <button
+                                    onClick={() => changeSort('name')}
+                                    className="inline-flex items-center font-bold text-xs"
+                                >
+                                    <SortLabel field="name" current={sort} direction={direction}>
+                                        {t.adminRoleName || 'Name'}
+                                    </SortLabel>
                                 </button>
                             </TableHead>
-                            <TableHead>{t.adminRoleDescription}</TableHead>
-                            <TableHead>{t.adminRoleType}</TableHead>
-                            <TableHead>{t.adminStatus}</TableHead>
-                            {/* Added Actions Header */}
-                            <TableHead className="w-[100px] text-right">Actions</TableHead>
+                            <TableHead className="text-xs font-bold">{t.adminRoleDescription || 'Description'}</TableHead>
+                            <TableHead className="text-xs font-bold">{t.adminRoleType || 'Type'}</TableHead>
+                            <TableHead className="text-xs font-bold">{t.adminStatus || 'Status'}</TableHead>
                         </TableRow>
                     </TableHeader>
                     <TableBody>
-                        {loading && !result && Array.from({length: 5}, (_, row) => (
-                            <TableRow key={row}>
-                                {Array.from({length: 5}, (_, cell) => (
-                                    <TableCell key={cell}><div className="h-4 animate-pulse rounded bg-slate-100 dark:bg-slate-800"/></TableCell>
-                                ))}
-                            </TableRow>
-                        ))}
-                        {!loading && !error && !result?.content.length && (
+                        {loading && !result && (
+                            Array.from({length: 5}, (_, i) => (
+                                <TableRow key={i}>
+                                    <TableCell colSpan={4}><div className="h-4 animate-pulse rounded bg-slate-100 dark:bg-slate-800" /></TableCell>
+                                </TableRow>
+                            ))
+                        )}
+
+                        {!loading && !result?.content?.length && (
                             <TableRow>
-                                <TableCell colSpan={5} className="h-36 text-center text-sm text-slate-500">
-                                    {keyword || active !== 'all' || type !== 'all' ? t.adminNoMatchingRoles : t.adminNoRolesFound}
+                                <TableCell colSpan={4} className="h-32 text-center text-xs text-slate-400">
+                                    {keyword ? (t.adminNoMatchingRoles || 'No matching roles.') : (t.adminNoRolesFound || 'No roles created yet.')}
                                 </TableCell>
                             </TableRow>
                         )}
-                        {result?.content.map((role) => (
-                            <TableRow key={role.uuid}>
-                                <TableCell className="min-w-48">
-                                    <button type="button" onClick={() => onSelectRole?.(role.uuid)} className="flex items-center gap-3 rounded-md text-left outline-none focus-visible:ring-2 focus-visible:ring-ring">
-                                        <span className="grid size-9 place-items-center rounded-lg bg-violet-50 text-violet-700 dark:bg-violet-950 dark:text-violet-300">
-                                            <ShieldCheck className="size-4"/>
+
+                        {result?.content?.map((role) => (
+                            <TableRow
+                                key={role.uuid}
+                                onClick={() => onSelectRole?.(role.uuid)}
+                                className="cursor-pointer hover:bg-slate-50/70 dark:hover:bg-slate-800/40"
+                            >
+                                <TableCell className="font-bold text-xs">
+                                    <div className="flex items-center gap-2.5">
+                                        <span className="grid size-7 place-items-center rounded-lg bg-violet-50 text-violet-700 dark:bg-violet-950 dark:text-violet-300">
+                                            <ShieldCheck className="size-4" />
                                         </span>
-                                        <span className="font-semibold tracking-wide hover:text-violet-700 dark:hover:text-violet-300">{role.name}</span>
-                                    </button>
+                                        <span className="hover:text-violet-700 dark:hover:text-violet-300">{role.name}</span>
+                                    </div>
                                 </TableCell>
-                                <TableCell className="min-w-56 max-w-xl text-slate-600 dark:text-slate-300">{role.description || '—'}</TableCell>
-                                <TableCell><Badge variant="outline">{role.system ? t.adminBuiltIn : t.adminCustom}</Badge></TableCell>
+                                <TableCell className="text-xs text-slate-500">{role.description || '—'}</TableCell>
                                 <TableCell>
-                                    <Badge variant={role.active ? 'success' : 'secondary'}>
-                                        <span className={`size-1.5 rounded-full ${role.active ? 'bg-emerald-500' : 'bg-slate-400'}`}/>{role.active ? t.active : t.inactive}
+                                    <Badge variant="outline" className="text-[10px]">
+                                        {role.system ? (t.adminBuiltIn || 'Built-in') : (t.adminCustom || 'Custom')}
                                     </Badge>
                                 </TableCell>
-                                {/* Added Row Actions */}
-                                <TableCell className="text-right">
-                                    <div className="flex justify-end gap-1">
-                                        <Button variant="ghost" size="icon" className="h-8 w-8 text-slate-500 hover:text-violet-600">
-                                            <Edit className="size-4"/>
-                                        </Button>
-                                        <Button variant="ghost" size="icon" className="h-8 w-8 text-red-500 hover:bg-red-50 hover:text-red-700">
-                                            <Trash2 className="size-4"/>
-                                        </Button>
-                                    </div>
+                                <TableCell>
+                                    <Badge variant={role.active ? 'success' : 'secondary'} className="text-[10px]">
+                                        {role.active ? (t.active || 'Active') : (t.inactive || 'Inactive')}
+                                    </Badge>
                                 </TableCell>
                             </TableRow>
                         ))}
                     </TableBody>
                 </Table>
 
-                <footer className="flex flex-wrap items-center justify-between gap-3 border-t border-border px-4 py-3">
-                    <p aria-live="polite" className="text-xs text-slate-500">{loading ? t.loading : range}</p>
+                <footer className="flex flex-wrap items-center justify-between gap-3 border-t border-slate-100 px-4 py-3 dark:border-slate-800">
+                    <p className="text-xs text-slate-500">{loading ? (t.loading || 'Loading…') : range}</p>
                     <div className="flex items-center gap-2">
-                        <span className="text-xs text-slate-500">{t.adminPageOf.replace('{page}', String(pages ? page + 1 : 0)).replace('{pages}', String(pages))}</span>
-                        <Button variant="outline" size="sm" onClick={() => setPage((current) => Math.max(0, current - 1))} disabled={page === 0 || loading}>
-                            <ChevronLeft className="size-4"/>{t.adminPreviousPage}
+                        <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => setPage((p) => Math.max(0, p - 1))}
+                            disabled={page === 0 || loading}
+                        >
+                            <ChevronLeft className="size-4" />
                         </Button>
-                        <Button variant="outline" size="sm" onClick={() => setPage((current) => Math.min(pages - 1, current + 1))} disabled={!pages || page >= pages - 1 || loading}>
-                            {t.adminNextPage}<ChevronRight className="size-4"/>
+                        <span className="text-xs text-slate-500">
+                            Page {pages ? page + 1 : 0} of {pages}
+                        </span>
+                        <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => setPage((p) => Math.min(pages - 1, p + 1))}
+                            disabled={!pages || page >= pages - 1 || loading}
+                        >
+                            <ChevronRight className="size-4" />
                         </Button>
                     </div>
                 </footer>
             </Card>
 
-            <CreateRoleDialog open={createOpen} onClose={() => setCreateOpen(false)} onCreated={loadRoles} token={token} t={t}/>
+            <CreateRoleDialog
+                open={createOpen}
+                onClose={() => setCreateOpen(false)}
+                onCreated={loadRoles}
+                token={token}
+                t={t}
+                locale={locale}
+            />
         </>
     )
 }

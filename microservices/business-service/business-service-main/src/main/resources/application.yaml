@@ -1,5 +1,6 @@
 server:
   port: ${BUSINESS_SERVICE_PORT:9988}
+  forward-headers-strategy: framework
 management:
   endpoints:
     web:
@@ -21,6 +22,11 @@ springdoc:
 #    enabled: true
 
 spring:
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: ${IAM_ISSUER:http://localhost:9000}
   cloud:
     discovery:
       enabled: true

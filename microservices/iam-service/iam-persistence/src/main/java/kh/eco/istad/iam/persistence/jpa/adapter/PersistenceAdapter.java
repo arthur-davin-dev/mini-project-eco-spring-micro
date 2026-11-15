@@ -266,6 +266,9 @@ public class PersistenceAdapter {
         if (filter != null && filter.active() != null) {
             spec = spec.and((root, query, cb) -> cb.equal(root.get("active"), filter.active()));
         }
+        if (filter != null && filter.system() != null) {
+            spec = spec.and((root, query, cb) -> cb.equal(root.get("system"), filter.system()));
+        }
         Page<RoleEntity> found = roles.findAll(spec, pageable(page, "name", List.of("name", "createdAt", "updatedAt")));
         return mapPage(found, DomainMapper::toDomain);
     }
@@ -335,6 +338,12 @@ public class PersistenceAdapter {
 
     public PageResult<Permission> findAll(PermissionFilterQuery filter, PageRequest page) {
         Specification<PermissionEntity> spec = (root, query, cb) -> cb.isFalse(root.get("deleted"));
+        if (filter != null && filter.keyword() != null && !filter.keyword().isBlank()) {
+            String keyword = contains(filter.keyword());
+            spec = spec.and((root, query, cb) -> cb.or(
+                    cb.like(cb.lower(root.get("name")), keyword),
+                    cb.like(cb.lower(root.get("description")), keyword)));
+        }
         if (filter != null && filter.resource() != null && !filter.resource().isBlank()) {
             spec = spec.and((root, query, cb) -> cb.equal(cb.lower(root.get("resource")),
                     filter.resource().toLowerCase(java.util.Locale.ROOT)));
@@ -345,6 +354,9 @@ public class PersistenceAdapter {
         }
         if (filter != null && filter.active() != null) {
             spec = spec.and((root, query, cb) -> cb.equal(root.get("active"), filter.active()));
+        }
+        if (filter != null && filter.system() != null) {
+            spec = spec.and((root, query, cb) -> cb.equal(root.get("system"), filter.system()));
         }
         Page<PermissionEntity> found = permissions.findAll(spec, pageable(page, "resource",
                 List.of("name", "resource", "action", "createdAt", "updatedAt")));

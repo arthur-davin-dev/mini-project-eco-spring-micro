@@ -79,7 +79,7 @@ public final class RestMapper {
     public static UpdateUserProfileCommand toCommand(UpdateUserProfileRequest r) {
         return new UpdateUserProfileCommand(
                 r.givenName(), null, null, r.nickname(), null, null,
-                r.phoneNumber(), null, null, null, null, r.locale(), null);
+                r.phoneNumber(), r.pictureUrl(), null, null, null, r.locale(), null);
     }
 
     public static ChangePasswordCommand toCommand(ChangePasswordRequest r) {
@@ -120,6 +120,7 @@ public final class RestMapper {
                         .toList(),
                 u.createdAt(), u.updatedAt(),
                 u.givenName(), u.familyName(), u.nickname(), u.gender(), u.birthdate(), u.phoneNumber(),
+                u.pictureUrl(),
                 u.zoneinfo(), u.address(), u.accountNonLocked());
     }
 

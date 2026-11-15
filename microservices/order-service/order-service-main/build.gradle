@@ -23,11 +23,11 @@ dependencies {
     implementation project(':order-service-client')
 
     implementation libs.istad.common.restapi
+    implementation 'org.springframework.security:spring-security-web'
 
     implementation libs.spring.boot.starter.webmvc
     implementation libs.spring.boot.starter.actuator
     implementation libs.istad.common.swagger
-    implementation libs.springdoc.webmvc.ui
     implementation libs.springdoc.webmvc.scalar
     implementation libs.spring.cloud.starter.consul.discovery
     implementation libs.spring.cloud.starter.consul.config

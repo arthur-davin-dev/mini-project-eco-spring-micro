@@ -8,6 +8,8 @@ import kh.eco.istad.platform.order.domain.out.client.CustomerServiceClient.Custo
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cloud.context.config.annotation.RefreshScope;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RestController;
@@ -16,6 +18,7 @@ import reactor.core.publisher.Mono;
 
 import java.time.Duration;
 import java.util.Map;
+import java.util.UUID;
 
 @RefreshScope
 @RestController
@@ -30,6 +33,14 @@ public class WebFluxController {
 //        return customerServiceClient.getCustomers();
 //    }
 
+    @GetMapping("/api/demo")
+    Map<String, Object> getBusinessById(@AuthenticationPrincipal Jwt jwt){
+        return Map.of(
+                "businessId", UUID.randomUUID().toString(),
+                "accessToken", jwt.getTokenValue()
+        );
+
+    }
     @GetMapping(value = "/customers")
     public Flux<QueryCustomerResult> getCustomers() {
         return customerHttpClient.queryCustomer();

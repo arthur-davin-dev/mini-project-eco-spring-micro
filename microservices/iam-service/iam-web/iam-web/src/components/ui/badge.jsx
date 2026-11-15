@@ -7,7 +7,7 @@ const variants = {
 }
 
 function Badge({className = '', variant = 'default', ...props}) {
-    const classes = `inline-flex w-fit shrink-0 items-center justify-center gap-1 overflow-hidden whitespace-nowrap rounded-full border px-2.5 py-0.5 text-[10px] font-semibold transition-colors ${variants[variant] || variants.default} ${className}`
+    const classes = `inline-flex w-fit shrink-0 items-center justify-center gap-1 overflow-hidden whitespace-nowrap rounded-full border px-2.5 py-0.5 text-xs font-medium transition-colors ${variants[variant] || variants.default} ${className}`
     return <span data-slot="badge" className={classes} {...props}/>
 }
 

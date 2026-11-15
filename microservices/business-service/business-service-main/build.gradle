@@ -4,6 +4,7 @@ plugins {
 }
 
 dependencies {
+    implementation 'org.springframework.boot:spring-boot-starter-security-oauth2-resource-server'
     implementation project(':business-service-domain:business-domain-core')
     implementation project(':business-service-domain:business-application-service')
     implementation project(':business-service-persistence')
@@ -11,12 +12,15 @@ dependencies {
     implementation libs.spring.cloud.starter.consul.discovery
     implementation 'org.springframework.boot:spring-boot-starter-actuator'
 
-    implementation libs.spring.boot.starter.webflux
+//    implementation libs.spring.boot.starter.webflux
+    implementation libs.spring.boot.starter.webmvc
     implementation libs.spring.boot.starter.actuator
     implementation libs.spring.boot.starter.data.mongodb.reactive
     implementation libs.istad.common.swagger
-    implementation libs.springdoc.webflux.ui
-    implementation libs.springdoc.webflux.scalar
+    implementation libs.springdoc.webmvc.scalar
+//    implementation libs.springdoc.webflux.ui
+//    implementation libs.springdoc.webflux.scalar
+//    implementation 'org.springdoc:springdoc-openapi-starter-webmvc-api:3.2.0'
 }
 
 tasks.named('bootRun') {

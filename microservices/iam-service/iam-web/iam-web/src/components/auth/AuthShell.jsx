@@ -11,7 +11,7 @@
 //                             onClick={() => setDark(value => !value)}>{dark ? '☼' : '◐'}</button>
 //                     <a href="?lang=en">EN</a> · <a href="?lang=km">ខ្មែរ</a></nav>
 //             </header>
-//             <h1 className="mb-3 font-[Manrope] text-2xl font-extrabold">{title}</h1>
+//             <h1 className="mb-3 text-2xl font-normal">{title}</h1>
 //             {children}
 //         </main>
 //     )
@@ -39,7 +39,7 @@ export default function AuthShell({title, children, dark, setDark}) {
                     <a href="?lang=km" lang="km" hrefLang="km">ខ្មែរ</a>
                 </nav>
             </header>
-            <h1 className="mb-3 font-[Manrope] text-2xl font-extrabold">{title}</h1>
+            <h1 className="mb-3 text-2xl font-normal">{title}</h1>
             {children}
         </main>
     )

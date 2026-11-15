@@ -66,14 +66,16 @@ public class PermissionController {
     @GetMapping
     @PreAuthorize("hasAuthority('permission:read')")
     public PageResponse<PermissionResponse> list(
+            @RequestParam(name = "keyword", required = false) String keyword,
             @RequestParam(name = "resource", required = false) String resource,
             @RequestParam(name = "action", required = false) String action,
             @RequestParam(name = "active", required = false) Boolean active,
+            @RequestParam(name = "system", required = false) Boolean system,
             @RequestParam(name = "page", defaultValue = "0") int page,
             @RequestParam(name = "size", defaultValue = "20") int size,
             @RequestParam(name = "sort", required = false) String sort) {
         return RestMapper.toPage(
-                listPermissions.execute(new PermissionFilterQuery(resource, action, active),
+                listPermissions.execute(new PermissionFilterQuery(keyword, resource, action, active, system),
                         new PageRequest(page, size, sort)),
                 RestMapper::toResponse);
     }

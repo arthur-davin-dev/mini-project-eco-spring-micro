@@ -3,24 +3,41 @@ export const personalSections = [
 ]
 
 export const managementSections = [
-    'adminOverview', 'users', 'userPermissions', 'userSessions', 'userHistory', 'roles',
+    'adminOverview',
+    'users',
+    'roles',
+    'permissions',
+    'clients',
+    'userSessions',
+    'userHistory',
+    'securityManagement',
+    'auditLogs',
+    'systemConfig',
 ]
 
 export const accountSections = [...personalSections, ...managementSections]
 
 export const sectionTitleKeys = {
     dashboard: 'dashboard',
-    profile: 'profile', security: 'security', linked: 'linked', sessions: 'sessions',
-    sessionManagement: 'sessionManagement', history: 'history', activity: 'activity', deactivate: 'deactivate',
-    adminOverview: 'adminOverview', users: 'users', userRoles: 'userRoles', userPermissions: 'permissionManagement',
-    userSessions: 'userSessions', userHistory: 'userHistory', roles: 'roleManagement',
-}
-
-export const sectionIcons = {
-    dashboard: '▦',
-    profile: '◉', security: '◇', linked: '⌁', sessions: '▣', sessionManagement: '⇄',
-    history: '◷', activity: '⌁', deactivate: '⊖', adminOverview: '▦', users: '♙',
-    userRoles: '♧', userPermissions: '⌑', userSessions: '▣', userHistory: '◷', roles: '♧',
+    profile: 'profile',
+    security: 'security',
+    linked: 'linked',
+    sessions: 'sessions',
+    sessionManagement: 'sessionManagement',
+    history: 'history',
+    activity: 'activity',
+    deactivate: 'deactivate',
+    adminOverview: 'adminOverview',
+    users: 'users',
+    userRoles: 'userRoles',
+    permissions: 'permissionManagement',
+    roles: 'roleManagement',
+    clients: 'navClients',
+    userSessions: 'userSessions',
+    userHistory: 'userHistory',
+    securityManagement: 'navSecurityManagement',
+    auditLogs: 'navAuditLogs',
+    systemConfig: 'navSystemConfig',
 }
 
 export function hasAdminRole(user) {
@@ -36,9 +53,16 @@ export function getInitials(user) {
 
 export function formatMemberDate(value, locale) {
     if (!value) return '—'
-    return new Intl.DateTimeFormat(locale === 'km' ? 'km-KH' : 'en-US', {
-        month: 'short', year: 'numeric',
-    }).format(new Date(value))
+    const d = new Date(value)
+    if (isNaN(d.getTime())) return typeof value === 'string' ? value : '—'
+    try {
+        return new Intl.DateTimeFormat(locale === 'km' ? 'km-KH' : 'en-US', {
+            month: 'short',
+            year: 'numeric',
+        }).format(d)
+    } catch {
+        return String(value)
+    }
 }
 
 export function formatProvider(provider) {

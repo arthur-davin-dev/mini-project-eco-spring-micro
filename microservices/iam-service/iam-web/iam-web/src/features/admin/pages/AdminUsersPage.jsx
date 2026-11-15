@@ -33,9 +33,15 @@ function accountState(user, t) {
 
 function formatDate(date, locale) {
     if (!date) return '—'
-    return new Intl.DateTimeFormat(locale === 'km' ? 'km-KH' : 'en-US', {
-        day: 'numeric', month: 'short', year: 'numeric',
-    }).format(new Date(date))
+    const d = new Date(date)
+    if (isNaN(d.getTime())) return typeof date === 'string' ? date : '—'
+    try {
+        return new Intl.DateTimeFormat(locale === 'km' ? 'km-KH' : 'en-US', {
+            day: 'numeric', month: 'short', year: 'numeric',
+        }).format(d)
+    } catch {
+        return String(date)
+    }
 }
 
 function sortLabel(key, sort, direction, labels) {

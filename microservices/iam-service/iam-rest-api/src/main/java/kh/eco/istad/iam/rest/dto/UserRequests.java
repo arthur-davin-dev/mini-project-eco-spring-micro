@@ -59,6 +59,7 @@ public final class UserRequests {
             @Size(max = 100) String givenName,
             @Size(max = 100) String nickname,
             String phoneNumber,
+            @Size(max = 500) String pictureUrl,
             @Pattern(regexp = "en|km") String locale
     ) {
     }

@@ -79,11 +79,12 @@ public class RoleController {
     public PageResponse<RoleSummaryResponse> list(
             @RequestParam(name = "keyword", required = false) String keyword,
             @RequestParam(name = "active", required = false) Boolean active,
+            @RequestParam(name = "system", required = false) Boolean system,
             @RequestParam(name = "page", defaultValue = "0") int page,
             @RequestParam(name = "size", defaultValue = "20") int size,
             @RequestParam(name = "sort", required = false) String sort) {
         return RestMapper.toPage(
-                listRoles.execute(new RoleFilterQuery(keyword, active), new PageRequest(page, size, sort)),
+                listRoles.execute(new RoleFilterQuery(keyword, active, system), new PageRequest(page, size, sort)),
                 RestMapper::toResponse);
     }
 

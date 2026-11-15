@@ -4,6 +4,10 @@ server:
 spring:
   application:
     name: gateway-server
+
+  profiles:
+    active: dev
+
   cloud:
     consul:
       host: ${CONSUL_HOST:localhost}
@@ -11,45 +15,90 @@ spring:
       discovery:
         prefer-ip-address: true
         health-check-path: /actuator/health
-        health-check-url: ${GATEWAY_HEALTH_CHECK_URL:http://host.docker.internal:${server.port}/actuator/health}
+        health-check-url: ${GATEWAY_HEALTH_CHECK_URL:http://host.docker.internal:9999/actuator/health}
         health-check-interval: 15s
 
     gateway:
       server:
         webflux:
-#          default-filters:
-#            - SaveSession
           discovery:
             locator:
               enabled: true
               lower-case-service-id: true
+
           routes:
-            - id: my-rder-service
+            - id: my-order-service
               uri: lb://order-service
               predicates:
                 - Path=/my-order/**
               filters:
                 - RewritePath=/my-order/?(?<segment>.*), /$\{segment}
-#                - SaveSession
+
             - id: json-place-holder
               uri: https://jsonplaceholder.typicode.com/photos
               predicates:
                 - Path=/jph/**
               filters:
                 - RewritePath=/jph/?(?<segment>.*), /$\{segment}
-            - id: nextjs
-              uri: http://localhost:3000
+
+            - id: business-service
+              uri: lb://business-service
               predicates:
-                - Path=/**
+                - Path=/business-service/**
+              filters:
+                - StripPrefix=1
 
+#            - id: nextjs
+#              uri: http://localhost:3000
+#              predicates:
+#                - Path=/**
+          default-filters:
+            - SaveSession
+            - TokenRelay=
+          trusted-proxies: ".*"
 
-  profiles:
-    active: dev
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: ${IAM_ISSUER:http://localhost:9000}
+
+      client:
+        provider:
+          iam-service:
+            issuer-uri: ${IAM_ISSUER:http://localhost:9000}
+
+        registration:
+          front-bff-client:
+            provider: iam-service
+            client-id: front-bff-client
+            client-secret: front-bff-local-secret
+            client-authentication-method: client_secret_basic
+            authorization-grant-type: authorization_code
+            redirect-uri: "{baseUrl}/login/oauth2/code/{registrationId}"
+            scope:
+              - openid
+              - profile
+              - email
+
 management:
   endpoints:
     web:
       exposure:
-        include: "health , gateway, info"
+        include: health,gateway,info
+
   endpoint:
     gateway:
       access: read_only
+springdoc:
+  swagger-ui:
+    urls:
+      - name: Order Service
+        # Matches your Route ID: my-order-service predicate
+        url: /order-service/v3/api-docs
+      - name: Business Service
+        # Matches your Route ID: business-service predicate
+        url: /business-service/v3/api-docs
+
+
+

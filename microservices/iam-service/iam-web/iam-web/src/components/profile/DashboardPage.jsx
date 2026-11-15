@@ -84,7 +84,7 @@ export default function DashboardPage({user, identities, locale, t, setPage}) {
                 </CardContent>
             </Card>
             <section className="grid gap-2.5">
-                <h2 className="mb-1 text-sm font-bold text-slate-800 dark:text-white">{t.dashboardShortcuts}</h2>
+                <h2 className="mb-1 text-sm font-medium text-slate-800 dark:text-white">{t.dashboardShortcuts}</h2>
                 {shortcuts.map(([page, Icon, title, description]) => <button
                     className="flex w-full items-center gap-3 rounded-xl border border-[var(--color-line)] bg-white p-3 text-left shadow-sm transition hover:border-violet-300 hover:shadow-md dark:border-slate-700 dark:bg-slate-900"
                     key={page} onClick={() => setPage(page)}>

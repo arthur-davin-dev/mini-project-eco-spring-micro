@@ -67,6 +67,7 @@ import org.springframework.security.web.authentication.AuthenticationFailureHand
 import org.springframework.security.web.authentication.LoginUrlAuthenticationEntryPoint;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
 import org.springframework.security.web.authentication.SavedRequestAwareAuthenticationSuccessHandler;
+import org.springframework.security.web.savedrequest.HttpSessionRequestCache;
 import org.springframework.security.web.authentication.SimpleUrlAuthenticationFailureHandler;
 import org.springframework.security.web.util.matcher.MediaTypeRequestMatcher;
 import tools.jackson.databind.json.JsonMapper;
@@ -157,10 +158,15 @@ public class SecurityConfig {
     @Bean
     @Order(2)
     public SecurityFilterChain defaultSecurityFilterChain(HttpSecurity http) throws Exception {
+        HttpSessionRequestCache requestCache = new HttpSessionRequestCache();
+        requestCache.setRequestMatcher(request -> !"/account/session".equals(request.getServletPath()));
+        http.requestCache(configurer -> configurer.requestCache(requestCache));
         http.authorizeHttpRequests(
                         (authorize)
                                 -> authorize
-                                .requestMatchers("/login", "/register", "/error", "/iam.css", "/favicon.ico", "/scalar",
+                                .requestMatchers("/login", "/register", "/error",
+                                        "/assets/**", "/fonts/**", "/index.html", "/favicon.svg", "/icons.svg",
+                                        "/account/csrf", "/account/providers", "/scalar",
                                         "/scalar/**", "/v3/api-docs", "/v3/api-docs/**", "/swagger-ui/**")
                                 .permitAll()
                                 .anyRequest()
@@ -169,6 +175,7 @@ public class SecurityConfig {
                 // authorization server filter chain
                 .oauth2Login(config
                         -> config.loginPage("/login")
+                        .defaultSuccessUrl("/account", false)
                         .permitAll()
                         .failureHandler(oauthLoginFailureHandler())
                         .userInfoEndpoint(userInfo
@@ -192,6 +199,7 @@ public class SecurityConfig {
     private AuthenticationSuccessHandler formLoginSuccessHandler() {
         SavedRequestAwareAuthenticationSuccessHandler delegate =
                 new SavedRequestAwareAuthenticationSuccessHandler();
+        delegate.setDefaultTargetUrl("/account");
         return (request, response, authentication) -> {
             recordLoginAttempt.execute(authentication.getName(), true);
             delegate.onAuthenticationSuccess(request, response, authentication);
