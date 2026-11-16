@@ -1,18 +1,23 @@
 import {useId} from 'react'
 
-export default function TextField({label, icon, trailing, error, ...inputProps}) {
+export default function TextField({label, labelRight, icon, trailing, error, ...inputProps}) {
     const id = useId()
     return (
         <div className="grid gap-1.5">
-            {label && (
-                <label
-                    htmlFor={id}
-                    className={`text-xs font-semibold transition-colors ${
-                        error ? 'text-red-600 dark:text-red-400' : 'text-slate-700 dark:text-slate-300'
-                    }`}
-                >
-                    {label}
-                </label>
+            {(label || labelRight) && (
+                <div className="flex items-center justify-between">
+                    {label && (
+                        <label
+                            htmlFor={id}
+                            className={`text-xs font-semibold transition-colors ${
+                                error ? 'text-red-600 dark:text-red-400' : 'text-slate-700 dark:text-slate-300'
+                            }`}
+                        >
+                            {label}
+                        </label>
+                    )}
+                    {labelRight}
+                </div>
             )}
             <div
                 className={`group flex h-11 items-center rounded-xl border px-3 transition-all ${

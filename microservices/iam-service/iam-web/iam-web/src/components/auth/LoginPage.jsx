@@ -74,6 +74,7 @@ export default function LoginPage({dark, setDark}) {
     const oauthError = query.has('oauth_error')
     const loginError = query.has('error')
     const registered = query.has('registered')
+    const resetSuccess = query.has('reset_success')
     const langParam = query.get('lang')
     const isKm = langParam === 'km' || (!langParam && typeof window !== 'undefined' && (localStorage.getItem('iam-locale') === 'km' || localStorage.getItem('iam-lang') === 'km'))
 
@@ -103,6 +104,8 @@ export default function LoginPage({dark, setDark}) {
                 invalidCreds: 'ឈ្មោះអ្នកប្រើ ឬពាក្យសម្ងាត់មិនត្រឹមត្រូវទេ។ សូមព្យាយាមម្តងទៀត។',
                 oauthFailed: 'មិនអាចចូលតាមរយៈអ្នកផ្តល់សេវានោះបានទេ។ សូមព្យាយាមម្តងទៀត ឬប្រើពាក្យសម្ងាត់របស់អ្នក។',
                 accountCreated: 'គណនីរបស់អ្នកត្រូវបានបង្កើតដោយជោគជ័យ។ អ្នកអាចចូលឥឡូវនេះបាន។',
+                forgotPassword: 'ភ្លេចពាក្យសម្ងាត់?',
+                resetSuccess: 'ពាក្យសម្ងាត់ត្រូវបានកំណត់ឡើងវិញដោយជោគជ័យ។ សូមចូលគណនីជាមួយពាក្យសម្ងាត់ថ្មី។',
             }
         }
         return {
@@ -122,6 +125,8 @@ export default function LoginPage({dark, setDark}) {
             invalidCreds: 'Incorrect username or password. Please try again.',
             oauthFailed: "We couldn't sign you in with that provider. Try again or use your password.",
             accountCreated: 'Your account was created. You can sign in now.',
+            forgotPassword: 'Forgot password?',
+            resetSuccess: 'Your password has been reset successfully. Please sign in with your new password.',
         }
     }, [isKm])
 
@@ -197,6 +202,11 @@ export default function LoginPage({dark, setDark}) {
                         {t.accountCreated}
                     </Alert>
                 )}
+                {resetSuccess && (
+                    <Alert tone="success" role="status">
+                        {t.resetSuccess}
+                    </Alert>
+                )}
             </div>
 
             <form
@@ -221,6 +231,14 @@ export default function LoginPage({dark, setDark}) {
 
                 <TextField
                     label={t.passwordLabel}
+                    labelRight={
+                        <a
+                            href={`/forgot-password${langParam ? `?lang=${langParam}` : ''}`}
+                            className="text-xs font-semibold text-violet-600 hover:text-violet-700 hover:underline dark:text-violet-400 dark:hover:text-violet-300 transition"
+                        >
+                            {t.forgotPassword}
+                        </a>
+                    }
                     name="password"
                     type={showPassword ? 'text' : 'password'}
                     placeholder={t.passwordPlaceholder}

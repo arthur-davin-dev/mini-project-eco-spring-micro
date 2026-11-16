@@ -758,7 +758,7 @@ export const adminApi = {
         return sessionMutation('/account/admin/clients', clientData)
     },
     updateClient: async (id, clientData) => {
-        return sessionMutation('/account/admin/clients', clientData)
+        return sessionMutation(`/account/admin/clients/${id}`, clientData, 'PUT')
     },
     deleteClient: async (id) => {
         return sessionDelete(`/account/admin/clients/${id}`)

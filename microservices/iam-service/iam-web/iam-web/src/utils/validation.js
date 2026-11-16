@@ -98,7 +98,11 @@ export const adminResetPasswordSchema = z.object({
 export const clientSchema = z.object({
     clientId: z.string().min(3, 'Client ID must be at least 3 characters').max(100),
     clientName: z.string().min(2, 'Client Name is required').max(150),
-    redirectUris: z.string().min(1, 'At least one Redirect URI is required'),
+    redirectUris: z.string().optional().or(z.literal('')),
+})
+
+export const editClientSchema = z.object({
+    clientName: z.string().min(2, 'Client Name is required').max(150),
 })
 
 /**

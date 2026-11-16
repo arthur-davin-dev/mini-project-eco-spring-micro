@@ -54,6 +54,11 @@ public class AccountPagesController {
         return "forward:/index.html";
     }
 
+    @GetMapping({"/forgot-password", "/reset-password"})
+    public String forgotPasswordPage() {
+        return "forward:/index.html";
+    }
+
     @PostMapping("/register")
     public String register(
             @RequestParam("username")

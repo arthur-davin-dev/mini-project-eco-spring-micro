@@ -21,6 +21,7 @@ import java.security.spec.X509EncodedKeySpec;
 import java.util.Base64;
 import java.util.List;
 import java.util.Set;
+import java.util.UUID;
 import java.util.function.Consumer;
 
 import lombok.RequiredArgsConstructor;
@@ -164,9 +165,10 @@ public class SecurityConfig {
         http.authorizeHttpRequests(
                         (authorize)
                                 -> authorize
-                                .requestMatchers("/login", "/register", "/error",
-                                        "/assets/**", "/fonts/**", "/flags/**", "/index.html", "/favicon.svg", "/icons.svg",
-                                        "/account/csrf", "/account/providers", "/scalar",
+                                .requestMatchers("/login", "/register", "/forgot-password", "/reset-password", "/error",
+                                        "/assets/**", "/fonts/**", "/flags/**", "/index.html", "/favicon.svg", "/favicon.ico", "/icons.svg", "/istad.png",
+                                        "/*.png", "/*.jpg", "/*.jpeg", "/*.svg", "/*.ico",
+                                        "/account/csrf", "/account/providers", "/account/password/forgot", "/account/password/reset", "/scalar",
                                         "/scalar/**", "/v3/api-docs", "/v3/api-docs/**", "/swagger-ui/**")
                                 .permitAll()
                                 .anyRequest()
@@ -176,6 +178,11 @@ public class SecurityConfig {
                 .oauth2Login(config
                         -> config.loginPage("/login")
                         .defaultSuccessUrl("/account", false)
+                        .successHandler((request, response, authentication) -> {
+                            recordLoginAttempt.execute(authentication.getName(), true);
+                            logLoginEvent(authentication.getName(), true, null, request);
+                            response.sendRedirect("/account");
+                        })
                         .permitAll()
                         .failureHandler(oauthLoginFailureHandler())
                         .userInfoEndpoint(userInfo
@@ -202,6 +209,7 @@ public class SecurityConfig {
         delegate.setDefaultTargetUrl("/account");
         return (request, response, authentication) -> {
             recordLoginAttempt.execute(authentication.getName(), true);
+            logLoginEvent(authentication.getName(), true, null, request);
             delegate.onAuthenticationSuccess(request, response, authentication);
         };
     }
@@ -210,9 +218,62 @@ public class SecurityConfig {
         SimpleUrlAuthenticationFailureHandler delegate =
                 new SimpleUrlAuthenticationFailureHandler("/login?error");
         return (request, response, exception) -> {
-            recordLoginAttempt.execute(request.getParameter("username"), false);
+            String username = request.getParameter("username");
+            recordLoginAttempt.execute(username, false);
+            logLoginEvent(username, false, exception.getMessage(), request);
             delegate.onAuthenticationFailure(request, response, exception);
         };
+    }
+
+    private void logLoginEvent(String username, boolean success, String reason, jakarta.servlet.http.HttpServletRequest request) {
+        if (username == null || username.isBlank()) return;
+        try {
+            String ip = request.getHeader("X-Forwarded-For");
+            if (ip == null || ip.isBlank() || "unknown".equalsIgnoreCase(ip)) {
+                ip = request.getRemoteAddr();
+            }
+            if (ip != null && ip.contains(",")) {
+                ip = ip.split(",")[0].trim();
+            }
+            if ("0:0:0:0:0:0:0:1".equals(ip) || "::1".equals(ip)) {
+                ip = "127.0.0.1";
+            }
+            String ua = request.getHeader("User-Agent");
+            String browser = "Chrome";
+            if (ua != null) {
+                if (ua.contains("Firefox")) browser = "Firefox";
+                else if (ua.contains("Edg")) browser = "Edge";
+                else if (ua.contains("Safari") && !ua.contains("Chrome")) browser = "Safari";
+                else if (ua.contains("Chrome")) browser = "Chrome";
+            }
+            String device = "Desktop (" + browser + " Session)";
+            if (ua != null && (ua.contains("Mobile") || ua.contains("Android") || ua.contains("iPhone"))) {
+                device = "Mobile (" + browser + ")";
+            }
+
+            UUID userUuid = null;
+            var rows = jdbcTemplate.queryForList("SELECT uuid FROM users WHERE username = ? OR email = ?", username, username);
+            if (!rows.isEmpty()) {
+                userUuid = (UUID) rows.get(0).get("uuid");
+            }
+
+            String id = "log-" + UUID.randomUUID().toString();
+            String title = success ? "Authenticated successfully" : "Failed login attempt";
+            String desc = success ? "Browser session established via ISTAD IAM"
+                    : ("Failed sign-in attempt: " + (reason != null ? reason : "Bad credentials"));
+            String severity = success ? "info" : "warning";
+            String status = success ? "SUCCESS" : "FAILED";
+
+            jdbcTemplate.update(
+                    "INSERT INTO user_activity_logs (id, user_uuid, username, type, action, title, description, " +
+                    "ip_address, location, device, browser, severity, status, failure_reason, created_at) " +
+                    "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)",
+                    id, userUuid, username, "SESSION", success ? "LOGIN_SUCCESS" : "LOGIN_FAILURE",
+                    title, desc, ip, "Phnom Penh, KH", device, browser, severity, status, reason
+            );
+        } catch (Exception ex) {
+            LOGGER.warn("Failed to log login event for user '{}': {}", username, ex.getMessage());
+        }
     }
 
     private AuthenticationFailureHandler oauthLoginFailureHandler() {

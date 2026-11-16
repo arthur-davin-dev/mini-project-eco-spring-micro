@@ -188,7 +188,29 @@ spring:
     driver-class-name: ${spring.datasource.driver-class-name}
     change-log: classpath:db.changelog/db.changelog-master.yaml
 
+  mail:
+    host: ${SPRING_MAIL_HOST:smtp.gmail.com}
+    port: ${SPRING_MAIL_PORT:587}
+    username: ${SPRING_MAIL_USERNAME:}
+    password: ${SPRING_MAIL_PASSWORD:}
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+            required: true
+          ssl:
+            trust: "*"
+          connectiontimeout: 10000
+          timeout: 10000
+          writetimeout: 10000
+    default-encoding: UTF-8
+
 iam:
+  mail:
+    from: ${IAM_MAIL_FROM:${SPRING_MAIL_USERNAME:}}
+    sender-name: ${IAM_MAIL_SENDER_NAME:ISTAD Identity}
   security:
     public-base-url: ${IAM_PUBLIC_BASE_URL:}
     # Only these paths are moved to the public host (Telegram needs it; other providers stay on localhost)

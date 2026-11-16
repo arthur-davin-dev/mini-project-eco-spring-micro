@@ -9,6 +9,7 @@ dependencies {
     implementation project(':iam-infrastructure')
     implementation project(':iam-rest-api')
     implementation project(':iam-web')
+    implementation 'org.springframework.boot:spring-boot-starter-mail'
     implementation 'org.springframework.boot:spring-boot-starter-liquibase'
     implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
     implementation 'org.springframework.boot:spring-boot-starter-security'
@@ -21,4 +22,24 @@ dependencies {
     testImplementation 'org.springframework.boot:spring-boot-starter-security-oauth2-authorization-server'
     testImplementation 'org.springframework.security:spring-security-test'
     runtimeOnly 'org.postgresql:postgresql'
+}
+
+tasks.named('bootRun') {
+    [
+        file('.env'),
+        file('../.env'),
+        file('../../.env'),
+        file('../../../.env'),
+        file("${rootProject.projectDir}/.env")
+    ].each { envFile ->
+        if (envFile.exists() && envFile.isFile()) {
+            envFile.eachLine { line ->
+                line = line.trim()
+                if (line && !line.startsWith('#') && line.contains('=')) {
+                    def parts = line.split('=', 2)
+                    environment parts[0].trim(), parts[1].trim()
+                }
+            }
+        }
+    }
 }

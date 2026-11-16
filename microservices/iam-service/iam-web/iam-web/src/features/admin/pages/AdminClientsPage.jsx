@@ -393,9 +393,10 @@
 
 
 import {useEffect, useRef, useState} from 'react'
-import {Check, Copy, Eye, EyeOff, Info, KeyRound, Layers, LoaderCircle, Plus, RefreshCw, Search, Trash2, TriangleAlert, X} from 'lucide-react'
+import {Check, Copy, Eye, EyeOff, Info, KeyRound, Layers, LoaderCircle, Pencil, Plus, RefreshCw, Search, Trash2, TriangleAlert, X} from 'lucide-react'
 import {adminApi} from '../api/adminApi'
 import CreateClientDialog from '../components/CreateClientDialog'
+import EditClientDialog from '../components/EditClientDialog'
 import {Badge} from '../../../components/ui/badge'
 import {Button} from '../../../components/ui/button'
 import {Card} from '../../../components/ui/card'
@@ -449,7 +450,7 @@ function Field({label, children}) {
     )
 }
 
-function ClientDetailDialog({client, onClose, onRegenerate, t}) {
+function ClientDetailDialog({client, onClose, onRegenerate, onEdit, locale = 'en', t}) {
     const dialogRef = useRef(null)
     const [showSecret, setShowSecret] = useState(false)
     const [regenerating, setRegenerating] = useState(false)
@@ -629,8 +630,22 @@ function ClientDetailDialog({client, onClose, onRegenerate, t}) {
                         </Field>
                     </dl>
 
-                    <footer className="flex justify-end border-t border-slate-100 pt-3 dark:border-slate-800">
-                        <Button variant="outline" size="sm" onClick={onClose}>{t.close || 'Close'}</Button>
+                    <footer className="flex items-center justify-between border-t border-slate-100 pt-3 dark:border-slate-800">
+                        {onEdit && (
+                            <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => {
+                                    onClose()
+                                    onEdit(client)
+                                }}
+                                className="border-violet-300 text-violet-700 hover:bg-violet-50 dark:border-violet-800 dark:text-violet-300 dark:hover:bg-violet-950 cursor-pointer"
+                            >
+                                <Pencil aria-hidden="true" className="mr-1.5 size-3.5" />
+                                {locale === 'km' ? 'កែប្រែព័ត៌មាន' : 'Edit Client'}
+                            </Button>
+                        )}
+                        <Button variant="outline" size="sm" onClick={onClose} className="cursor-pointer">{t.close || 'Close'}</Button>
                     </footer>
                 </div>
             )}
@@ -644,6 +659,7 @@ export default function AdminClientsPage({locale, t = {}, initialCreateOpen}) {
     const [search, setSearch] = useState('')
     const [createOpen, setCreateOpen] = useState(() => Boolean(initialCreateOpen || new URLSearchParams(window.location.search).get('action') === 'create'))
     const [selectedClient, setSelectedClient] = useState(null)
+    const [editingClient, setEditingClient] = useState(null)
     const [notice, setNotice] = useState('')
 
     async function loadClients() {
@@ -811,9 +827,20 @@ export default function AdminClientsPage({locale, t = {}, initialCreateOpen}) {
                                         <Button
                                             variant="ghost"
                                             size="xs"
+                                            onClick={() => setEditingClient(client)}
+                                            aria-label={`Edit ${client.clientName}`}
+                                            title={locale === 'km' ? 'កែប្រែអតិថិជន' : 'Edit Client'}
+                                            className="text-slate-600 hover:bg-violet-50 hover:text-violet-700 dark:hover:bg-violet-950 dark:hover:text-violet-300 cursor-pointer"
+                                        >
+                                            <Pencil aria-hidden="true" className="size-3.5" />
+                                        </Button>
+                                        <Button
+                                            variant="ghost"
+                                            size="xs"
                                             onClick={() => setSelectedClient(client)}
                                             aria-label={`View details of ${client.clientName}`}
-                                            className="text-slate-600 hover:text-violet-700"
+                                            title={locale === 'km' ? 'មើលព័ត៌មានលម្អិត' : 'View Details'}
+                                            className="text-slate-600 hover:bg-violet-50 hover:text-violet-700 dark:hover:bg-violet-950 dark:hover:text-violet-300 cursor-pointer"
                                         >
                                             <KeyRound aria-hidden="true" className="size-3.5" />
                                         </Button>
@@ -822,7 +849,8 @@ export default function AdminClientsPage({locale, t = {}, initialCreateOpen}) {
                                             size="xs"
                                             onClick={() => handleDelete(client)}
                                             aria-label={`Delete ${client.clientName}`}
-                                            className="text-red-500 hover:bg-red-50 hover:text-red-700"
+                                            title={locale === 'km' ? 'លុបអតិថិជន' : 'Delete Client'}
+                                            className="text-red-500 hover:bg-red-50 hover:text-red-700 cursor-pointer"
                                         >
                                             <Trash2 aria-hidden="true" className="size-3.5" />
                                         </Button>
@@ -856,6 +884,20 @@ export default function AdminClientsPage({locale, t = {}, initialCreateOpen}) {
                 client={selectedClient}
                 onClose={() => setSelectedClient(null)}
                 onRegenerate={handleRegenerateSecret}
+                onEdit={(c) => setEditingClient(c)}
+                locale={locale}
+                t={t}
+            />
+
+            <EditClientDialog
+                open={Boolean(editingClient)}
+                client={editingClient}
+                onClose={() => setEditingClient(null)}
+                onUpdated={() => {
+                    notify(locale === 'km' ? 'បានកែប្រែព័ត៌មានអតិថិជនដោយជោគជ័យ' : 'OAuth2 client updated successfully')
+                    loadClients()
+                }}
+                locale={locale}
                 t={t}
             />
         </div>
