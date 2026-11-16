@@ -34,7 +34,16 @@ public class AccountLinkController {
         var user = loadUser.execute(authentication.getName())
                 .orElseThrow(() -> new IllegalStateException("Authenticated IAM user was not found"));
 
-        if (registrations.findByRegistrationId(provider) != null) {
+        var reg = registrations.findByRegistrationId(provider);
+        boolean hasRealCredentials = reg != null
+                && reg.getClientId() != null
+                && !reg.getClientId().isBlank()
+                && !reg.getClientId().startsWith("demo")
+                && !reg.getClientId().startsWith("test")
+                && reg.getClientSecret() != null
+                && !reg.getClientSecret().isBlank();
+
+        if (hasRealCredentials) {
             session.setAttribute(FederatedLinkIntent.SESSION_ATTRIBUTE, user.uuid().toString());
             return "redirect:/oauth2/authorization/" + provider;
         }

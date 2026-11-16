@@ -12,7 +12,7 @@ import {
 } from 'lucide-react'
 import {adminApi} from '../api/adminApi'
 import AdminUserDetailPage from './AdminUserDetailPage'
-import {CreateUserDialog} from '../../../components/profile/AdminOverviewPage'
+import CreateUserDialog from '../components/CreateUserDialog'
 import Avatar from '../../../components/common/Avatar'
 import {Badge} from '../../../components/ui/badge'
 import {Button} from '../../../components/ui/button'
@@ -55,7 +55,7 @@ function sortLabel(key, sort, direction, labels) {
     )
 }
 
-export default function AdminUsersPage({token, locale, t, selectedUserId, onSelectUser, onBack}) {
+export default function AdminUsersPage({token, locale, t, selectedUserId, onSelectUser, onBack, initialCreateOpen}) {
     const [keyword, setKeyword] = useState('')
     const [status, setStatus] = useState('all')
     const [sort, setSort] = useState('createdAt')
@@ -64,7 +64,7 @@ export default function AdminUsersPage({token, locale, t, selectedUserId, onSele
     const [result, setResult] = useState(null)
     const [loading, setLoading] = useState(true)
     const [error, setError] = useState('')
-    const [createOpen, setCreateOpen] = useState(false)
+    const [createOpen, setCreateOpen] = useState(() => Boolean(initialCreateOpen || new URLSearchParams(window.location.search).get('action') === 'create'))
     const requestId = useRef(0)
 
     const loadUsers = useCallback(async () => {
@@ -104,6 +104,10 @@ export default function AdminUsersPage({token, locale, t, selectedUserId, onSele
         return () => window.clearTimeout(timer)
     }, [loadUsers, keyword])
 
+    useEffect(() => {
+        if (initialCreateOpen) setCreateOpen(true)
+    }, [initialCreateOpen])
+
     function changeSort(field) {
         if (sort === field) setDirection((current) => current === 'asc' ? 'desc' : 'asc')
         else {
@@ -128,9 +132,17 @@ export default function AdminUsersPage({token, locale, t, selectedUserId, onSele
 
     return (
         <>
-            <section className="mb-5 flex flex-wrap items-center justify-end gap-3">
-                <Button onClick={() => setCreateOpen(true)}>
-                    <Plus className="size-4"/>{t.adminCreateUser}
+            <section className="mb-5 flex flex-wrap items-center justify-between gap-3">
+                <div>
+                    <h2 className="text-base font-medium text-slate-800 dark:text-white">
+                        {t.adminUsers || 'User Directory'}
+                    </h2>
+                    <p className="text-xs text-slate-500">
+                        {locale === 'km' ? 'គ្រប់គ្រងអ្នកប្រើប្រាស់ គណនី និងការផ្ទៀងផ្ទាត់' : 'Manage identity user accounts, states, and credentials.'}
+                    </p>
+                </div>
+                <Button onClick={() => setCreateOpen(true)} className="bg-violet-700 hover:bg-violet-800 text-white cursor-pointer">
+                    <Plus className="size-4 mr-1.5"/>{t.adminCreateUser || 'Create User'}
                 </Button>
             </section>
 
@@ -291,6 +303,7 @@ export default function AdminUsersPage({token, locale, t, selectedUserId, onSele
                 onCreated={loadUsers}
                 token={token}
                 t={t}
+                locale={locale}
             />
         </>
     )

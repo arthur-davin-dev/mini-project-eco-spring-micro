@@ -14,6 +14,7 @@ import {
 import Field from '../common/Field'
 import {Card} from '../ui/card'
 import {Button} from '../ui/button'
+import {changePasswordSchema, validateForm} from '../../utils/validation'
 
 const card = 'rounded-xl border border-[var(--color-line)] bg-white p-5 shadow-sm dark:border-slate-700 dark:bg-slate-900'
 
@@ -38,6 +39,7 @@ export default function SecurityPage({t, working, onSave, locale}) {
     const [confirmPassword, setConfirmPassword] = useState('')
     const [showPassword, setShowPassword] = useState(false)
     const [resetSuccess, setResetSuccess] = useState(false)
+    const [formError, setFormError] = useState('')
 
     const strength = evaluatePassword(newPassword)
 
@@ -51,11 +53,18 @@ export default function SecurityPage({t, working, onSave, locale}) {
 
     async function submit(event) {
         event.preventDefault()
+        setFormError('')
+        const validation = validateForm(changePasswordSchema, {currentPassword, newPassword, confirmPassword})
+        if (!validation.success) {
+            setFormError(validation.firstErrorMessage)
+            return
+        }
         const success = await onSave({currentPassword, newPassword, confirmPassword})
         if (success) {
             setCurrentPassword('')
             setNewPassword('')
             setConfirmPassword('')
+            setFormError('')
             setResetSuccess(true)
             setTimeout(() => setResetSuccess(false), 4000)
         }
@@ -80,6 +89,13 @@ export default function SecurityPage({t, working, onSave, locale}) {
                         </div>
                     </div>
                 </header>
+
+                {formError && (
+                    <div className="mb-4 flex items-center gap-2 rounded-lg border border-red-200 bg-red-50 p-3 text-xs text-red-900 dark:border-red-900 dark:bg-red-950 dark:text-red-100">
+                        <AlertCircle className="size-4 shrink-0 text-red-600 dark:text-red-400" />
+                        <span>{formError}</span>
+                    </div>
+                )}
 
                 <form className="grid gap-4 sm:grid-cols-2" onSubmit={submit}>
                     <div className="sm:col-span-2">

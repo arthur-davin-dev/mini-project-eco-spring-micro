@@ -301,7 +301,18 @@ public class ReactAccountController {
             item.put("current", false);
             item.put("isCurrent", false);
             Object issuedAt = row.get("access_token_issued_at");
-            String issuedStr = issuedAt != null ? String.valueOf(issuedAt) : Instant.now().toString();
+            String issuedStr;
+            if (issuedAt instanceof java.sql.Timestamp ts) {
+                issuedStr = ts.toInstant().toString();
+            } else if (issuedAt instanceof java.time.OffsetDateTime odt) {
+                issuedStr = odt.toInstant().toString();
+            } else if (issuedAt instanceof java.time.Instant inst) {
+                issuedStr = inst.toString();
+            } else if (issuedAt != null) {
+                issuedStr = String.valueOf(issuedAt).replace(" ", "T");
+            } else {
+                issuedStr = Instant.now().toString();
+            }
             item.put("lastActive", issuedStr);
             item.put("lastActiveAt", issuedStr);
             list.add(item);
@@ -631,7 +642,7 @@ public class ReactAccountController {
     // -----------------------------------------------------------------------------------------
     @GetMapping("/account/admin/permissions")
     @ResponseBody
-    @PreAuthorize("hasAuthority('permission:read')")
+    @PreAuthorize("hasAuthority('permission:read') or hasAuthority('user:assign') or hasAuthority('user:update') or hasAuthority('user:read') or hasAuthority('ROLE_ADMIN') or hasRole('ADMIN')")
     public PageResult<PermissionResult> adminPermissions(
             @RequestParam(name = "keyword", required = false) String keyword,
             @RequestParam(name = "active", required = false) Boolean active,
@@ -646,21 +657,21 @@ public class ReactAccountController {
 
     @PostMapping("/account/admin/permissions")
     @ResponseBody
-    @PreAuthorize("hasAuthority('permission:create')")
+    @PreAuthorize("hasAuthority('permission:create') or hasAuthority('ROLE_ADMIN') or hasRole('ADMIN')")
     public PermissionResult createAdminPermission(@RequestBody CreatePermissionCommand request) {
         return createPermission.execute(request);
     }
 
     @PatchMapping("/account/admin/permissions/{permUuid}")
     @ResponseBody
-    @PreAuthorize("hasAuthority('permission:update')")
+    @PreAuthorize("hasAuthority('permission:update') or hasAuthority('ROLE_ADMIN') or hasRole('ADMIN')")
     public PermissionResult updateAdminPermission(@PathVariable("permUuid") UUID permUuid, @RequestBody Map<String, String> body) {
         return updatePermission.execute(permUuid, new UpdatePermissionCommand(body.get("description")));
     }
 
     @DeleteMapping("/account/admin/permissions/{permUuid}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    @PreAuthorize("hasAuthority('permission:delete')")
+    @PreAuthorize("hasAuthority('permission:delete') or hasAuthority('ROLE_ADMIN') or hasRole('ADMIN')")
     public void deleteAdminPermission(@PathVariable("permUuid") UUID permUuid) {
         deletePermission.execute(permUuid);
     }
@@ -807,7 +818,18 @@ public class ReactAccountController {
             item.put("current", false);
             item.put("isCurrent", false);
             Object issuedAt = row.get("access_token_issued_at");
-            String issuedStr = issuedAt != null ? String.valueOf(issuedAt) : Instant.now().toString();
+            String issuedStr;
+            if (issuedAt instanceof java.sql.Timestamp ts) {
+                issuedStr = ts.toInstant().toString();
+            } else if (issuedAt instanceof java.time.OffsetDateTime odt) {
+                issuedStr = odt.toInstant().toString();
+            } else if (issuedAt instanceof java.time.Instant inst) {
+                issuedStr = inst.toString();
+            } else if (issuedAt != null) {
+                issuedStr = String.valueOf(issuedAt).replace(" ", "T");
+            } else {
+                issuedStr = Instant.now().toString();
+            }
             item.put("lastActive", issuedStr);
             item.put("lastActiveAt", issuedStr);
             sessions.add(item);

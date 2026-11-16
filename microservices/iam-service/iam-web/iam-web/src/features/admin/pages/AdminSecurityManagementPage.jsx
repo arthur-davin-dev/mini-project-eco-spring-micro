@@ -9,9 +9,11 @@ import {
     Search,
     CheckCircle2,
     AlertTriangle,
-    Check
+    Check,
+    AlertCircle
 } from 'lucide-react'
 import {adminApi} from '../api/adminApi'
+import {adminResetPasswordSchema, validateForm} from '../../../utils/validation'
 import {Badge} from '../../../components/ui/badge'
 import {Button} from '../../../components/ui/button'
 import {Card} from '../../../components/ui/card'
@@ -25,6 +27,7 @@ export default function AdminSecurityManagementPage({token, locale, t, onSelectU
     const [resetModalUser, setResetModalUser] = useState(null)
     const [newPassword, setNewPassword] = useState('')
     const [confirmPassword, setConfirmPassword] = useState('')
+    const [resetError, setResetError] = useState('')
     const [notice, setNotice] = useState('')
     const [actioningId, setActioningId] = useState(null)
 
@@ -83,8 +86,13 @@ export default function AdminSecurityManagementPage({token, locale, t, onSelectU
 
     async function handleExecuteReset(e) {
         e.preventDefault()
-        if (newPassword !== confirmPassword) {
-            alert('Passwords do not match')
+        setResetError('')
+        const validation = validateForm(adminResetPasswordSchema, {
+            password: newPassword,
+            confirmPassword: confirmPassword,
+        })
+        if (!validation.success) {
+            setResetError(validation.firstErrorMessage)
             return
         }
         try {
@@ -93,8 +101,8 @@ export default function AdminSecurityManagementPage({token, locale, t, onSelectU
             setResetModalUser(null)
             setNewPassword('')
             setConfirmPassword('')
-        } catch {
-            alert('Password reset failed')
+        } catch (err) {
+            setResetError(err.message || 'Password reset failed')
         }
     }
 
@@ -323,19 +331,26 @@ export default function AdminSecurityManagementPage({token, locale, t, onSelectU
 
             {/* Password Reset Modal */}
             {resetModalUser && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-                    <div className="w-full max-w-md rounded-2xl bg-white p-6 shadow-2xl dark:bg-slate-900 border border-slate-200 dark:border-slate-800 animate-in fade-in zoom-in-95">
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-xs overflow-y-auto animate-in fade-in duration-150">
+                    <div className="w-full max-w-md rounded-2xl bg-white p-6 shadow-2xl dark:bg-slate-900 border border-slate-200 dark:border-slate-800 my-auto animate-in zoom-in-95 duration-150">
                         <header className="flex items-center justify-between border-b border-slate-100 pb-3 dark:border-slate-800">
                             <h3 className="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2">
                                 <KeyRound className="size-4 text-violet-600" />
                                 Administrative Password Reset
                             </h3>
-                            <button onClick={() => setResetModalUser(null)} className="text-slate-400 hover:text-slate-600">✕</button>
+                            <button onClick={() => { setResetModalUser(null); setResetError('') }} className="text-slate-400 hover:text-slate-600">✕</button>
                         </header>
 
                         <p className="mt-2 text-xs text-slate-500">
                             Reset password for user <b>@{resetModalUser.username}</b> ({resetModalUser.email}).
                         </p>
+
+                        {resetError && (
+                            <div className="mt-3 flex items-center gap-2 rounded-lg bg-red-50 p-2 text-xs text-red-700 dark:bg-red-950 dark:text-red-300">
+                                <AlertCircle className="size-4 shrink-0" />
+                                <span>{resetError}</span>
+                            </div>
+                        )}
 
                         <form onSubmit={handleExecuteReset} className="mt-4 grid gap-3">
                             <label className="grid gap-1 text-xs font-semibold text-slate-700 dark:text-slate-300">

@@ -32,7 +32,8 @@ public class OAuthRegistrationFallbackFilter extends OncePerRequestFilter {
             if (provider.contains("/")) {
                 provider = provider.substring(0, provider.indexOf('/'));
             }
-            if (registrations.findByRegistrationId(provider) == null) {
+            var reg = registrations.findByRegistrationId(provider);
+            if (reg == null || reg.getClientId() == null || reg.getClientId().isBlank()) {
                 response.sendRedirect("/login?oauth_error=" + provider);
                 return;
             }

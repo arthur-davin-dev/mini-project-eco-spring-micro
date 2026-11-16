@@ -21,16 +21,6 @@ import Avatar from '../common/Avatar'
 import {Badge} from '../ui/badge'
 import {Card} from '../ui/card'
 
-const initialForm = {
-    username: '',
-    email: '',
-    givenName: '',
-    familyName: '',
-    password: '',
-    confirmPassword: '',
-    locale: 'en',
-}
-
 function formatDate(value, locale) {
     if (!value) return '—'
     const d = new Date(value)
@@ -64,131 +54,7 @@ function userLabel(user) {
     return user.name || [user.givenName, user.familyName].filter(Boolean).join(' ') || user.username
 }
 
-export function CreateUserDialog({open, onClose, onCreated, token, t, locale}) {
-    const [form, setForm] = useState(initialForm)
-    const [busy, setBusy] = useState(false)
-    const [error, setError] = useState('')
-    const [dialog, setDialog] = useState(null)
-
-    useEffect(() => {
-        if (open && dialog && !dialog.open) dialog.showModal()
-        if (!open && dialog?.open) dialog.close()
-    }, [open, dialog])
-
-    function close() {
-        setForm(initialForm)
-        setError('')
-        onClose()
-    }
-
-    async function submit(event) {
-        event.preventDefault()
-        setError('')
-        if (form.password !== form.confirmPassword) {
-            setError(t.adminPasswordMismatch || 'The passwords do not match.')
-            return
-        }
-        setBusy(true)
-        try {
-            await adminApi.createUser(token, {
-                ...form,
-                gender: null,
-                birthdate: null,
-                phoneNumber: null,
-                zoneinfo: null,
-                address: null,
-                roleUuids: [],
-            })
-            setForm(initialForm)
-            onCreated()
-            onClose()
-        } catch (requestError) {
-            setError(requestError.status === 403 ? t.adminForbidden : (t.adminCreateError || 'Failed to create user.'))
-        } finally {
-            setBusy(false)
-        }
-    }
-
-    const fields = [
-        ['username', t.username || 'Username', 'text', 'username'],
-        ['email', t.email || 'Email', 'email', 'email'],
-        ['givenName', t.firstName || 'First name', 'text', 'given-name'],
-        ['familyName', t.lastName || 'Last name', 'text', 'family-name'],
-        ['password', t.adminTemporaryPassword || 'Temporary password', 'password', 'new-password'],
-        ['confirmPassword', t.confirmPassword || 'Confirm password', 'password', 'new-password'],
-    ]
-
-    return (
-        <dialog
-            ref={setDialog}
-            onClose={close}
-            className="w-full max-w-lg rounded-2xl border border-slate-200 bg-white p-6 shadow-2xl backdrop:bg-slate-900/50 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-100"
-        >
-            <form onSubmit={submit} className="grid gap-4">
-                <header className="flex items-center justify-between border-b border-slate-100 pb-3 dark:border-slate-800">
-                    <div className="flex items-center gap-2">
-                        <UserPlus className="size-5 text-violet-700 dark:text-violet-400" />
-                        <h2 className="text-base font-semibold">{t.adminCreateUser || 'Create User'}</h2>
-                    </div>
-                    <button type="button" onClick={close} className="text-sm font-semibold text-slate-400 hover:text-slate-600">✕</button>
-                </header>
-
-                {error && (
-                    <div role="alert" className="flex items-center gap-2 rounded-lg border border-red-200 bg-red-50 p-3 text-xs text-red-900 dark:border-red-900 dark:bg-red-950 dark:text-red-100">
-                        <CircleAlert className="size-4 shrink-0" />
-                        <span>{error}</span>
-                    </div>
-                )}
-
-                <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-                    {fields.map(([name, label, type, auto]) => (
-                        <label key={name} className="grid gap-1 text-xs font-medium text-slate-700 dark:text-slate-300">
-                            <span>{label}</span>
-                            <input
-                                required
-                                type={type}
-                                name={name}
-                                autoComplete={auto}
-                                value={form[name]}
-                                onChange={(event) => setForm((curr) => ({...curr, [name]: event.target.value}))}
-                                className="h-9 rounded-lg border border-slate-200 bg-white px-3 text-xs dark:border-slate-700 dark:bg-slate-950"
-                            />
-                        </label>
-                    ))}
-                </div>
-
-                <label className="grid gap-1 text-xs font-medium text-slate-700 dark:text-slate-300">
-                    <span>{t.language || 'Preferred language'}</span>
-                    <select
-                        value={form.locale}
-                        onChange={(event) => setForm((curr) => ({...curr, locale: event.target.value}))}
-                        className="h-9 rounded-lg border border-slate-200 bg-white px-3 text-xs dark:border-slate-700 dark:bg-slate-950"
-                    >
-                        <option value="en">{t.english || 'English'}</option>
-                        <option value="km">{t.khmer || 'Khmer'}</option>
-                    </select>
-                </label>
-
-                <footer className="flex justify-end gap-2 border-t border-slate-100 pt-3 dark:border-slate-800">
-                    <button
-                        type="button"
-                        onClick={close}
-                        className="h-9 rounded-lg border border-slate-200 px-3 text-xs font-medium hover:bg-slate-50 dark:border-slate-700"
-                    >
-                        {t.cancel || 'Cancel'}
-                    </button>
-                    <button
-                        disabled={busy}
-                        className="inline-flex h-9 items-center gap-1.5 rounded-lg bg-violet-700 px-4 text-xs font-semibold text-white hover:bg-violet-800 disabled:opacity-60"
-                    >
-                        {busy ? <LoaderCircle className="size-3.5 animate-spin" /> : <UserPlus className="size-3.5" />}
-                        {busy ? (locale === 'km' ? 'កំពុងបង្កើត...' : 'Creating…') : (t.adminCreateUser || 'Create User')}
-                    </button>
-                </footer>
-            </form>
-        </dialog>
-    )
-}
+export {default as CreateUserDialog} from '../../features/admin/components/CreateUserDialog'
 
 function MetricCard({icon: Icon, label, value, detail, tone = 'violet', onClick}) {
     const tones = {
@@ -221,7 +87,6 @@ export default function AdminOverviewPage({token, locale, t, setPage, onSelectUs
     const [overview, setOverview] = useState(null)
     const [loading, setLoading] = useState(true)
     const [error, setError] = useState('')
-    const [dialogOpen, setDialogOpen] = useState(false)
     const [notice, setNotice] = useState('')
 
     const loadOverview = useCallback(async () => {
@@ -245,13 +110,6 @@ export default function AdminOverviewPage({token, locale, t, setPage, onSelectUs
     useEffect(() => {
         loadOverview()
     }, [loadOverview])
-
-    function handleCreated() {
-        setDialogOpen(false)
-        setNotice(t.adminUserCreated || 'User account created.')
-        loadOverview()
-        setTimeout(() => setNotice(''), 3500)
-    }
 
     const metrics = overview
         ? [
@@ -327,8 +185,8 @@ export default function AdminOverviewPage({token, locale, t, setPage, onSelectUs
                         <span>{t.refresh || 'Refresh'}</span>
                     </button>
                     <button
-                        onClick={() => setDialogOpen(true)}
-                        className="inline-flex h-9 items-center gap-1.5 rounded-lg bg-violet-700 px-3.5 text-xs font-semibold text-white shadow-xs hover:bg-violet-800"
+                        onClick={() => setPage('users', {create: true})}
+                        className="inline-flex h-9 items-center gap-1.5 rounded-lg bg-violet-700 px-3.5 text-xs font-semibold text-white shadow-xs hover:bg-violet-800 cursor-pointer"
                     >
                         <Plus className="size-4" />
                         {t.adminCreateUser || 'Create User'}
@@ -371,10 +229,10 @@ export default function AdminOverviewPage({token, locale, t, setPage, onSelectUs
                     </p>
                     <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2">
                         {[
-                            {label: t.adminCreateUser || 'New User', icon: UserPlus, page: 'users'},
-                            {label: t.adminCreateRole || 'New Role', icon: ShieldCheck, page: 'roles'},
-                            {label: t.adminCreatePermission || 'New Permission', icon: KeyRound, page: 'permissions'},
-                            {label: locale === 'km' ? 'អតិថិជន OAuth2' : 'OAuth2 Client', icon: Layers, page: 'clients'},
+                            {label: t.adminCreateUser || 'New User', icon: UserPlus, page: 'users', options: {create: true}},
+                            {label: t.adminCreateRole || 'New Role', icon: ShieldCheck, page: 'roles', options: {create: true}},
+                            {label: t.adminCreatePermission || 'New Permission', icon: KeyRound, page: 'permissions', options: {create: true}},
+                            {label: locale === 'km' ? 'អតិថិជន OAuth2' : 'OAuth2 Client', icon: Layers, page: 'clients', options: {create: true}},
                             {label: locale === 'km' ? 'កំណត់ត្រាសវនកម្ម' : 'Audit Logs', icon: FileText, page: 'auditLogs'},
                             {label: locale === 'km' ? 'ការកំណត់ប្រព័ន្ធ' : 'System Config', icon: Settings, page: 'systemConfig'},
                         ].map((btn, idx) => {
@@ -382,7 +240,7 @@ export default function AdminOverviewPage({token, locale, t, setPage, onSelectUs
                             return (
                                 <button
                                     key={idx}
-                                    onClick={() => setPage(btn.page)}
+                                    onClick={() => setPage(btn.page, btn.options)}
                                     className="flex items-center gap-2 rounded-lg border border-slate-200 bg-slate-50/60 p-2.5 text-xs font-semibold text-slate-700 hover:border-violet-300 hover:bg-violet-50 hover:text-violet-700 dark:border-slate-800 dark:bg-slate-800/40 dark:text-slate-300 dark:hover:bg-violet-950/30 transition text-left cursor-pointer"
                                 >
                                     <Icon className="size-4 shrink-0 text-violet-600 dark:text-violet-400" />
@@ -508,15 +366,6 @@ export default function AdminOverviewPage({token, locale, t, setPage, onSelectUs
                     </div>
                 </Card>
             </div>
-
-            <CreateUserDialog
-                open={dialogOpen}
-                onClose={() => setDialogOpen(false)}
-                onCreated={handleCreated}
-                token={token}
-                t={t}
-                locale={locale}
-            />
         </>
     )
 }

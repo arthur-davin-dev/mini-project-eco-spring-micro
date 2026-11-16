@@ -3,6 +3,7 @@ import AuthShell from './AuthShell'
 import CsrfField from './CsrfField'
 import Alert from './Alert'
 import TextField from './TextField'
+import {loginSchema, validateForm} from '../../utils/validation'
 
 const defaultProviders = ['google', 'github', 'facebook', 'telegram']
 
@@ -69,14 +70,32 @@ export default function LoginPage({dark, setDark}) {
     const [csrfReady, setCsrfReady] = useState(false)
     const [submitting, setSubmitting] = useState(false)
     const [showPassword, setShowPassword] = useState(false)
+    const [formError, setFormError] = useState('')
+
+    function handleSubmit(e) {
+        const form = e.currentTarget
+        const username = form.username?.value?.trim() || ''
+        const password = form.password?.value || ''
+        const validation = validateForm(loginSchema, {username, password})
+        if (!validation.success) {
+            e.preventDefault()
+            setFormError(validation.firstErrorMessage)
+            return
+        }
+        setFormError('')
+        setSubmitting(true)
+    }
 
     useEffect(() => {
         const controller = new AbortController()
         fetch('/account/providers', {signal: controller.signal})
-            .then(response => (response.ok ? response.json() : []))
+            .then(response => (response.ok ? response.json() : defaultProviders))
             .then(data => {
                 if (Array.isArray(data) && data.length > 0) {
-                    setProviders(data.filter(providerLabel))
+                    const valid = data.filter(providerLabel)
+                    setProviders(valid.length > 0 ? valid : defaultProviders)
+                } else {
+                    setProviders(defaultProviders)
                 }
             })
             .catch(error => {
@@ -92,7 +111,12 @@ export default function LoginPage({dark, setDark}) {
             </p>
 
             <div className="my-3 grid gap-2">
-                {loginError && (
+                {formError && (
+                    <Alert tone="error" role="alert">
+                        {formError}
+                    </Alert>
+                )}
+                {loginError && !formError && (
                     <Alert tone="error" role="alert">
                         Incorrect username or password. Please try again.
                     </Alert>
@@ -113,7 +137,7 @@ export default function LoginPage({dark, setDark}) {
                 method="post"
                 action="/login"
                 className="my-5 grid gap-4"
-                onSubmit={() => setSubmitting(true)}
+                onSubmit={handleSubmit}
             >
                 <CsrfField onReady={setCsrfReady}/>
 

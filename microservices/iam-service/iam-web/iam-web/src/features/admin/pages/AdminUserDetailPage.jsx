@@ -15,6 +15,7 @@ import {
     Check
 } from 'lucide-react'
 import {adminApi} from '../api/adminApi'
+import {adminResetPasswordSchema, profileSchema, validateForm} from '../../../utils/validation'
 import Avatar from '../../../components/common/Avatar'
 import {Badge} from '../../../components/ui/badge'
 import {Button} from '../../../components/ui/button'
@@ -121,8 +122,8 @@ function AssignRoleDialog({open, onClose, onAssigned, token, userId, t, locale})
     }
 
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-            <div className="w-full max-w-md rounded-2xl bg-white p-6 shadow-2xl dark:bg-slate-900 border border-slate-200 dark:border-slate-800 animate-in fade-in zoom-in-95">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-xs overflow-y-auto animate-in fade-in duration-150">
+            <div className="w-full max-w-md rounded-2xl bg-white p-6 shadow-2xl dark:bg-slate-900 border border-slate-200 dark:border-slate-800 my-auto animate-in zoom-in-95 duration-150">
                 <header className="flex items-center justify-between border-b border-slate-100 pb-3 dark:border-slate-800">
                     <h3 className="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2">
                         <ShieldCheck className="size-4 text-violet-600" />
@@ -202,10 +203,13 @@ function GrantPermissionDialog({open, onClose, onGranted, token, userId, t, loca
         if (open) {
             setError('')
             adminApi.listPermissions(token, {page: 0, size: 100}).then((data) => {
-                const list = data.content || []
+                const list = data?.content || []
                 setPermissions(list)
                 if (list.length) setSelectedPerm(list[0].uuid)
-            }).catch(() => setError('Failed to load permissions'))
+            }).catch((err) => {
+                console.error('Failed to load permissions:', err)
+                setError(err?.message || 'Failed to load permissions')
+            })
         }
     }, [open, token])
 
@@ -235,8 +239,8 @@ function GrantPermissionDialog({open, onClose, onGranted, token, userId, t, loca
     }
 
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-            <div className="w-full max-w-md rounded-2xl bg-white p-6 shadow-2xl dark:bg-slate-900 border border-slate-200 dark:border-slate-800 animate-in fade-in zoom-in-95">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-xs overflow-y-auto animate-in fade-in duration-150">
+            <div className="w-full max-w-md rounded-2xl bg-white p-6 shadow-2xl dark:bg-slate-900 border border-slate-200 dark:border-slate-800 my-auto animate-in zoom-in-95 duration-150">
                 <header className="flex items-center justify-between border-b border-slate-100 pb-3 dark:border-slate-800">
                     <h3 className="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2">
                         <KeyRound className="size-4 text-violet-600" />
@@ -326,12 +330,13 @@ function AdminResetPasswordDialog({open, onClose, onReset, token, user, t, local
 
     async function submit(e) {
         e.preventDefault()
-        if (password !== confirm) {
-            setError(t.mismatch || 'Passwords do not match')
+        setError('')
+        const validation = validateForm(adminResetPasswordSchema, {password, confirmPassword: confirm})
+        if (!validation.success) {
+            setError(validation.firstErrorMessage)
             return
         }
         setBusy(true)
-        setError('')
         try {
             await adminApi.resetUserPassword(token, user.uuid || user.id, password, confirm)
             onReset()
@@ -344,8 +349,8 @@ function AdminResetPasswordDialog({open, onClose, onReset, token, user, t, local
     }
 
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-            <div className="w-full max-w-md rounded-2xl bg-white p-6 shadow-2xl dark:bg-slate-900 border border-slate-200 dark:border-slate-800 animate-in fade-in zoom-in-95">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-xs overflow-y-auto animate-in fade-in duration-150">
+            <div className="w-full max-w-md rounded-2xl bg-white p-6 shadow-2xl dark:bg-slate-900 border border-slate-200 dark:border-slate-800 my-auto animate-in zoom-in-95 duration-150">
                 <header className="flex items-center justify-between border-b border-slate-100 pb-3 dark:border-slate-800">
                     <h3 className="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2">
                         <Lock className="size-4 text-violet-600" />
@@ -429,8 +434,13 @@ function EditUserDialog({open, onClose, onUpdated, token, user, t, locale}) {
 
     async function submit(e) {
         e.preventDefault()
-        setBusy(true)
         setError('')
+        const validation = validateForm(profileSchema, form)
+        if (!validation.success) {
+            setError(validation.firstErrorMessage)
+            return
+        }
+        setBusy(true)
         try {
             await adminApi.updateUser(token, user.uuid || user.id, form)
             onUpdated()
@@ -443,8 +453,8 @@ function EditUserDialog({open, onClose, onUpdated, token, user, t, locale}) {
     }
 
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-            <div className="w-full max-w-md rounded-2xl bg-white p-6 shadow-2xl dark:bg-slate-900 border border-slate-200 dark:border-slate-800 animate-in fade-in zoom-in-95">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-xs overflow-y-auto animate-in fade-in duration-150">
+            <div className="w-full max-w-md rounded-2xl bg-white p-6 shadow-2xl dark:bg-slate-900 border border-slate-200 dark:border-slate-800 my-auto animate-in zoom-in-95 duration-150">
                 <header className="flex items-center justify-between border-b border-slate-100 pb-3 dark:border-slate-800">
                     <h3 className="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2">
                         <Edit className="size-4 text-violet-600" />

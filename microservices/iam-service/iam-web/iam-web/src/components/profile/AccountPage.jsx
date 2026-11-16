@@ -83,6 +83,7 @@ export default function AccountPage({dark, setDark}) {
     const [page, setPage] = useState(() => getInitialSection(isAdmin))
     const [adminUserId, setAdminUserId] = useState(getAdminUserId)
     const [adminRoleId, setAdminRoleId] = useState(getAdminRoleId)
+    const [pageOptions, setPageOptions] = useState(null)
     const [working, setWorking] = useState(false)
     const [toast, setToast] = useState('')
     const roleNames = useMemo(() => (user?.roles || []).map((role) => (typeof role === 'string' ? role : role?.name)), [user])
@@ -105,13 +106,14 @@ export default function AccountPage({dark, setDark}) {
         }
     }, [page])
 
-    function navigate(section) {
+    function navigate(section, options = null) {
         if (!accountSections.includes(section) || (managementSections.includes(section) && !isAdmin)) {
             section = 'profile'
         }
         setPage(section)
         setAdminUserId(null)
         setAdminRoleId(null)
+        setPageOptions(options)
         setError('')
         const path = sectionPaths[section] || sectionPaths.profile
         if (window.location.pathname !== path || window.location.search) {
@@ -233,9 +235,14 @@ export default function AccountPage({dark, setDark}) {
         setWorking(true)
         setError('')
         try {
-            const provResp = await fetch('/account/providers', {credentials: 'same-origin'})
-            const activeProviders = provResp.ok ? await provResp.json() : []
-            if (activeProviders.includes(provider)) {
+            const newIdentity = await profileApi.linkAccount(token, provider)
+            setIdentities((current) => [
+                ...current.filter((item) => String(item.provider).toUpperCase() !== String(provider).toUpperCase()),
+                newIdentity,
+            ])
+            notify(`${formatProvider(provider)} connected successfully.`)
+        } catch {
+            try {
                 const response = await fetch('/account/csrf', {credentials: 'same-origin'})
                 if (!response.ok) throw new Error('Could not prepare secure provider link')
                 const csrf = await response.json()
@@ -249,17 +256,9 @@ export default function AccountPage({dark, setDark}) {
                 form.append(input)
                 document.body.append(form)
                 form.submit()
-                return
+            } catch {
+                setError(t.notSaved || 'Provider link failed.')
             }
-
-            const newIdentity = await profileApi.linkAccount(token, provider)
-            setIdentities((current) => [
-                ...current.filter((item) => String(item.provider).toUpperCase() !== String(provider).toUpperCase()),
-                newIdentity,
-            ])
-            notify(`${formatProvider(provider)} connected successfully.`)
-        } catch {
-            setError(t.notSaved || 'Provider link failed.')
         } finally {
             setWorking(false)
         }
@@ -317,6 +316,7 @@ export default function AccountPage({dark, setDark}) {
                 selectedUserId={adminUserId}
                 onSelectUser={openAdminUser}
                 onBack={returnToAdminUsers}
+                initialCreateOpen={Boolean(pageOptions?.create)}
             />
         )
     } else if (page === 'roles' && isAdmin) {
@@ -328,12 +328,13 @@ export default function AccountPage({dark, setDark}) {
                 selectedRoleId={adminRoleId}
                 onSelectRole={openAdminRole}
                 onBack={returnToAdminRoles}
+                initialCreateOpen={Boolean(pageOptions?.create)}
             />
         )
     } else if (page === 'permissions' && isAdmin) {
-        content = <AdminPermissionsPage token={token} locale={locale} t={t} />
+        content = <AdminPermissionsPage token={token} locale={locale} t={t} initialCreateOpen={Boolean(pageOptions?.create)} />
     } else if (page === 'clients' && isAdmin) {
-        content = <AdminClientsPage locale={locale} t={t} />
+        content = <AdminClientsPage locale={locale} t={t} initialCreateOpen={Boolean(pageOptions?.create)} />
     } else if (page === 'userSessions' && isAdmin) {
         content = <AdminUserSessionsPage locale={locale} t={t} />
     } else if (page === 'userHistory' && isAdmin) {

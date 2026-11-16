@@ -24,12 +24,14 @@ import {Card, CardHeader, CardTitle, CardDescription, CardContent} from '../ui/c
 
 function safeFormatTime(val) {
     if (!val) return '—'
-    const d = new Date(val)
-    if (isNaN(d.getTime())) return typeof val === 'string' ? val : '—'
     try {
+        const str = String(val).trim()
+        const isoLike = str.includes(' ') && !str.includes('T') ? str.replace(' ', 'T') : str
+        const d = new Date(isoLike)
+        if (isNaN(d.getTime())) return typeof val === 'string' ? val : '—'
         return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
     } catch {
-        return String(val)
+        return typeof val === 'string' ? val : '—'
     }
 }
 
@@ -301,8 +303,8 @@ export default function SessionManagementPage({user, locale, t, setPage, onSignO
 
             {/* Confirmation Modals */}
             {confirmModal && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-                    <div className="w-full max-w-md rounded-xl bg-white p-6 shadow-xl dark:bg-slate-900 border border-slate-200 dark:border-slate-800 animate-in fade-in zoom-in-95">
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-xs overflow-y-auto animate-in fade-in duration-150">
+                    <div className="w-full max-w-md rounded-xl bg-white p-6 shadow-xl dark:bg-slate-900 border border-slate-200 dark:border-slate-800 my-auto animate-in zoom-in-95 duration-150">
                         <div className="flex items-start justify-between">
                             <div className="flex items-center gap-3">
                                 <span className="grid size-10 place-items-center rounded-xl bg-red-50 text-red-600 dark:bg-red-950">

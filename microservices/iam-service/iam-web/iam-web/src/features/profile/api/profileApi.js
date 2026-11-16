@@ -165,12 +165,22 @@ export const profileApi = {
             if (res.ok) {
                 const data = await res.json()
                 if (Array.isArray(data)) {
-                    return data.map(item => ({
-                        ...item,
-                        isCurrent: Boolean(item.isCurrent ?? item.current),
-                        lastActive: item.lastActiveAt || item.lastActive || new Date().toISOString(),
-                        lastActiveAt: item.lastActiveAt || item.lastActive || new Date().toISOString()
-                    }))
+                    return data.map(item => {
+                        let validDate = new Date().toISOString()
+                        const raw = item.lastActiveAt || item.lastActive
+                        if (raw) {
+                            try {
+                                const d = new Date(String(raw).replace(' ', 'T'))
+                                if (!isNaN(d.getTime())) validDate = d.toISOString()
+                            } catch {}
+                        }
+                        return {
+                            ...item,
+                            isCurrent: Boolean(item.isCurrent ?? item.current),
+                            lastActive: validDate,
+                            lastActiveAt: validDate,
+                        }
+                    })
                 }
                 return []
             }

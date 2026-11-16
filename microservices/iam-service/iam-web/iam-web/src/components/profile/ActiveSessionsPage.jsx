@@ -33,25 +33,37 @@ function getDeviceIcon(type) {
     }
 }
 
-function formatRelativeTime(dateString, locale) {
-    if (!dateString) return '—'
-    const date = new Date(dateString)
-    if (isNaN(date.getTime())) {
-        return typeof dateString === 'string' ? dateString : '—'
-    }
-    const now = new Date()
-    const diffSec = Math.floor((now - date) / 1000)
-
-    if (diffSec < 60) return locale === 'km' ? 'សកម្មឥឡូវនេះ' : 'Active now'
-    if (diffSec < 3600) {
-        const mins = Math.floor(diffSec / 60)
-        return locale === 'km' ? `${mins} នាទីមុន` : `${mins}m ago`
-    }
-    if (diffSec < 86400) {
-        const hours = Math.floor(diffSec / 3600)
-        return locale === 'km' ? `${hours} ម៉ោងមុន` : `${hours}h ago`
-    }
+function formatRelativeTime(dateValue, locale) {
+    if (!dateValue) return '—'
     try {
+        let date
+        if (dateValue instanceof Date) {
+            date = dateValue
+        } else if (typeof dateValue === 'number') {
+            date = new Date(dateValue)
+        } else {
+            const str = String(dateValue).trim()
+            const isoLike = str.includes(' ') && !str.includes('T') ? str.replace(' ', 'T') : str
+            date = new Date(isoLike)
+        }
+
+        const time = date.getTime()
+        if (Number.isNaN(time) || !Number.isFinite(time)) {
+            return typeof dateValue === 'string' ? dateValue : '—'
+        }
+
+        const now = Date.now()
+        const diffSec = Math.floor((now - time) / 1000)
+
+        if (diffSec < 60 && diffSec >= -60) return locale === 'km' ? 'សកម្មឥឡូវនេះ' : 'Active now'
+        if (diffSec < 3600 && diffSec >= 60) {
+            const mins = Math.floor(diffSec / 60)
+            return locale === 'km' ? `${mins} នាទីមុន` : `${mins}m ago`
+        }
+        if (diffSec < 86400 && diffSec >= 3600) {
+            const hours = Math.floor(diffSec / 3600)
+            return locale === 'km' ? `${hours} ម៉ោងមុន` : `${hours}h ago`
+        }
         return new Intl.DateTimeFormat(locale === 'km' ? 'km-KH' : 'en-US', {
             day: 'numeric',
             month: 'short',
@@ -59,7 +71,7 @@ function formatRelativeTime(dateString, locale) {
             minute: '2-digit',
         }).format(date)
     } catch {
-        return String(dateString)
+        return typeof dateValue === 'string' ? dateValue : '—'
     }
 }
 
@@ -236,8 +248,8 @@ export default function ActiveSessionsPage({user, locale, t, setPage}) {
 
             {/* Terminate confirmation modal */}
             {confirmTerminate && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-                    <div className="w-full max-w-md rounded-xl bg-white p-6 shadow-xl dark:bg-slate-900 border border-slate-200 dark:border-slate-800 animate-in fade-in zoom-in-95">
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-xs overflow-y-auto animate-in fade-in duration-150">
+                    <div className="w-full max-w-md rounded-xl bg-white p-6 shadow-xl dark:bg-slate-900 border border-slate-200 dark:border-slate-800 my-auto animate-in zoom-in-95 duration-150">
                         <div className="flex items-start justify-between">
                             <div className="flex items-center gap-3">
                                 <span className="grid size-10 place-items-center rounded-xl bg-red-50 text-red-600 dark:bg-red-950">

@@ -18,6 +18,8 @@ import {
     Shield
 } from 'lucide-react'
 import {adminApi} from '../api/adminApi'
+import CreatePermissionDialog from '../components/CreatePermissionDialog'
+import {createPermissionSchema, validateForm} from '../../../utils/validation'
 import {Badge} from '../../../components/ui/badge'
 import {Button} from '../../../components/ui/button'
 import {Card} from '../../../components/ui/card'
@@ -26,142 +28,11 @@ import {Table, TableBody, TableCell, TableHead, TableHeader, TableRow} from '../
 
 const pageSize = 15
 
-function PermissionDialog({open, onClose, onCreated, token, t, locale}) {
-    const [resource, setResource] = useState('')
-    const [action, setAction] = useState('')
-    const [description, setDescription] = useState('')
-    const [scopeConstraint, setScopeConstraint] = useState('ALL')
-    const [busy, setBusy] = useState(false)
-    const [error, setError] = useState('')
-
-    if (!open) return null
-
-    function close() {
-        setResource('')
-        setAction('')
-        setDescription('')
-        setError('')
-        onClose()
-    }
-
-    async function submit(event) {
-        event.preventDefault()
-        const res = resource.trim().toLowerCase()
-        const act = action.trim().toLowerCase()
-        if (!res || !act) return
-
-        setBusy(true)
-        setError('')
-        try {
-            await adminApi.createPermission(token, {
-                resource: res,
-                action: act,
-                name: `${res}:${act}`,
-                description: description.trim() || `Permission ${res}:${act} with ${scopeConstraint} access`,
-            })
-            close()
-            onCreated()
-        } catch (requestError) {
-            setError(
-                requestError.status === 409
-                    ? (t.adminPermissionConflict || 'This permission already exists.')
-                    : requestError.status === 403
-                    ? t.adminForbidden
-                    : (t.adminPermissionCreateError || 'Failed to create permission.')
-            )
-        } finally {
-            setBusy(false)
-        }
-    }
-
-    return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-            <div className="w-full max-w-md rounded-2xl bg-white p-6 shadow-2xl dark:bg-slate-900 border border-slate-200 dark:border-slate-800 animate-in fade-in zoom-in-95">
-                <header className="flex items-center justify-between border-b border-slate-100 pb-3 dark:border-slate-800">
-                    <h3 className="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
-                        <KeyRound className="size-5 text-violet-600" />
-                        {t.adminCreatePermission || 'Create Permission'}
-                    </h3>
-                    <button onClick={close} className="text-slate-400 hover:text-slate-600">✕</button>
-                </header>
-
-                {error && (
-                    <div className="mt-3 rounded-lg bg-red-50 p-3 text-xs text-red-700 dark:bg-red-950 dark:text-red-300">
-                        {error}
-                    </div>
-                )}
-
-                <form onSubmit={submit} className="mt-4 grid gap-3">
-                    <div className="grid grid-cols-2 gap-3">
-                        <label className="grid gap-1 text-xs font-semibold text-slate-700 dark:text-slate-300">
-                            <span>{t.adminPermissionResource || 'Resource'} *</span>
-                            <Input
-                                required
-                                placeholder="e.g. user, role, client"
-                                value={resource}
-                                onChange={(e) => setResource(e.target.value)}
-                                className="text-xs font-mono"
-                            />
-                        </label>
-
-                        <label className="grid gap-1 text-xs font-semibold text-slate-700 dark:text-slate-300">
-                            <span>{t.adminPermissionAction || 'Action'} *</span>
-                            <Input
-                                required
-                                placeholder="e.g. read, write, delete"
-                                value={action}
-                                onChange={(e) => setAction(e.target.value)}
-                                className="text-xs font-mono"
-                            />
-                        </label>
-                    </div>
-
-                    <div className="rounded-lg bg-slate-50 p-2.5 text-xs dark:bg-slate-800 font-mono text-violet-700 dark:text-violet-300">
-                        Identifier: {resource && action ? `${resource.toLowerCase()}:${action.toLowerCase()}` : 'resource:action'}
-                    </div>
-
-                    <label className="grid gap-1 text-xs font-semibold text-slate-700 dark:text-slate-300">
-                        <span>Resource-based Access Constraint</span>
-                        <select
-                            value={scopeConstraint}
-                            onChange={(e) => setScopeConstraint(e.target.value)}
-                            className="h-9 rounded-lg border border-slate-200 bg-white px-3 text-xs dark:border-slate-700 dark:bg-slate-950"
-                        >
-                            <option value="ALL">ALL (Global access across all resource instances)</option>
-                            <option value="OWN">OWN (Resource owner access only)</option>
-                            <option value="ORGANIZATION">ORGANIZATION (Tenant / Org scope)</option>
-                        </select>
-                    </label>
-
-                    <label className="grid gap-1 text-xs font-semibold text-slate-700 dark:text-slate-300">
-                        <span>{t.adminRoleDescription || 'Description'}</span>
-                        <Input
-                            placeholder={t.adminPermissionDescriptionPlaceholder || 'Describe what this permission allows.'}
-                            value={description}
-                            onChange={(e) => setDescription(e.target.value)}
-                            className="text-xs"
-                        />
-                    </label>
-
-                    <div className="flex justify-end gap-2 border-t border-slate-100 pt-3 dark:border-slate-800">
-                        <Button type="button" variant="outline" size="sm" onClick={close}>
-                            {t.cancel || 'Cancel'}
-                        </Button>
-                        <Button type="submit" variant="default" size="sm" disabled={busy} className="bg-violet-700 text-white">
-                            {busy ? '…' : (t.adminCreatePermission || 'Create Permission')}
-                        </Button>
-                    </div>
-                </form>
-            </div>
-        </div>
-    )
-}
-
 function ResourceAccessDefinitionModal({open, onClose, permission, locale}) {
     if (!open || !permission) return null
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-            <div className="w-full max-w-lg rounded-2xl bg-white p-6 shadow-2xl dark:bg-slate-900 border border-slate-200 dark:border-slate-800 animate-in fade-in zoom-in-95">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-xs overflow-y-auto animate-in fade-in duration-150">
+            <div className="w-full max-w-lg rounded-2xl bg-white p-6 shadow-2xl dark:bg-slate-900 border border-slate-200 dark:border-slate-800 my-auto animate-in zoom-in-95 duration-150">
                 <header className="flex items-center justify-between border-b border-slate-100 pb-3 dark:border-slate-800">
                     <h3 className="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2">
                         <Layers className="size-4 text-violet-600" />
@@ -217,7 +88,7 @@ function ResourceAccessDefinitionModal({open, onClose, permission, locale}) {
     )
 }
 
-export default function AdminPermissionsPage({token, t, locale}) {
+export default function AdminPermissionsPage({token, t, locale, initialCreateOpen}) {
     const [keyword, setKeyword] = useState('')
     const [resourceFilter, setResourceFilter] = useState('all')
     const [actionFilter, setActionFilter] = useState('all')
@@ -226,7 +97,7 @@ export default function AdminPermissionsPage({token, t, locale}) {
     const [loading, setLoading] = useState(true)
     const [error, setError] = useState('')
     const [notice, setNotice] = useState('')
-    const [createOpen, setCreateOpen] = useState(false)
+    const [createOpen, setCreateOpen] = useState(() => Boolean(initialCreateOpen || new URLSearchParams(window.location.search).get('action') === 'create'))
     const [viewDefinition, setViewDefinition] = useState(null)
     const requestId = useRef(0)
 
@@ -258,6 +129,10 @@ export default function AdminPermissionsPage({token, t, locale}) {
         const timer = setTimeout(loadPermissions, keyword ? 250 : 0)
         return () => clearTimeout(timer)
     }, [keyword, loadPermissions])
+
+    useEffect(() => {
+        if (initialCreateOpen) setCreateOpen(true)
+    }, [initialCreateOpen])
 
     function notify(msg) {
         setNotice(msg)
@@ -473,7 +348,7 @@ export default function AdminPermissionsPage({token, t, locale}) {
                 </footer>
             </Card>
 
-            <PermissionDialog
+            <CreatePermissionDialog
                 open={createOpen}
                 onClose={() => setCreateOpen(false)}
                 onCreated={loadPermissions}

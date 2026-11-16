@@ -18,6 +18,8 @@ import {
     Sliders
 } from 'lucide-react'
 import {adminApi} from '../api/adminApi'
+import CreateClientDialog from '../components/CreateClientDialog'
+import {clientSchema, validateForm} from '../../../utils/validation'
 import {Badge} from '../../../components/ui/badge'
 import {Button} from '../../../components/ui/button'
 import {Card} from '../../../components/ui/card'
@@ -37,238 +39,6 @@ function toList(val) {
     return []
 }
 
-function RegisterClientModal({open, onClose, onCreated, locale}) {
-    const [clientName, setClientName] = useState('')
-    const [clientId, setClientId] = useState('')
-    const [clientSecret, setClientSecret] = useState('')
-    const [authMethod, setAuthMethod] = useState('client_secret_basic')
-    const [grantTypes, setGrantTypes] = useState(['authorization_code', 'refresh_token'])
-    const [redirectUris, setRedirectUris] = useState('http://localhost:3000/callback')
-    const [postLogoutUris, setPostLogoutUris] = useState('http://localhost:3000')
-    const [scopes, setScopes] = useState(['openid', 'profile', 'email'])
-    const [requirePkce, setRequirePkce] = useState(true)
-    const [requireConsent, setRequireConsent] = useState(true)
-    const [busy, setBusy] = useState(false)
-
-    if (!open) return null
-
-    function toggleGrantType(gt) {
-        setGrantTypes((curr) => (curr.includes(gt) ? curr.filter((g) => g !== gt) : [...curr, gt]))
-    }
-
-    function toggleScope(sc) {
-        setScopes((curr) => (curr.includes(sc) ? curr.filter((s) => s !== sc) : [...curr, sc]))
-    }
-
-    function generateSecret() {
-        const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-._~'
-        let s = 'sec_'
-        for (let i = 0; i < 32; i++) s += chars.charAt(Math.floor(Math.random() * chars.length))
-        setClientSecret(s)
-    }
-
-    async function submit(e) {
-        e.preventDefault()
-        if (!clientName.trim()) return
-        setBusy(true)
-
-        try {
-            const uris = redirectUris
-                .split('\n')
-                .map((u) => u.trim())
-                .filter(Boolean)
-            const postUris = postLogoutUris
-                .split('\n')
-                .map((u) => u.trim())
-                .filter(Boolean)
-
-            await adminApi.createClient({
-                clientName: clientName.trim(),
-                clientId: clientId.trim() || undefined,
-                clientSecret: clientSecret.trim() || undefined,
-                clientAuthenticationMethods: [authMethod],
-                authorizationGrantTypes: grantTypes,
-                redirectUris: uris,
-                postLogoutRedirectUris: postUris,
-                scopes,
-                requireProofKey: requirePkce,
-                requireConsent,
-            })
-            onCreated()
-            onClose()
-        } catch (err) {
-            console.error('Failed to register client:', err)
-        } finally {
-            setBusy(false)
-        }
-    }
-
-    return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-            <div className="w-full max-w-xl max-h-[90vh] overflow-y-auto rounded-2xl bg-white p-6 shadow-2xl dark:bg-slate-900 border border-slate-200 dark:border-slate-800 animate-in fade-in zoom-in-95">
-                <header className="flex items-center justify-between border-b border-slate-100 pb-3 dark:border-slate-800">
-                    <h3 className="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
-                        <Layers className="size-5 text-violet-600" />
-                        {locale === 'km' ? 'ចុះឈ្មោះអតិថិជន OAuth2 / OIDC ថ្មី' : 'Register OAuth2 / OIDC Client'}
-                    </h3>
-                    <button onClick={onClose} className="text-slate-400 hover:text-slate-600">✕</button>
-                </header>
-
-                <form onSubmit={submit} className="mt-4 grid gap-4 text-xs">
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                        <label className="grid gap-1 font-semibold text-slate-700 dark:text-slate-300">
-                            <span>Client Name *</span>
-                            <Input
-                                required
-                                placeholder="e.g. Mobile Android App"
-                                value={clientName}
-                                onChange={(e) => setClientName(e.target.value)}
-                                className="text-xs"
-                            />
-                        </label>
-
-                        <label className="grid gap-1 font-semibold text-slate-700 dark:text-slate-300">
-                            <span>Client ID (optional, auto-generated if blank)</span>
-                            <Input
-                                placeholder="e.g. mobile-android-client"
-                                value={clientId}
-                                onChange={(e) => setClientId(e.target.value)}
-                                className="text-xs font-mono"
-                            />
-                        </label>
-                    </div>
-
-                    <label className="grid gap-1 font-semibold text-slate-700 dark:text-slate-300">
-                        <div className="flex items-center justify-between">
-                            <span>Client Secret (leave empty for public clients / PKCE)</span>
-                            <button
-                                type="button"
-                                onClick={generateSecret}
-                                className="text-[11px] text-violet-600 hover:underline font-semibold"
-                            >
-                                Generate Secret
-                            </button>
-                        </div>
-                        <Input
-                            placeholder="secret-token-..."
-                            value={clientSecret}
-                            onChange={(e) => setClientSecret(e.target.value)}
-                            className="text-xs font-mono"
-                        />
-                    </label>
-
-                    <label className="grid gap-1 font-semibold text-slate-700 dark:text-slate-300">
-                        <span>Authentication Method</span>
-                        <select
-                            value={authMethod}
-                            onChange={(e) => setAuthMethod(e.target.value)}
-                            className="h-9 rounded-lg border border-slate-200 bg-white px-3 text-xs dark:border-slate-700 dark:bg-slate-950"
-                        >
-                            <option value="client_secret_basic">client_secret_basic (HTTP Basic)</option>
-                            <option value="client_secret_post">client_secret_post (POST Body)</option>
-                            <option value="none">none (Public Client with PKCE only)</option>
-                        </select>
-                    </label>
-
-                    {/* Grant Types */}
-                    <div>
-                        <span className="font-semibold text-slate-700 dark:text-slate-300 block mb-1">
-                            Authorization Grant Types
-                        </span>
-                        <div className="flex flex-wrap gap-2">
-                            {AVAILABLE_GRANT_TYPES.map((gt) => (
-                                <label
-                                    key={gt.id}
-                                    className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg border text-xs cursor-pointer ${
-                                        grantTypes.includes(gt.id)
-                                            ? 'border-violet-600 bg-violet-50 text-violet-900 font-bold dark:bg-violet-950 dark:text-violet-200'
-                                            : 'border-slate-200 hover:bg-slate-50 dark:border-slate-800'
-                                    }`}
-                                >
-                                    <input
-                                        type="checkbox"
-                                        checked={grantTypes.includes(gt.id)}
-                                        onChange={() => toggleGrantType(gt.id)}
-                                        className="accent-violet-700"
-                                    />
-                                    <span>{gt.label}</span>
-                                </label>
-                            ))}
-                        </div>
-                    </div>
-
-                    {/* Redirect URIs */}
-                    <label className="grid gap-1 font-semibold text-slate-700 dark:text-slate-300">
-                        <span>Redirect URIs (one per line)</span>
-                        <textarea
-                            rows={2}
-                            placeholder="https://app.example.com/callback"
-                            value={redirectUris}
-                            onChange={(e) => setRedirectUris(e.target.value)}
-                            className="w-full rounded-lg border border-slate-200 p-2 font-mono text-xs dark:border-slate-700 dark:bg-slate-950"
-                        />
-                    </label>
-
-                    {/* Scopes */}
-                    <div>
-                        <span className="font-semibold text-slate-700 dark:text-slate-300 block mb-1">
-                            Permitted Scopes
-                        </span>
-                        <div className="flex flex-wrap gap-1.5">
-                            {AVAILABLE_SCOPES.map((sc) => (
-                                <button
-                                    type="button"
-                                    key={sc}
-                                    onClick={() => toggleScope(sc)}
-                                    className={`px-2.5 py-1 rounded-md text-xs font-mono transition ${
-                                        scopes.includes(sc)
-                                            ? 'bg-violet-700 text-white font-bold'
-                                            : 'bg-slate-100 text-slate-600 hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-300'
-                                    }`}
-                                >
-                                    {sc}
-                                </button>
-                            ))}
-                        </div>
-                    </div>
-
-                    {/* Security Toggles */}
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
-                        <label className="flex items-center gap-2 rounded-lg border border-slate-200 p-2.5 cursor-pointer dark:border-slate-800">
-                            <input
-                                type="checkbox"
-                                checked={requirePkce}
-                                onChange={(e) => setRequirePkce(e.target.checked)}
-                                className="accent-violet-700"
-                            />
-                            <span>Require Proof Key (PKCE)</span>
-                        </label>
-
-                        <label className="flex items-center gap-2 rounded-lg border border-slate-200 p-2.5 cursor-pointer dark:border-slate-800">
-                            <input
-                                type="checkbox"
-                                checked={requireConsent}
-                                onChange={(e) => setRequireConsent(e.target.checked)}
-                                className="accent-violet-700"
-                            />
-                            <span>Require User Consent</span>
-                        </label>
-                    </div>
-
-                    <div className="flex justify-end gap-2 border-t border-slate-100 pt-3 dark:border-slate-800">
-                        <Button type="button" variant="outline" size="sm" onClick={onClose}>
-                            Cancel
-                        </Button>
-                        <Button type="submit" variant="default" size="sm" disabled={busy} className="bg-violet-700 text-white">
-                            {busy ? 'Registering…' : 'Register Client'}
-                        </Button>
-                    </div>
-                </form>
-            </div>
-        </div>
-    )
-}
-
 function ClientDetailModal({open, onClose, client, onRegenerate, locale}) {
     const [showSecret, setShowSecret] = useState(false)
     const [copied, setCopied] = useState(false)
@@ -282,8 +52,8 @@ function ClientDetailModal({open, onClose, client, onRegenerate, locale}) {
     }
 
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-            <div className="w-full max-w-lg rounded-2xl bg-white p-6 shadow-2xl dark:bg-slate-900 border border-slate-200 dark:border-slate-800 animate-in fade-in zoom-in-95">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-xs overflow-y-auto animate-in fade-in duration-150">
+            <div className="w-full max-w-lg rounded-2xl bg-white p-6 shadow-2xl dark:bg-slate-900 border border-slate-200 dark:border-slate-800 my-auto animate-in zoom-in-95 duration-150">
                 <header className="flex items-center justify-between border-b border-slate-100 pb-3 dark:border-slate-800">
                     <div className="flex items-center gap-2">
                         <Layers className="size-5 text-violet-600" />
@@ -406,11 +176,11 @@ function ClientDetailModal({open, onClose, client, onRegenerate, locale}) {
     )
 }
 
-export default function AdminClientsPage({locale, t}) {
+export default function AdminClientsPage({locale, t, initialCreateOpen}) {
     const [clients, setClients] = useState([])
     const [loading, setLoading] = useState(true)
     const [search, setSearch] = useState('')
-    const [createOpen, setCreateOpen] = useState(false)
+    const [createOpen, setCreateOpen] = useState(() => Boolean(initialCreateOpen || new URLSearchParams(window.location.search).get('action') === 'create'))
     const [selectedClient, setSelectedClient] = useState(null)
     const [notice, setNotice] = useState('')
 
@@ -427,6 +197,10 @@ export default function AdminClientsPage({locale, t}) {
     useEffect(() => {
         loadClients()
     }, [])
+
+    useEffect(() => {
+        if (initialCreateOpen) setCreateOpen(true)
+    }, [initialCreateOpen])
 
     function notify(msg) {
         setNotice(msg)
@@ -596,7 +370,7 @@ export default function AdminClientsPage({locale, t}) {
                 </Table>
             </Card>
 
-            <RegisterClientModal
+            <CreateClientDialog
                 open={createOpen}
                 onClose={() => setCreateOpen(false)}
                 onCreated={() => {

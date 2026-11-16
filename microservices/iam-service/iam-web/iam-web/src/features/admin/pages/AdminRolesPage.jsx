@@ -21,6 +21,7 @@ import {
     LoaderCircle
 } from 'lucide-react'
 import {adminApi} from '../api/adminApi'
+import CreateRoleDialog from '../components/CreateRoleDialog'
 import {Badge} from '../../../components/ui/badge'
 import {Button} from '../../../components/ui/button'
 import {Card} from '../../../components/ui/card'
@@ -39,140 +40,6 @@ function SortLabel({field, current, direction, children}) {
     )
 }
 
-function CreateRoleDialog({open, onClose, onCreated, token, t, locale}) {
-    const [name, setName] = useState('')
-    const [description, setDescription] = useState('')
-    const [permissions, setPermissions] = useState([])
-    const [selectedPermissions, setSelectedPermissions] = useState([])
-    const [busy, setBusy] = useState(false)
-    const [error, setError] = useState('')
-
-    useEffect(() => {
-        if (open) {
-            adminApi.listPermissions(token, {page: 0, size: 100}).then((data) => {
-                setPermissions(data.content || [])
-            }).catch(() => {})
-        }
-    }, [open, token])
-
-    if (!open) return null
-
-    function togglePermission(permUuid) {
-        setSelectedPermissions((curr) =>
-            curr.includes(permUuid) ? curr.filter((id) => id !== permUuid) : [...curr, permUuid]
-        )
-    }
-
-    async function submit(event) {
-        event.preventDefault()
-        if (!name.trim()) return
-        setBusy(true)
-        setError('')
-        try {
-            await adminApi.createRole(token, {
-                name: name.trim().toUpperCase(),
-                description: description.trim(),
-                permissionUuids: selectedPermissions,
-            })
-            setName('')
-            setDescription('')
-            setSelectedPermissions([])
-            onCreated()
-            onClose()
-        } catch (requestError) {
-            setError(
-                requestError.status === 409
-                    ? (t.adminRoleConflict || 'A role with this name already exists.')
-                    : requestError.status === 403
-                    ? t.adminForbidden
-                    : (t.adminRoleCreateError || 'Failed to create role.')
-            )
-        } finally {
-            setBusy(false)
-        }
-    }
-
-    return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-            <div className="w-full max-w-lg rounded-2xl bg-white p-6 shadow-2xl dark:bg-slate-900 border border-slate-200 dark:border-slate-800 animate-in fade-in zoom-in-95">
-                <header className="flex items-center justify-between border-b border-slate-100 pb-3 dark:border-slate-800">
-                    <h3 className="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
-                        <ShieldCheck className="size-5 text-violet-600" />
-                        {t.adminCreateRole || 'Create Role'}
-                    </h3>
-                    <button onClick={onClose} className="text-slate-400 hover:text-slate-600">✕</button>
-                </header>
-
-                {error && (
-                    <div className="mt-3 rounded-lg bg-red-50 p-3 text-xs text-red-700 dark:bg-red-950 dark:text-red-300">
-                        {error}
-                    </div>
-                )}
-
-                <form onSubmit={submit} className="mt-4 grid gap-4">
-                    <label className="grid gap-1 text-xs font-semibold text-slate-700 dark:text-slate-300">
-                        <span>{t.adminRoleName || 'Role Name'} *</span>
-                        <Input
-                            required
-                            placeholder={t.adminRoleNamePlaceholder || 'For example, SUPPORT_AGENT'}
-                            value={name}
-                            onChange={(e) => setName(e.target.value)}
-                            className="text-xs uppercase"
-                        />
-                    </label>
-
-                    <label className="grid gap-1 text-xs font-semibold text-slate-700 dark:text-slate-300">
-                        <span>{t.adminRoleDescription || 'Description'}</span>
-                        <Input
-                            placeholder={t.adminRoleDescriptionPlaceholder || 'Describe what this role is used for.'}
-                            value={description}
-                            onChange={(e) => setDescription(e.target.value)}
-                            className="text-xs"
-                        />
-                    </label>
-
-                    <div>
-                        <span className="text-xs font-semibold text-slate-700 dark:text-slate-300 block mb-1">
-                            {locale === 'km' ? 'ជ្រើសរើសសិទ្ធិចាប់ផ្តើម (មិនបង្ខំ):' : 'Initial Permissions (optional):'}
-                        </span>
-                        <div className="max-h-36 overflow-y-auto rounded-lg border border-slate-200 p-2 dark:border-slate-800 grid grid-cols-2 gap-1.5 text-[11px]">
-                            {permissions.map((p) => {
-                                const checked = selectedPermissions.includes(p.uuid)
-                                return (
-                                    <label
-                                        key={p.uuid}
-                                        onClick={() => togglePermission(p.uuid)}
-                                        className={`flex items-center gap-2 p-1.5 rounded cursor-pointer transition ${
-                                            checked ? 'bg-violet-50 font-bold text-violet-800 dark:bg-violet-950 dark:text-violet-200' : 'hover:bg-slate-50'
-                                        }`}
-                                    >
-                                        <input
-                                            type="checkbox"
-                                            checked={checked}
-                                            onChange={() => {}}
-                                            className="accent-violet-700"
-                                        />
-                                        <span className="truncate font-mono">{p.name}</span>
-                                    </label>
-                                )
-                            })}
-                        </div>
-                    </div>
-
-                    <div className="flex justify-end gap-2 border-t border-slate-100 pt-4 dark:border-slate-800">
-                        <Button type="button" variant="outline" size="sm" onClick={onClose}>
-                            {t.cancel || 'Cancel'}
-                        </Button>
-                        <Button type="submit" variant="default" size="sm" disabled={busy} className="bg-violet-700 text-white">
-                            {busy ? '…' : (t.adminCreateRole || 'Create Role')}
-                        </Button>
-                    </div>
-                </form>
-            </div>
-        </div>
-    )
-}
-
 function AssignPermissionsToRoleModal({open, onClose, onAssigned, token, role, t, locale}) {
     const [availablePermissions, setAvailablePermissions] = useState([])
     const [selectedPermissions, setSelectedPermissions] = useState([])
@@ -184,9 +51,12 @@ function AssignPermissionsToRoleModal({open, onClose, onAssigned, token, role, t
             setError('')
             adminApi.listPermissions(token, {page: 0, size: 100}).then((data) => {
                 const existing = new Set(role?.permissions || [])
-                const unassigned = (data.content || []).filter((p) => !existing.has(p.name))
+                const unassigned = (data?.content || []).filter((p) => !existing.has(p.name))
                 setAvailablePermissions(unassigned)
-            }).catch(() => setError('Failed to load permissions'))
+            }).catch((err) => {
+                console.error('Failed to load permissions:', err)
+                setError(err?.message || 'Failed to load permissions')
+            })
         }
     }, [open, role, token])
 
@@ -215,8 +85,8 @@ function AssignPermissionsToRoleModal({open, onClose, onAssigned, token, role, t
     }
 
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-            <div className="w-full max-w-md rounded-2xl bg-white p-6 shadow-2xl dark:bg-slate-900 border border-slate-200 dark:border-slate-800 animate-in fade-in zoom-in-95">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-xs overflow-y-auto animate-in fade-in duration-150">
+            <div className="w-full max-w-md rounded-2xl bg-white p-6 shadow-2xl dark:bg-slate-900 border border-slate-200 dark:border-slate-800 my-auto animate-in zoom-in-95 duration-150">
                 <header className="flex items-center justify-between border-b border-slate-100 pb-3 dark:border-slate-800">
                     <h3 className="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2">
                         <KeyRound className="size-4 text-violet-600" />
@@ -537,7 +407,7 @@ function RoleDetail({token, roleId, onBack, t, locale}) {
     )
 }
 
-export default function AdminRolesPage({token, t, selectedRoleId, onSelectRole, onBack, locale}) {
+export default function AdminRolesPage({token, t, selectedRoleId, onSelectRole, onBack, locale, initialCreateOpen}) {
     const [keyword, setKeyword] = useState('')
     const [active, setActive] = useState('all')
     const [type, setType] = useState('all')
@@ -547,7 +417,7 @@ export default function AdminRolesPage({token, t, selectedRoleId, onSelectRole, 
     const [result, setResult] = useState(null)
     const [loading, setLoading] = useState(true)
     const [error, setError] = useState('')
-    const [createOpen, setCreateOpen] = useState(false)
+    const [createOpen, setCreateOpen] = useState(() => Boolean(initialCreateOpen || new URLSearchParams(window.location.search).get('action') === 'create'))
     const requestId = useRef(0)
 
     const loadRoles = useCallback(async () => {
@@ -580,6 +450,10 @@ export default function AdminRolesPage({token, t, selectedRoleId, onSelectRole, 
         const timer = setTimeout(loadRoles, keyword ? 250 : 0)
         return () => clearTimeout(timer)
     }, [keyword, loadRoles])
+
+    useEffect(() => {
+        if (initialCreateOpen) setCreateOpen(true)
+    }, [initialCreateOpen])
 
     if (selectedRoleId) {
         return (
