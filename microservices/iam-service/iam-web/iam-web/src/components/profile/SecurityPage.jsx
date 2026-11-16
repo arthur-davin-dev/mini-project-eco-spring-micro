@@ -45,10 +45,19 @@ export default function SecurityPage({t, working, onSave, locale}) {
 
     const rules = [
         {label: locale === 'km' ? 'យ៉ាងហោច 8 តួអក្សរ' : 'At least 8 characters', met: newPassword.length >= 8},
-        {label: locale === 'km' ? 'អក្សរធំយ៉ាងហោច 1 (A-Z)' : 'At least one uppercase letter (A-Z)', met: /[A-Z]/.test(newPassword)},
-        {label: locale === 'km' ? 'អក្សរតូចយ៉ាងហោច 1 (a-z)' : 'At least one lowercase letter (a-z)', met: /[a-z]/.test(newPassword)},
+        {
+            label: locale === 'km' ? 'អក្សរធំយ៉ាងហោច 1 (A-Z)' : 'At least one uppercase letter (A-Z)',
+            met: /[A-Z]/.test(newPassword)
+        },
+        {
+            label: locale === 'km' ? 'អក្សរតូចយ៉ាងហោច 1 (a-z)' : 'At least one lowercase letter (a-z)',
+            met: /[a-z]/.test(newPassword)
+        },
         {label: locale === 'km' ? 'លេខយ៉ាងហោច 1 (0-9)' : 'At least one number (0-9)', met: /[0-9]/.test(newPassword)},
-        {label: locale === 'km' ? 'និមិត្តសញ្ញាពិសេស (!@#$)' : 'At least one special character (!@#$)', met: /[^A-Za-z0-9]/.test(newPassword)},
+        {
+            label: locale === 'km' ? 'និមិត្តសញ្ញាពិសេស (!@#$)' : 'At least one special character (!@#$)',
+            met: /[^A-Za-z0-9]/.test(newPassword)
+        },
     ]
 
     async function submit(event) {
@@ -74,10 +83,12 @@ export default function SecurityPage({t, working, onSave, locale}) {
         <div className="grid gap-6 max-w-4xl">
             {/* Password Update Card */}
             <section className={card}>
-                <header className="mb-5 flex items-center justify-between border-b border-slate-100 pb-4 dark:border-slate-800">
+                <header
+                    className="mb-5 flex items-center justify-between border-b border-slate-100 pb-4 dark:border-slate-800">
                     <div className="flex items-center gap-3">
-                        <span className="grid size-9 place-items-center rounded-lg bg-violet-50 text-violet-700 dark:bg-violet-950 dark:text-violet-300">
-                            <KeyRound className="size-5" />
+                        <span
+                            className="grid size-9 place-items-center rounded-lg bg-violet-50 text-violet-700 dark:bg-violet-950 dark:text-violet-300">
+                            <KeyRound className="size-5"/>
                         </span>
                         <div>
                             <h2 className="text-sm font-medium text-slate-800 dark:text-white">
@@ -91,8 +102,9 @@ export default function SecurityPage({t, working, onSave, locale}) {
                 </header>
 
                 {formError && (
-                    <div className="mb-4 flex items-center gap-2 rounded-lg border border-red-200 bg-red-50 p-3 text-xs text-red-900 dark:border-red-900 dark:bg-red-950 dark:text-red-100">
-                        <AlertCircle className="size-4 shrink-0 text-red-600 dark:text-red-400" />
+                    <div
+                        className="mb-4 flex items-center gap-2 rounded-lg border border-red-200 bg-red-50 p-3 text-xs text-red-900 dark:border-red-900 dark:bg-red-950 dark:text-red-100">
+                        <AlertCircle className="size-4 shrink-0 text-red-600 dark:text-red-400"/>
                         <span>{formError}</span>
                     </div>
                 )}
@@ -108,7 +120,7 @@ export default function SecurityPage({t, working, onSave, locale}) {
                                 onClick={() => setShowPassword(!showPassword)}
                                 className="flex items-center gap-1 text-[11px] text-slate-400 hover:text-slate-600"
                             >
-                                {showPassword ? <EyeOff className="size-3" /> : <Eye className="size-3" />}
+                                {showPassword ? <EyeOff className="size-3"/> : <Eye className="size-3"/>}
                                 {showPassword ? 'Hide' : 'Show'}
                             </button>
                         </div>
@@ -152,7 +164,8 @@ export default function SecurityPage({t, working, onSave, locale}) {
 
                     {/* Password Strength Meter */}
                     {newPassword && (
-                        <div className="sm:col-span-2 rounded-xl border border-slate-100 bg-slate-50/60 p-4 dark:border-slate-800 dark:bg-slate-900/40">
+                        <div
+                            className="sm:col-span-2 rounded-xl border border-slate-100 bg-slate-50/60 p-4 dark:border-slate-800 dark:bg-slate-900/40">
                             <div className="flex items-center justify-between mb-2">
                                 <span className="text-xs font-semibold text-slate-600 dark:text-slate-300">
                                     {locale === 'km' ? 'កម្រិតសុវត្ថិភាពពាក្យសម្ងាត់:' : 'Password strength:'}
@@ -161,11 +174,12 @@ export default function SecurityPage({t, working, onSave, locale}) {
                                     {strength.text}
                                 </span>
                             </div>
-                            <div className="grid grid-cols-4 gap-1.5 h-1.5 rounded-full overflow-hidden bg-slate-200 dark:bg-slate-800">
-                                <div className={`h-full ${strength.score >= 1 ? strength.color : 'bg-transparent'}`} />
-                                <div className={`h-full ${strength.score >= 2 ? strength.color : 'bg-transparent'}`} />
-                                <div className={`h-full ${strength.score >= 3 ? strength.color : 'bg-transparent'}`} />
-                                <div className={`h-full ${strength.score >= 4 ? strength.color : 'bg-transparent'}`} />
+                            <div
+                                className="grid grid-cols-4 gap-1.5 h-1.5 rounded-full overflow-hidden bg-slate-200 dark:bg-slate-800">
+                                <div className={`h-full ${strength.score >= 1 ? strength.color : 'bg-transparent'}`}/>
+                                <div className={`h-full ${strength.score >= 2 ? strength.color : 'bg-transparent'}`}/>
+                                <div className={`h-full ${strength.score >= 3 ? strength.color : 'bg-transparent'}`}/>
+                                <div className={`h-full ${strength.score >= 4 ? strength.color : 'bg-transparent'}`}/>
                             </div>
 
                             <div className="mt-3 grid grid-cols-1 sm:grid-cols-2 gap-1.5 text-[11px]">
@@ -176,7 +190,7 @@ export default function SecurityPage({t, working, onSave, locale}) {
                                             rule.met ? 'text-emerald-600 font-medium' : 'text-slate-400'
                                         }`}
                                     >
-                                        {rule.met ? <Check className="size-3.5" /> : <X className="size-3.5" />}
+                                        {rule.met ? <Check className="size-3.5"/> : <X className="size-3.5"/>}
                                         {rule.label}
                                     </span>
                                 ))}
@@ -184,7 +198,8 @@ export default function SecurityPage({t, working, onSave, locale}) {
                         </div>
                     )}
 
-                    <div className="sm:col-span-2 flex items-center justify-end gap-3 border-t border-slate-100 pt-4 dark:border-slate-800">
+                    <div
+                        className="sm:col-span-2 flex items-center justify-end gap-3 border-t border-slate-100 pt-4 dark:border-slate-800">
                         <Button
                             type="submit"
                             disabled={working}
@@ -193,7 +208,7 @@ export default function SecurityPage({t, working, onSave, locale}) {
                             {working ? '…' : (
                                 <>
                                     {t.updatePassword || 'Update password'}
-                                    <ArrowRight className="size-4 ml-1.5" />
+                                    <ArrowRight className="size-4 ml-1.5"/>
                                 </>
                             )}
                         </Button>
@@ -205,8 +220,9 @@ export default function SecurityPage({t, working, onSave, locale}) {
             <div className="grid gap-4 sm:grid-cols-3">
                 <Card className="p-4">
                     <div className="flex items-center gap-3">
-                        <span className="grid size-9 place-items-center rounded-lg bg-emerald-50 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300">
-                            <ShieldCheck className="size-5" />
+                        <span
+                            className="grid size-9 place-items-center rounded-lg bg-emerald-50 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300">
+                            <ShieldCheck className="size-5"/>
                         </span>
                         <div>
                             <p className="text-xs text-slate-500">{locale === 'km' ? 'ស្ថានភាពពាក្យសម្ងាត់' : 'Password status'}</p>
@@ -217,8 +233,9 @@ export default function SecurityPage({t, working, onSave, locale}) {
 
                 <Card className="p-4">
                     <div className="flex items-center gap-3">
-                        <span className="grid size-9 place-items-center rounded-lg bg-violet-50 text-violet-700 dark:bg-violet-950 dark:text-violet-300">
-                            <Lock className="size-5" />
+                        <span
+                            className="grid size-9 place-items-center rounded-lg bg-violet-50 text-violet-700 dark:bg-violet-950 dark:text-violet-300">
+                            <Lock className="size-5"/>
                         </span>
                         <div>
                             <p className="text-xs text-slate-500">{locale === 'km' ? 'ការផ្ទៀងផ្ទាត់ 2FA' : 'Two-Factor (MFA)'}</p>
@@ -229,8 +246,9 @@ export default function SecurityPage({t, working, onSave, locale}) {
 
                 <Card className="p-4">
                     <div className="flex items-center gap-3">
-                        <span className="grid size-9 place-items-center rounded-lg bg-blue-50 text-blue-700 dark:bg-blue-950 dark:text-blue-300">
-                            <Info className="size-5" />
+                        <span
+                            className="grid size-9 place-items-center rounded-lg bg-blue-50 text-blue-700 dark:bg-blue-950 dark:text-blue-300">
+                            <Info className="size-5"/>
                         </span>
                         <div>
                             <p className="text-xs text-slate-500">{locale === 'km' ? 'ការផុតកំណត់' : 'Expiration policy'}</p>

@@ -1,27 +1,3 @@
-// import {useEffect, useState} from 'react'
-//
-// export default function CsrfField() {
-//     const [token, setToken] = useState(null)
-//
-//     useEffect(() => {
-//         fetch('/account/csrf', {credentials: 'same-origin'})
-//             .then(response => {
-//                 if (!response.ok) throw new Error('Could not prepare a secure form')
-//                 return response.json()
-//             })
-//             .then(setToken)
-//             .catch(() => setToken({error: true}))
-//     }, [])
-//
-//     if (!token) return <p className="text-xs text-slate-500">Preparing secure form…</p>
-//     if (token.error) return <p className="rounded-lg bg-red-50 p-3 text-xs text-red-700">Could not load the security
-//         token. Refresh and try
-//         again.</p>
-//
-//     return <input type="hidden" name={token.parameterName} value={token.token}/>
-// }
-
-
 import {useCallback, useEffect, useState} from 'react'
 
 export default function CsrfField({onReady}) {
