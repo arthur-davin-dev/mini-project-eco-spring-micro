@@ -1,4 +1,13 @@
 import {useEffect, useMemo, useState} from 'react'
+import {
+    User,
+    Lock,
+    Eye,
+    EyeOff,
+    LogIn,
+    Loader2,
+    UserPlus,
+} from 'lucide-react'
 import AuthShell from './AuthShell'
 import CsrfField from './CsrfField'
 import Alert from './Alert'
@@ -61,16 +70,60 @@ function getProviderIcon(provider) {
 }
 
 export default function LoginPage({dark, setDark}) {
-    const query = useMemo(() => new URLSearchParams(window.location.search), [])
+    const query = useMemo(() => new URLSearchParams(typeof window !== 'undefined' ? window.location.search : ''), [])
     const oauthError = query.has('oauth_error')
     const loginError = query.has('error')
     const registered = query.has('registered')
+    const langParam = query.get('lang')
+    const isKm = langParam === 'km' || (!langParam && typeof window !== 'undefined' && (localStorage.getItem('iam-locale') === 'km' || localStorage.getItem('iam-lang') === 'km'))
 
     const [providers, setProviders] = useState(defaultProviders)
     const [csrfReady, setCsrfReady] = useState(false)
     const [submitting, setSubmitting] = useState(false)
     const [showPassword, setShowPassword] = useState(false)
+    const [fieldErrors, setFieldErrors] = useState({})
     const [formError, setFormError] = useState('')
+
+    const t = useMemo(() => {
+        if (isKm) {
+            return {
+                title: 'ចូលគណនី',
+                subtitle: 'ចូលដើម្បីគ្រប់គ្រងអត្តសញ្ញាណ និងសេវាកម្មដែលបានភ្ជាប់របស់អ្នក។',
+                usernameLabel: 'ឈ្មោះអ្នកប្រើប្រាស់',
+                usernamePlaceholder: 'បញ្ចូលឈ្មោះអ្នកប្រើ ឬ អ៊ីមែល',
+                passwordLabel: 'ពាក្យសម្ងាត់',
+                passwordPlaceholder: 'បញ្ចូលពាក្យសម្ងាត់',
+                signIn: 'ចូលគណនី',
+                signingIn: 'កំពុងចូល…',
+                newHere: 'មិនទាន់មានគណនីមែនទេ?',
+                createAccount: 'បង្កើតគណនីថ្មី',
+                orContinueWith: 'ឬបន្តជាមួយ',
+                showPassword: 'បង្ហាញពាក្យសម្ងាត់',
+                hidePassword: 'លាក់ពាក្យសម្ងាត់',
+                invalidCreds: 'ឈ្មោះអ្នកប្រើ ឬពាក្យសម្ងាត់មិនត្រឹមត្រូវទេ។ សូមព្យាយាមម្តងទៀត។',
+                oauthFailed: 'មិនអាចចូលតាមរយៈអ្នកផ្តល់សេវានោះបានទេ។ សូមព្យាយាមម្តងទៀត ឬប្រើពាក្យសម្ងាត់របស់អ្នក។',
+                accountCreated: 'គណនីរបស់អ្នកត្រូវបានបង្កើតដោយជោគជ័យ។ អ្នកអាចចូលឥឡូវនេះបាន។',
+            }
+        }
+        return {
+            title: 'Sign in',
+            subtitle: 'Sign in to manage your identity and connected services.',
+            usernameLabel: 'Username',
+            usernamePlaceholder: 'Enter your username or email',
+            passwordLabel: 'Password',
+            passwordPlaceholder: 'Enter your password',
+            signIn: 'Sign in',
+            signingIn: 'Signing in…',
+            newHere: 'New here?',
+            createAccount: 'Create an account',
+            orContinueWith: 'Or continue with',
+            showPassword: 'Show password',
+            hidePassword: 'Hide password',
+            invalidCreds: 'Incorrect username or password. Please try again.',
+            oauthFailed: "We couldn't sign you in with that provider. Try again or use your password.",
+            accountCreated: 'Your account was created. You can sign in now.',
+        }
+    }, [isKm])
 
     function handleSubmit(e) {
         const form = e.currentTarget
@@ -79,11 +132,24 @@ export default function LoginPage({dark, setDark}) {
         const validation = validateForm(loginSchema, {username, password})
         if (!validation.success) {
             e.preventDefault()
+            setFieldErrors(validation.errors)
             setFormError(validation.firstErrorMessage)
             return
         }
+        setFieldErrors({})
         setFormError('')
         setSubmitting(true)
+    }
+
+    function handleFieldChange(field) {
+        if (fieldErrors[field]) {
+            setFieldErrors(prev => {
+                const next = {...prev}
+                delete next[field]
+                return next
+            })
+        }
+        if (formError) setFormError('')
     }
 
     useEffect(() => {
@@ -105,9 +171,9 @@ export default function LoginPage({dark, setDark}) {
     }, [])
 
     return (
-        <AuthShell title="Sign in" dark={dark} setDark={setDark}>
+        <AuthShell title={t.title} dark={dark} setDark={setDark}>
             <p className="text-sm leading-6 text-slate-500 dark:text-slate-400">
-                Sign in to manage your identity and connected services.
+                {t.subtitle}
             </p>
 
             <div className="my-3 grid gap-2">
@@ -118,17 +184,17 @@ export default function LoginPage({dark, setDark}) {
                 )}
                 {loginError && !formError && (
                     <Alert tone="error" role="alert">
-                        Incorrect username or password. Please try again.
+                        {t.invalidCreds}
                     </Alert>
                 )}
                 {oauthError && (
                     <Alert tone="error" role="alert">
-                        We couldn't sign you in with that provider. Try again or use your password.
+                        {t.oauthFailed}
                     </Alert>
                 )}
                 {registered && (
                     <Alert tone="success" role="status">
-                        Your account was created. You can sign in now.
+                        {t.accountCreated}
                     </Alert>
                 )}
             </div>
@@ -136,33 +202,42 @@ export default function LoginPage({dark, setDark}) {
             <form
                 method="post"
                 action="/login"
-                className="my-5 grid gap-4"
+                noValidate
+                className="my-5 grid gap-4.5"
                 onSubmit={handleSubmit}
             >
                 <CsrfField onReady={setCsrfReady}/>
 
                 <TextField
-                    label="Username"
+                    label={t.usernameLabel}
                     name="username"
+                    placeholder={t.usernamePlaceholder}
                     autoComplete="username"
+                    icon={<User className="size-4" />}
+                    error={fieldErrors.username}
+                    onChange={() => handleFieldChange('username')}
                     autoFocus
-                    required
                 />
 
                 <TextField
-                    label="Password"
+                    label={t.passwordLabel}
                     name="password"
                     type={showPassword ? 'text' : 'password'}
+                    placeholder={t.passwordPlaceholder}
                     autoComplete="current-password"
-                    required
+                    icon={<Lock className="size-4" />}
+                    error={fieldErrors.password}
+                    onChange={() => handleFieldChange('password')}
                     trailing={
                         <button
                             type="button"
                             onClick={() => setShowPassword(v => !v)}
                             aria-pressed={showPassword}
-                            className="px-3 text-xs font-medium text-slate-500 hover:text-slate-800 dark:hover:text-slate-200"
+                            aria-label={showPassword ? t.hidePassword : t.showPassword}
+                            title={showPassword ? t.hidePassword : t.showPassword}
+                            className="flex size-7 items-center justify-center rounded-lg text-slate-400 transition hover:bg-slate-200/60 hover:text-slate-700 dark:hover:bg-slate-800 dark:hover:text-slate-200 cursor-pointer"
                         >
-                            {showPassword ? 'Hide' : 'Show'}
+                            {showPassword ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
                         </button>
                     }
                 />
@@ -170,27 +245,42 @@ export default function LoginPage({dark, setDark}) {
                 <button
                     type="submit"
                     disabled={!csrfReady || submitting}
-                    className="h-10 rounded-lg bg-violet-700 font-semibold text-white transition
-                               hover:bg-violet-800 focus-visible:outline-2 focus-visible:outline-offset-2
-                               focus-visible:outline-violet-500 disabled:cursor-not-allowed disabled:opacity-60 cursor-pointer"
+                    className="flex h-11 w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-violet-600 via-violet-700 to-indigo-600 font-semibold text-white shadow-md shadow-violet-600/25 transition-all hover:from-violet-500 hover:via-violet-600 hover:to-indigo-500 hover:shadow-lg hover:shadow-violet-600/30 active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-60 cursor-pointer"
                 >
-                    {submitting ? 'Signing in…' : 'Sign in'}
+                    {submitting ? (
+                        <>
+                            <Loader2 className="size-4.5 animate-spin" />
+                            <span>{t.signingIn}</span>
+                        </>
+                    ) : (
+                        <>
+                            <LogIn className="size-4.5" />
+                            <span>{t.signIn}</span>
+                        </>
+                    )}
                 </button>
             </form>
 
-            <p className="text-xs text-slate-500 dark:text-slate-400">
-                New here?{' '}
-                <a className="font-semibold text-violet-700 hover:underline dark:text-violet-400" href="/register">
-                    Create an account
+            <div className="flex items-center justify-center gap-1.5 text-xs text-slate-500 dark:text-slate-400">
+                <span>{t.newHere}</span>
+                <a
+                    className="inline-flex items-center gap-1 font-semibold text-violet-600 hover:text-violet-700 hover:underline dark:text-violet-400 dark:hover:text-violet-300 transition"
+                    href={`/register${isKm ? '?lang=km' : ''}`}
+                >
+                    <UserPlus className="size-3.5" />
+                    <span>{t.createAccount}</span>
                 </a>
-            </p>
+            </div>
 
             {providers.length > 0 && (
                 <section className="mt-6" aria-labelledby="oauth-heading">
                     <div className="relative mb-4 flex items-center justify-center">
                         <div className="w-full border-t border-slate-200 dark:border-slate-800" />
-                        <span id="oauth-heading" className="absolute bg-white px-3 text-[11px] font-medium uppercase tracking-wider text-slate-400 dark:bg-slate-900">
-                            Or continue with
+                        <span
+                            id="oauth-heading"
+                            className="absolute bg-white px-3 text-[11px] font-medium uppercase tracking-wider text-slate-400 dark:bg-slate-900"
+                        >
+                            {t.orContinueWith}
                         </span>
                     </div>
                     <div className="grid grid-cols-2 gap-2.5">
@@ -198,7 +288,7 @@ export default function LoginPage({dark, setDark}) {
                             <a
                                 key={provider}
                                 href={`/oauth2/authorization/${encodeURIComponent(provider)}`}
-                                className="flex h-10 items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-3 text-xs font-medium text-slate-700 shadow-2xs transition hover:bg-slate-50 hover:border-slate-300 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700 cursor-pointer"
+                                className="flex h-10.5 items-center justify-center gap-2.5 rounded-xl border border-slate-200/90 bg-slate-50/60 px-3.5 text-xs font-medium text-slate-700 shadow-2xs transition-all hover:bg-white hover:border-slate-300 hover:shadow-sm dark:border-slate-800 dark:bg-slate-800/50 dark:text-slate-200 dark:hover:bg-slate-800 dark:hover:border-slate-700 cursor-pointer"
                             >
                                 {getProviderIcon(provider)}
                                 <span>{providerLabel(provider)}</span>

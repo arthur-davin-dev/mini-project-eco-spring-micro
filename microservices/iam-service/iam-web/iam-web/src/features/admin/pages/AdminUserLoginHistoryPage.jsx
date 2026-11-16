@@ -7,6 +7,7 @@ import {
     Lock
 } from 'lucide-react'
 import {adminApi} from '../api/adminApi'
+import Avatar from '../../../components/common/Avatar'
 import {Badge} from '../../../components/ui/badge'
 import {Button} from '../../../components/ui/button'
 import {Card} from '../../../components/ui/card'
@@ -186,7 +187,10 @@ export default function AdminUserLoginHistoryPage({token: _token, locale, t}) {
                                     }`}
                                 >
                                     <TableCell className="font-bold text-xs">
-                                        @{log.username}
+                                        <div className="flex items-center gap-2">
+                                            <Avatar user={log} className="size-6 text-[9px]" />
+                                            <span>@{log.username}</span>
+                                        </div>
                                     </TableCell>
                                     <TableCell>
                                         <div className="flex items-center gap-1.5">

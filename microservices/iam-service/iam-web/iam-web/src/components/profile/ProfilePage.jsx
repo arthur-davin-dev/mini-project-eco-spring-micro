@@ -21,12 +21,12 @@ import {Badge} from '../ui/badge'
 const card = 'rounded-xl border border-[var(--color-line)] bg-white p-5 shadow-sm dark:border-slate-700 dark:bg-slate-900'
 const button = 'inline-flex h-9 items-center justify-center gap-2 rounded-lg border border-slate-200 bg-white px-3 text-xs font-semibold text-slate-600 hover:bg-slate-50 disabled:opacity-50 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200'
 
-const PRESET_AVATARS = [
-    'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=256&q=80',
-    'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=256&q=80',
-    'https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=256&q=80',
-    'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=256&q=80',
-    'https://images.unsplash.com/photo-1570295999919-56ceb5ecca61?auto=format&fit=crop&w=256&q=80',
+export const PRESET_AVATARS = [
+    'https://i.pinimg.com/736x/57/a9/7d/57a97ddfd303d50b8678930f2897fc4e.jpg',
+    'https://i.pinimg.com/1200x/02/1b/97/021b970e3a3e67fe6f64f7990bdaae54.jpg',
+    'https://i.pinimg.com/736x/ca/42/a6/ca42a68b337b748a69e4d544274cc725.jpg',
+    'https://i.pinimg.com/736x/bd/fd/65/bdfd65c5448bd74e153447fd11135911.jpg',
+    'https://i.pinimg.com/1200x/ee/92/37/ee92375cdfdad6f01d885eecca5295a3.jpg',
 ]
 
 export default function ProfilePage({user, identities, roleNames, locale, t, working, onSave, setPage}) {

@@ -165,7 +165,7 @@ public class SecurityConfig {
                         (authorize)
                                 -> authorize
                                 .requestMatchers("/login", "/register", "/error",
-                                        "/assets/**", "/fonts/**", "/index.html", "/favicon.svg", "/icons.svg",
+                                        "/assets/**", "/fonts/**", "/flags/**", "/index.html", "/favicon.svg", "/icons.svg",
                                         "/account/csrf", "/account/providers", "/scalar",
                                         "/scalar/**", "/v3/api-docs", "/v3/api-docs/**", "/swagger-ui/**")
                                 .permitAll()

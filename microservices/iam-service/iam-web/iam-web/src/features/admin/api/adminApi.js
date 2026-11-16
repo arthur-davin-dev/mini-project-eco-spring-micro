@@ -193,11 +193,22 @@ export const adminApi = {
         return created
     },
     updateUser: async (token, userUuid, profileData) => {
-        const result = await apiRequest(`/api/users/${userUuid}`, {
-            token,
-            method: 'PATCH',
-            body: JSON.stringify(profileData),
-        })
+        let result
+        if (!token) {
+            result = await sessionMutation(`/account/admin/users/${userUuid}`, profileData, 'PATCH')
+        } else {
+            try {
+                result = await apiRequest(`/api/users/${userUuid}`, {
+                    token,
+                    method: 'PATCH',
+                    body: JSON.stringify(profileData),
+                })
+            } catch (error) {
+                if (error.status === 401 || error.status === 403) {
+                    result = await sessionMutation(`/account/admin/users/${userUuid}`, profileData, 'PATCH')
+                } else throw error
+            }
+        }
         iamDataStore.logAuditEvent({
             category: 'USER',
             action: 'UPDATE_USER',
@@ -463,11 +474,22 @@ export const adminApi = {
         return created
     },
     updateRole: async (token, roleUuid, roleData) => {
-        const result = await apiRequest(`/api/roles/${roleUuid}`, {
-            token,
-            method: 'PATCH',
-            body: JSON.stringify(roleData),
-        })
+        let result
+        if (!token) {
+            result = await sessionMutation(`/account/admin/roles/${roleUuid}`, roleData, 'PATCH')
+        } else {
+            try {
+                result = await apiRequest(`/api/roles/${roleUuid}`, {
+                    token,
+                    method: 'PATCH',
+                    body: JSON.stringify(roleData),
+                })
+            } catch (error) {
+                if (error.status === 401 || error.status === 403) {
+                    result = await sessionMutation(`/account/admin/roles/${roleUuid}`, roleData, 'PATCH')
+                } else throw error
+            }
+        }
         iamDataStore.logAuditEvent({
             category: 'ROLE',
             action: 'UPDATE_ROLE',
@@ -479,7 +501,18 @@ export const adminApi = {
         return result
     },
     deleteRole: async (token, roleUuid) => {
-        const result = await apiRequest(`/api/roles/${roleUuid}`, {token, method: 'DELETE'})
+        let result
+        if (!token) {
+            result = await sessionDelete(`/account/admin/roles/${roleUuid}`)
+        } else {
+            try {
+                result = await apiRequest(`/api/roles/${roleUuid}`, {token, method: 'DELETE'})
+            } catch (error) {
+                if (error.status === 401 || error.status === 403) {
+                    result = await sessionDelete(`/account/admin/roles/${roleUuid}`)
+                } else throw error
+            }
+        }
         iamDataStore.logAuditEvent({
             category: 'ROLE',
             action: 'DELETE_ROLE',
@@ -491,10 +524,26 @@ export const adminApi = {
         return result
     },
     activateRole: async (token, roleUuid) => {
-        return apiRequest(`/api/roles/${roleUuid}/activate`, {token, method: 'POST'})
+        if (!token) return sessionMutation(`/account/admin/roles/${roleUuid}/activate`, {})
+        try {
+            return await apiRequest(`/api/roles/${roleUuid}/activate`, {token, method: 'POST'})
+        } catch (error) {
+            if (error.status === 401 || error.status === 403) {
+                return sessionMutation(`/account/admin/roles/${roleUuid}/activate`, {})
+            }
+            throw error
+        }
     },
     deactivateRole: async (token, roleUuid) => {
-        return apiRequest(`/api/roles/${roleUuid}/deactivate`, {token, method: 'POST'})
+        if (!token) return sessionMutation(`/account/admin/roles/${roleUuid}/deactivate`, {})
+        try {
+            return await apiRequest(`/api/roles/${roleUuid}/deactivate`, {token, method: 'POST'})
+        } catch (error) {
+            if (error.status === 401 || error.status === 403) {
+                return sessionMutation(`/account/admin/roles/${roleUuid}/deactivate`, {})
+            }
+            throw error
+        }
     },
     assignPermissionsToRole: async (token, roleUuid, permissionUuids, expiresAt = null, reason = 'Role permissions') => {
         const body = {permissionUuids, expiresAt, reason}
@@ -615,11 +664,22 @@ export const adminApi = {
         return created
     },
     updatePermission: async (token, permissionUuid, permissionData) => {
-        const result = await apiRequest(`/api/permissions/${permissionUuid}`, {
-            token,
-            method: 'PATCH',
-            body: JSON.stringify(permissionData),
-        })
+        let result
+        if (!token) {
+            result = await sessionMutation(`/account/admin/permissions/${permissionUuid}`, permissionData, 'PATCH')
+        } else {
+            try {
+                result = await apiRequest(`/api/permissions/${permissionUuid}`, {
+                    token,
+                    method: 'PATCH',
+                    body: JSON.stringify(permissionData),
+                })
+            } catch (error) {
+                if (error.status === 401 || error.status === 403) {
+                    result = await sessionMutation(`/account/admin/permissions/${permissionUuid}`, permissionData, 'PATCH')
+                } else throw error
+            }
+        }
         iamDataStore.logAuditEvent({
             category: 'PERMISSION',
             action: 'UPDATE_PERMISSION',
@@ -631,7 +691,18 @@ export const adminApi = {
         return result
     },
     deletePermission: async (token, permissionUuid) => {
-        const result = await apiRequest(`/api/permissions/${permissionUuid}`, {token, method: 'DELETE'})
+        let result
+        if (!token) {
+            result = await sessionDelete(`/account/admin/permissions/${permissionUuid}`)
+        } else {
+            try {
+                result = await apiRequest(`/api/permissions/${permissionUuid}`, {token, method: 'DELETE'})
+            } catch (error) {
+                if (error.status === 401 || error.status === 403) {
+                    result = await sessionDelete(`/account/admin/permissions/${permissionUuid}`)
+                } else throw error
+            }
+        }
         iamDataStore.logAuditEvent({
             category: 'PERMISSION',
             action: 'DELETE_PERMISSION',

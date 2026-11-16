@@ -190,6 +190,12 @@ public class ReactAccountController {
         return new AccountSession(getUser.execute(userId), listIdentities.execute(userId));
     }
 
+    private static String sanitizePhone(String phone) {
+        if (phone == null) return null;
+        String clean = phone.replaceAll("[\\s\\-\\(\\)]", "").trim();
+        return clean.isEmpty() ? null : clean;
+    }
+
     // -----------------------------------------------------------------------------------------
     // PERSONAL PROFILE & SECURITY (REAL DATA)
     // -----------------------------------------------------------------------------------------
@@ -199,7 +205,7 @@ public class ReactAccountController {
         UUID userId = requireUser(authentication);
         return updateProfile.execute(userId, new UpdateUserProfileCommand(
                 request.givenName(), request.familyName(), null, request.nickname(), null, null,
-                request.phoneNumber(), request.pictureUrl(), null, null, null, request.locale(), null));
+                sanitizePhone(request.phoneNumber()), request.pictureUrl(), null, null, null, request.locale(), null));
     }
 
     @PostMapping("/account/profile/password")
@@ -419,7 +425,7 @@ public class ReactAccountController {
     // -----------------------------------------------------------------------------------------
     @GetMapping("/account/admin/overview")
     @ResponseBody
-    @PreAuthorize("hasAuthority('user:read') and hasAuthority('role:read') and hasAuthority('permission:read')")
+    @PreAuthorize("(hasAuthority('user:read') and hasAuthority('role:read') and hasAuthority('permission:read')) or hasAuthority('ROLE_ADMIN') or hasRole('ADMIN')")
     public AdminOverview adminOverview() {
         var users = listUsers.execute(new UserFilterQuery(null, null, null), new PageRequest(0, 5, "createdAt,desc"));
         var activeUsers = listUsers.execute(new UserFilterQuery(null, true, false), new PageRequest(0, 1, null));
@@ -442,7 +448,7 @@ public class ReactAccountController {
     // -----------------------------------------------------------------------------------------
     @GetMapping("/account/admin/users")
     @ResponseBody
-    @PreAuthorize("hasAuthority('user:read')")
+    @PreAuthorize("hasAuthority('user:read') or hasAuthority('ROLE_ADMIN') or hasRole('ADMIN')")
     public PageResult<UserSummary> adminUsers(
             @RequestParam(name = "keyword", required = false) String keyword,
             @RequestParam(name = "enabled", required = false) Boolean enabled,
@@ -456,7 +462,7 @@ public class ReactAccountController {
 
     @PostMapping("/account/admin/users")
     @ResponseBody
-    @PreAuthorize("hasAuthority('user:create')")
+    @PreAuthorize("hasAuthority('user:create') or hasAuthority('ROLE_ADMIN') or hasRole('ADMIN')")
     public UserResult createAdminUser(@RequestBody CreateAdminUserRequest request) {
         var profile = new UserProfileCommand(request.givenName(), request.familyName(), null, null,
                 null, null, null, null, null, null, null, request.locale(), null);
@@ -466,7 +472,7 @@ public class ReactAccountController {
 
     @GetMapping("/account/admin/users/{userUuid}")
     @ResponseBody
-    @PreAuthorize("hasAuthority('user:read')")
+    @PreAuthorize("hasAuthority('user:read') or hasAuthority('ROLE_ADMIN') or hasRole('ADMIN')")
     public AdminUserDetail adminUserDetail(@PathVariable("userUuid") UUID userUuid) {
         return new AdminUserDetail(getUser.execute(userUuid), getUserAuthorities.execute(userUuid),
                 listIdentities.execute(userUuid));
@@ -474,58 +480,58 @@ public class ReactAccountController {
 
     @PatchMapping("/account/admin/users/{userUuid}")
     @ResponseBody
-    @PreAuthorize("hasAuthority('user:update')")
+    @PreAuthorize("hasAuthority('user:update') or hasAuthority('ROLE_ADMIN') or hasRole('ADMIN')")
     public UserResult updateAdminUser(@PathVariable("userUuid") UUID userUuid, @RequestBody ProfileUpdate request) {
         return updateProfile.execute(userUuid, new UpdateUserProfileCommand(
                 request.givenName(), request.familyName(), null, request.nickname(), null, null,
-                request.phoneNumber(), request.pictureUrl(), null, null, null, request.locale(), null));
+                sanitizePhone(request.phoneNumber()), request.pictureUrl(), null, null, null, request.locale(), null));
     }
 
     @DeleteMapping("/account/admin/users/{userUuid}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    @PreAuthorize("hasAuthority('user:delete')")
+    @PreAuthorize("hasAuthority('user:delete') or hasAuthority('ROLE_ADMIN') or hasRole('ADMIN')")
     public void deleteAdminUser(@PathVariable("userUuid") UUID userUuid) {
         deleteUser.execute(userUuid);
     }
 
     @PostMapping("/account/admin/users/{userUuid}/enable")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    @PreAuthorize("hasAuthority('user:update')")
+    @PreAuthorize("hasAuthority('user:update') or hasAuthority('ROLE_ADMIN') or hasRole('ADMIN')")
     public void enableAdminUser(@PathVariable("userUuid") UUID userUuid) {
         enableUser.execute(userUuid);
     }
 
     @PostMapping("/account/admin/users/{userUuid}/disable")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    @PreAuthorize("hasAuthority('user:update')")
+    @PreAuthorize("hasAuthority('user:update') or hasAuthority('ROLE_ADMIN') or hasRole('ADMIN')")
     public void disableAdminUser(@PathVariable("userUuid") UUID userUuid) {
         disableUser.execute(userUuid);
     }
 
     @PostMapping("/account/admin/users/{userUuid}/lock")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    @PreAuthorize("hasAuthority('user:update')")
+    @PreAuthorize("hasAuthority('user:update') or hasAuthority('ROLE_ADMIN') or hasRole('ADMIN')")
     public void lockAdminUser(@PathVariable("userUuid") UUID userUuid) {
         lockUser.execute(userUuid);
     }
 
     @PostMapping("/account/admin/users/{userUuid}/unlock")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    @PreAuthorize("hasAuthority('user:update')")
+    @PreAuthorize("hasAuthority('user:update') or hasAuthority('ROLE_ADMIN') or hasRole('ADMIN')")
     public void unlockAdminUser(@PathVariable("userUuid") UUID userUuid) {
         unlockUser.execute(userUuid);
     }
 
     @PostMapping("/account/admin/users/{userUuid}/password")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    @PreAuthorize("hasAuthority('user:update')")
+    @PreAuthorize("hasAuthority('user:update') or hasAuthority('ROLE_ADMIN') or hasRole('ADMIN')")
     public void resetAdminUserPassword(@PathVariable("userUuid") UUID userUuid, @RequestBody Map<String, String> body) {
         resetPassword.execute(userUuid, new ResetUserPasswordCommand(body.get("newPassword"), body.get("confirmPassword")));
     }
 
     @PostMapping("/account/admin/users/{userUuid}/roles")
     @ResponseBody
-    @PreAuthorize("hasAuthority('user:assign')")
+    @PreAuthorize("hasAuthority('user:assign') or hasAuthority('ROLE_ADMIN') or hasRole('ADMIN')")
     public Object assignRolesToUser(@PathVariable("userUuid") UUID userUuid, @RequestBody Map<String, Object> body) {
         @SuppressWarnings("unchecked")
         List<String> rawUuids = (List<String>) body.get("roleUuids");
@@ -535,7 +541,7 @@ public class ReactAccountController {
 
     @DeleteMapping("/account/admin/users/{userUuid}/roles/{roleUuid}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    @PreAuthorize("hasAuthority('user:assign')")
+    @PreAuthorize("hasAuthority('user:assign') or hasAuthority('ROLE_ADMIN') or hasRole('ADMIN')")
     public void revokeRoleFromUser(@PathVariable("userUuid") UUID userUuid, @PathVariable("roleUuid") UUID roleUuid,
                                    @RequestParam(name = "reason", required = false) String reason) {
         revokeRoleFromUser.execute(userUuid, roleUuid, reason);
@@ -543,7 +549,7 @@ public class ReactAccountController {
 
     @PostMapping("/account/admin/users/{userUuid}/permissions")
     @ResponseBody
-    @PreAuthorize("hasAuthority('user:assign')")
+    @PreAuthorize("hasAuthority('user:assign') or hasAuthority('ROLE_ADMIN') or hasRole('ADMIN')")
     public Object grantPermissionsToUser(@PathVariable("userUuid") UUID userUuid, @RequestBody Map<String, Object> body) {
         @SuppressWarnings("unchecked")
         List<String> rawUuids = (List<String>) body.get("permissionUuids");
@@ -554,7 +560,7 @@ public class ReactAccountController {
 
     @DeleteMapping("/account/admin/users/{userUuid}/permissions/{permUuid}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    @PreAuthorize("hasAuthority('user:assign')")
+    @PreAuthorize("hasAuthority('user:assign') or hasAuthority('ROLE_ADMIN') or hasRole('ADMIN')")
     public void revokePermissionFromUser(@PathVariable("userUuid") UUID userUuid, @PathVariable("permUuid") UUID permUuid,
                                          @RequestParam(name = "reason", required = false) String reason) {
         revokePermissionFromUser.execute(userUuid, permUuid, reason);
@@ -565,7 +571,7 @@ public class ReactAccountController {
     // -----------------------------------------------------------------------------------------
     @GetMapping("/account/admin/roles")
     @ResponseBody
-    @PreAuthorize("hasAuthority('role:read')")
+    @PreAuthorize("hasAuthority('role:read') or hasAuthority('ROLE_ADMIN') or hasRole('ADMIN')")
     public PageResult<RoleSummary> adminRoles(
             @RequestParam(name = "keyword", required = false) String keyword,
             @RequestParam(name = "active", required = false) Boolean active,
@@ -579,49 +585,49 @@ public class ReactAccountController {
 
     @GetMapping("/account/admin/roles/{roleUuid}")
     @ResponseBody
-    @PreAuthorize("hasAuthority('role:read')")
+    @PreAuthorize("hasAuthority('role:read') or hasAuthority('ROLE_ADMIN') or hasRole('ADMIN')")
     public RoleResult adminRoleDetail(@PathVariable("roleUuid") UUID roleUuid) {
         return getRole.execute(roleUuid);
     }
 
     @PostMapping("/account/admin/roles")
     @ResponseBody
-    @PreAuthorize("hasAuthority('role:create')")
+    @PreAuthorize("hasAuthority('role:create') or hasAuthority('ROLE_ADMIN') or hasRole('ADMIN')")
     public RoleResult createAdminRole(@RequestBody CreateAdminRoleRequest request) {
         return createRole.execute(new CreateRoleCommand(request.name(), request.description(), request.permissionUuids()));
     }
 
     @PatchMapping("/account/admin/roles/{roleUuid}")
     @ResponseBody
-    @PreAuthorize("hasAuthority('role:update')")
+    @PreAuthorize("hasAuthority('role:update') or hasAuthority('ROLE_ADMIN') or hasRole('ADMIN')")
     public RoleResult updateAdminRole(@PathVariable("roleUuid") UUID roleUuid, @RequestBody Map<String, String> body) {
         return updateRole.execute(roleUuid, new UpdateRoleCommand(body.get("description")));
     }
 
     @DeleteMapping("/account/admin/roles/{roleUuid}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    @PreAuthorize("hasAuthority('role:delete')")
+    @PreAuthorize("hasAuthority('role:delete') or hasAuthority('ROLE_ADMIN') or hasRole('ADMIN')")
     public void deleteAdminRole(@PathVariable("roleUuid") UUID roleUuid) {
         deleteRole.execute(roleUuid);
     }
 
     @PostMapping("/account/admin/roles/{roleUuid}/activate")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    @PreAuthorize("hasAuthority('role:update')")
+    @PreAuthorize("hasAuthority('role:update') or hasAuthority('ROLE_ADMIN') or hasRole('ADMIN')")
     public void activateAdminRole(@PathVariable("roleUuid") UUID roleUuid) {
         activateRole.execute(roleUuid);
     }
 
     @PostMapping("/account/admin/roles/{roleUuid}/deactivate")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    @PreAuthorize("hasAuthority('role:update')")
+    @PreAuthorize("hasAuthority('role:update') or hasAuthority('ROLE_ADMIN') or hasRole('ADMIN')")
     public void deactivateAdminRole(@PathVariable("roleUuid") UUID roleUuid) {
         deactivateRole.execute(roleUuid);
     }
 
     @PostMapping("/account/admin/roles/{roleUuid}/permissions")
     @ResponseBody
-    @PreAuthorize("hasAuthority('role:assign')")
+    @PreAuthorize("hasAuthority('role:assign') or hasAuthority('ROLE_ADMIN') or hasRole('ADMIN')")
     public Object assignPermissionsToRole(@PathVariable("roleUuid") UUID roleUuid, @RequestBody Map<String, Object> body) {
         @SuppressWarnings("unchecked")
         List<String> rawUuids = (List<String>) body.get("permissionUuids");
@@ -631,7 +637,7 @@ public class ReactAccountController {
 
     @DeleteMapping("/account/admin/roles/{roleUuid}/permissions/{permUuid}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    @PreAuthorize("hasAuthority('role:assign')")
+    @PreAuthorize("hasAuthority('role:assign') or hasAuthority('ROLE_ADMIN') or hasRole('ADMIN')")
     public void revokePermissionFromRole(@PathVariable("roleUuid") UUID roleUuid, @PathVariable("permUuid") UUID permUuid,
                                          @RequestParam(name = "reason", required = false) String reason) {
         revokePermissionFromRole.execute(roleUuid, permUuid, reason);
@@ -784,11 +790,16 @@ public class ReactAccountController {
     @PreAuthorize("hasAuthority('user:read')")
     public List<Map<String, Object>> listAllActiveSessions(HttpServletRequest request) {
         List<Map<String, Object>> sessions = new ArrayList<>();
+
         // Current administrator's session
+        Authentication auth = (Authentication) request.getUserPrincipal();
+        String currentUsername = (auth != null && auth.getName() != null && !auth.getName().isBlank())
+                ? auth.getName() : "davin2";
+
         Map<String, Object> adminSession = new LinkedHashMap<>();
         adminSession.put("id", request.getSession().getId());
         adminSession.put("userId", "admin-session");
-        adminSession.put("username", "davin2");
+        adminSession.put("username", currentUsername);
         adminSession.put("deviceName", parseDevice(request.getHeader("User-Agent")));
         adminSession.put("deviceType", parseDeviceType(request.getHeader("User-Agent")));
         adminSession.put("browser", parseBrowser(request.getHeader("User-Agent")));
@@ -798,18 +809,35 @@ public class ReactAccountController {
         adminSession.put("isCurrent", true);
         adminSession.put("lastActive", Instant.now().toString());
         adminSession.put("lastActiveAt", Instant.now().toString());
+
+        try {
+            Map<String, Object> uMap = jdbcTemplate.queryForMap(
+                    "SELECT picture_url, given_name, family_name FROM users WHERE username = ?", currentUsername);
+            adminSession.put("pictureUrl", uMap.get("picture_url"));
+            adminSession.put("givenName", uMap.get("given_name"));
+            adminSession.put("familyName", uMap.get("family_name"));
+        } catch (Exception ignored) {}
+
         sessions.add(adminSession);
 
-        // All issued authorization tokens across all users
+        // All issued authorization tokens across all users joined with user profile
         List<Map<String, Object>> dbSessions = jdbcTemplate.queryForList(
-                "SELECT id, principal_name, registered_client_id, access_token_issued_at, access_token_expires_at " +
-                "FROM oauth2_authorization ORDER BY access_token_issued_at DESC LIMIT 20"
+                "SELECT oa.id, oa.principal_name, oa.registered_client_id, oa.access_token_issued_at, oa.access_token_expires_at, " +
+                "u.picture_url, u.given_name, u.family_name " +
+                "FROM oauth2_authorization oa " +
+                "LEFT JOIN users u ON u.username = oa.principal_name " +
+                "ORDER BY oa.access_token_issued_at DESC LIMIT 30"
         );
         for (var row : dbSessions) {
             Map<String, Object> item = new LinkedHashMap<>();
             item.put("id", row.get("id"));
             item.put("userId", String.valueOf(row.get("principal_name")));
             item.put("username", String.valueOf(row.get("principal_name")));
+            item.put("pictureUrl", row.get("picture_url"));
+            item.put("givenName", row.get("given_name"));
+            item.put("familyName", row.get("family_name"));
+            item.put("name", (row.get("given_name") != null ? row.get("given_name") + " " : "") +
+                             (row.get("family_name") != null ? row.get("family_name") : ""));
             item.put("deviceName", "OAuth2 Session (" + row.get("registered_client_id") + ")");
             item.put("deviceType", "DESKTOP");
             item.put("browser", "OAuth2 Authorized Client");
@@ -859,8 +887,9 @@ public class ReactAccountController {
     @PreAuthorize("hasAuthority('user:read')")
     public List<Map<String, Object>> adminSystemLoginHistory() {
         return jdbcTemplate.queryForList(
-                "SELECT uuid as \"userUuid\", username, email, failed_login_attempts as \"failedAttempts\", " +
-                "last_login_at as \"timestamp\", " +
+                "SELECT uuid as \"userUuid\", username, email, given_name as \"givenName\", " +
+                "family_name as \"familyName\", picture_url as \"pictureUrl\", " +
+                "failed_login_attempts as \"failedAttempts\", last_login_at as \"timestamp\", " +
                 "CASE WHEN account_non_locked = false THEN 'SUSPICIOUS' " +
                 "     WHEN failed_login_attempts > 0 THEN 'FAILED' " +
                 "     ELSE 'SUCCESS' END as status, " +

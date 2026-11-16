@@ -48,7 +48,44 @@ export function hasAdminRole(user) {
 }
 
 export function getInitials(user) {
-    return `${user?.givenName?.[0] || user?.username?.[0] || 'A'}${user?.familyName?.[0] || ''}`.toUpperCase()
+    if (!user) return 'U'
+
+    // 1. If givenName and familyName exist
+    const given = (user.givenName || '').trim()
+    const family = (user.familyName || '').trim()
+    if (given && family) {
+        return `${given[0]}${family[0]}`.toUpperCase()
+    }
+    if (given) return given.slice(0, 2).toUpperCase()
+    if (family) return family.slice(0, 2).toUpperCase()
+
+    // 2. If single name string like "Long Sotheara", "Da Vin", "Thai Thai"
+    const fullName = (user.name || '').replace(/[\(\)\[\]\{\}]/g, '').trim()
+    if (fullName) {
+        const parts = fullName.split(/\s+/).filter(Boolean)
+        if (parts.length >= 2) {
+            return `${parts[0][0]}${parts[parts.length - 1][0]}`.toUpperCase()
+        }
+        if (parts.length === 1 && parts[0].length >= 2) {
+            return parts[0].slice(0, 2).toUpperCase()
+        }
+        if (parts.length === 1) {
+            return parts[0][0].toUpperCase()
+        }
+    }
+
+    // 3. Fallback to username or email
+    const username = (user.username || '').trim()
+    if (username) {
+        return username.slice(0, Math.min(2, username.length)).toUpperCase()
+    }
+
+    const email = (user.email || '').trim()
+    if (email) {
+        return email.slice(0, 2).toUpperCase()
+    }
+
+    return 'U'
 }
 
 export function formatMemberDate(value, locale) {

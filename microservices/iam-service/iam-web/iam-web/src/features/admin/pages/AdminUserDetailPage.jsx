@@ -17,6 +17,7 @@ import {
 import {adminApi} from '../api/adminApi'
 import {adminResetPasswordSchema, profileSchema, validateForm} from '../../../utils/validation'
 import Avatar from '../../../components/common/Avatar'
+import {PRESET_AVATARS} from '../../../components/profile/ProfilePage'
 import {Badge} from '../../../components/ui/badge'
 import {Button} from '../../../components/ui/button'
 import {Card} from '../../../components/ui/card'
@@ -421,28 +422,45 @@ function AdminResetPasswordDialog({open, onClose, onReset, token, user, t, local
 // Edit User Profile Dialog
 function EditUserDialog({open, onClose, onUpdated, token, user, t, locale}) {
     const [form, setForm] = useState({
-        givenName: user.givenName || '',
-        familyName: user.familyName || '',
-        phoneNumber: user.phoneNumber || '',
-        pictureUrl: user.pictureUrl || '',
-        locale: user.locale || 'en',
+        givenName: user?.givenName || '',
+        familyName: user?.familyName || '',
+        phoneNumber: user?.phoneNumber || '',
+        pictureUrl: user?.pictureUrl || '',
+        locale: user?.locale || 'en',
     })
     const [busy, setBusy] = useState(false)
     const [error, setError] = useState('')
+
+    useEffect(() => {
+        if (open && user) {
+            setForm({
+                givenName: user.givenName || '',
+                familyName: user.familyName || '',
+                phoneNumber: user.phoneNumber || '',
+                pictureUrl: user.pictureUrl || '',
+                locale: user.locale || 'en',
+            })
+            setError('')
+        }
+    }, [open, user])
 
     if (!open) return null
 
     async function submit(e) {
         e.preventDefault()
         setError('')
-        const validation = validateForm(profileSchema, form)
+        const cleanedForm = {
+            ...form,
+            phoneNumber: form.phoneNumber ? form.phoneNumber.replace(/[\s\-()]/g, '').trim() : ''
+        }
+        const validation = validateForm(profileSchema, cleanedForm)
         if (!validation.success) {
             setError(validation.firstErrorMessage)
             return
         }
         setBusy(true)
         try {
-            await adminApi.updateUser(token, user.uuid || user.id, form)
+            await adminApi.updateUser(token, user.uuid || user.id, cleanedForm)
             onUpdated()
             onClose()
         } catch (err) {
@@ -500,7 +518,7 @@ function EditUserDialog({open, onClose, onUpdated, token, user, t, locale}) {
                         />
                     </label>
 
-                    <label className="grid gap-1 text-xs font-medium text-slate-700 dark:text-slate-300">
+                    <div className="grid gap-1.5 text-xs font-medium text-slate-700 dark:text-slate-300">
                         <span>Profile Picture URL</span>
                         <Input
                             value={form.pictureUrl}
@@ -508,7 +526,22 @@ function EditUserDialog({open, onClose, onUpdated, token, user, t, locale}) {
                             placeholder="https://example.com/avatar.jpg"
                             className="text-xs"
                         />
-                    </label>
+                        <div className="flex flex-wrap items-center gap-1.5 mt-1">
+                            <span className="text-[11px] text-slate-400">Quick avatars:</span>
+                            {PRESET_AVATARS.map((preset, index) => (
+                                <button
+                                    type="button"
+                                    key={index}
+                                    onClick={() => setForm({...form, pictureUrl: preset})}
+                                    className={`size-7 rounded-full overflow-hidden border-2 transition cursor-pointer ${
+                                        form.pictureUrl === preset ? 'border-violet-600 ring-2 ring-violet-200 dark:ring-violet-800' : 'border-transparent opacity-70 hover:opacity-100'
+                                    }`}
+                                >
+                                    <img src={preset} alt="preset" className="size-full object-cover" />
+                                </button>
+                            ))}
+                        </div>
+                    </div>
 
                     <label className="grid gap-1 text-xs font-medium text-slate-700 dark:text-slate-300">
                         <span>{t.language || 'Language'}</span>

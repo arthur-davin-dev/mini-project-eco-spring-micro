@@ -10,6 +10,7 @@ import {
     CheckCircle2
 } from 'lucide-react'
 import {adminApi} from '../api/adminApi'
+import Avatar from '../../../components/common/Avatar'
 import {Badge} from '../../../components/ui/badge'
 import {Button} from '../../../components/ui/button'
 import {Card} from '../../../components/ui/card'
@@ -181,10 +182,17 @@ export default function AdminUserSessionsPage({locale, t}) {
                             return (
                                 <TableRow key={s.id} className="hover:bg-slate-50/70 dark:hover:bg-slate-800/40">
                                     <TableCell className="font-bold text-xs text-slate-900 dark:text-white">
-                                        <div className="flex items-center gap-2">
-                                            <span className="grid size-7 place-items-center rounded-full bg-violet-100 text-[10px] font-bold text-violet-700">
-                                                {s.username?.[0]?.toUpperCase()}
-                                            </span>
+                                        <div className="flex items-center gap-2.5">
+                                            <Avatar
+                                                user={{
+                                                    username: s.username,
+                                                    givenName: s.givenName,
+                                                    familyName: s.familyName,
+                                                    name: s.name,
+                                                    pictureUrl: s.pictureUrl,
+                                                }}
+                                                className="size-7 text-[10px]"
+                                            />
                                             <div>
                                                 <span>@{s.username}</span>
                                                 {s.isCurrent && (

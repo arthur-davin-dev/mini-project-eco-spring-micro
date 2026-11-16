@@ -4,35 +4,42 @@ import {z} from 'zod'
  * Common Zod validation schemas across IAM forms
  */
 
-export const createUserSchema = z.object({
-    username: z
-        .string()
-        .min(3, 'Username must be at least 3 characters')
-        .max(50, 'Username cannot exceed 50 characters')
-        .regex(/^[a-zA-Z0-9._-]+$/, 'Username can only contain letters, numbers, dots, hyphens, and underscores'),
-    email: z
-        .string()
-        .min(1, 'Email address is required')
-        .email('Invalid email address format'),
-    givenName: z
-        .string()
-        .min(1, 'First name is required')
-        .max(50, 'First name cannot exceed 50 characters'),
-    familyName: z
-        .string()
-        .min(1, 'Last name is required')
-        .max(50, 'Last name cannot exceed 50 characters'),
-    password: z
-        .string()
-        .min(8, 'Password must be at least 8 characters'),
-    confirmPassword: z
-        .string()
-        .min(1, 'Please confirm the password'),
-    locale: z.string().default('en'),
-}).refine(data => data.password === data.confirmPassword, {
-    message: 'The passwords do not match',
-    path: ['confirmPassword'],
-})
+export function getRegisterSchema(locale = 'en') {
+    const isKm = locale === 'km'
+    return z.object({
+        username: z
+            .string({required_error: isKm ? 'សូមបញ្ចូលឈ្មោះអ្នកប្រើប្រាស់' : 'Username is required'})
+            .min(1, isKm ? 'សូមបញ្ចូលឈ្មោះអ្នកប្រើប្រាស់' : 'Username is required')
+            .min(3, isKm ? 'ឈ្មោះអ្នកប្រើប្រាស់ត្រូវមានយ៉ាងតិច 3 តួអក្សរ' : 'Username must be at least 3 characters')
+            .max(50, isKm ? 'ឈ្មោះអ្នកប្រើប្រាស់មិនអាចលើសពី 50 តួអក្សរទេ' : 'Username cannot exceed 50 characters')
+            .regex(/^[a-zA-Z0-9._-]+$/, isKm ? 'ឈ្មោះអ្នកប្រើប្រាស់អាចមានតែអក្សរ លេខ សញ្ញាចុច ដក និង underscore ប៉ុណ្ណោះ' : 'Username can only contain letters, numbers, dots, hyphens, and underscores'),
+        email: z
+            .string({required_error: isKm ? 'សូមបញ្ចូលអាសយដ្ឋានអ៊ីមែល' : 'Email address is required'})
+            .min(1, isKm ? 'សូមបញ្ចូលអាសយដ្ឋានអ៊ីមែល' : 'Email address is required')
+            .email(isKm ? 'ទម្រង់អាសយដ្ឋានអ៊ីមែលមិនត្រឹមត្រូវទេ' : 'Invalid email address format'),
+        givenName: z
+            .string({required_error: isKm ? 'សូមបញ្ចូលនាមខ្លួន' : 'First name is required'})
+            .min(1, isKm ? 'សូមបញ្ចូលនាមខ្លួន' : 'First name is required')
+            .max(50, isKm ? 'នាមខ្លួនមិនអាចលើសពី 50 តួអក្សរទេ' : 'First name cannot exceed 50 characters'),
+        familyName: z
+            .string({required_error: isKm ? 'សូមបញ្ចូលនាមត្រកូល' : 'Last name is required'})
+            .min(1, isKm ? 'សូមបញ្ចូលនាមត្រកូល' : 'Last name is required')
+            .max(50, isKm ? 'នាមត្រកូលមិនអាចលើសពី 50 តួអក្សរទេ' : 'Last name cannot exceed 50 characters'),
+        password: z
+            .string({required_error: isKm ? 'សូមបញ្ចូលពាក្យសម្ងាត់' : 'Password is required'})
+            .min(1, isKm ? 'សូមបញ្ចូលពាក្យសម្ងាត់' : 'Password is required')
+            .min(8, isKm ? 'ពាក្យសម្ងាត់ត្រូវមានយ៉ាងតិច 8 តួអក្សរ' : 'Password must be at least 8 characters'),
+        confirmPassword: z
+            .string({required_error: isKm ? 'សូមបញ្ជាក់ពាក្យសម្ងាត់' : 'Please confirm the password'})
+            .min(1, isKm ? 'សូមបញ្ជាក់ពាក្យសម្ងាត់' : 'Please confirm the password'),
+        locale: z.string().default('en'),
+    }).refine(data => data.password === data.confirmPassword, {
+        message: isKm ? 'ពាក្យសម្ងាត់ទាំងពីរមិនត្រូវគ្នាទេ' : 'The passwords do not match',
+        path: ['confirmPassword'],
+    })
+}
+
+export const createUserSchema = getRegisterSchema('en')
 
 export const loginSchema = z.object({
     username: z.string().min(1, 'Username is required'),
