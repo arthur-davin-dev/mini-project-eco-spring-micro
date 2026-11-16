@@ -118,7 +118,7 @@ export default function SecurityPage({t, working, onSave, locale}) {
                             <button
                                 type="button"
                                 onClick={() => setShowPassword(!showPassword)}
-                                className="flex items-center gap-1 text-[11px] text-slate-400 hover:text-slate-600"
+                                className="flex items-center gap-1 text-[11px] text-slate-400 transition-colors hover:text-violet-600 dark:hover:text-violet-400"
                             >
                                 {showPassword ? <EyeOff className="size-3"/> : <Eye className="size-3"/>}
                                 {showPassword ? 'Hide' : 'Show'}
@@ -165,7 +165,7 @@ export default function SecurityPage({t, working, onSave, locale}) {
                     {/* Password Strength Meter */}
                     {newPassword && (
                         <div
-                            className="sm:col-span-2 rounded-xl border border-slate-100 bg-slate-50/60 p-4 dark:border-slate-800 dark:bg-slate-900/40">
+                            className="sm:col-span-2 rounded-xl border border-slate-100 bg-slate-50/60 p-4 transition-shadow duration-200 hover:shadow-sm dark:border-slate-800 dark:bg-slate-900/40">
                             <div className="flex items-center justify-between mb-2">
                                 <span className="text-xs font-semibold text-slate-600 dark:text-slate-300">
                                     {locale === 'km' ? 'កម្រិតសុវត្ថិភាពពាក្យសម្ងាត់:' : 'Password strength:'}
@@ -186,8 +186,10 @@ export default function SecurityPage({t, working, onSave, locale}) {
                                 {rules.map((rule, idx) => (
                                     <span
                                         key={idx}
-                                        className={`flex items-center gap-1.5 ${
-                                            rule.met ? 'text-emerald-600 font-medium' : 'text-slate-400'
+                                        className={`flex items-center gap-1.5 rounded-md px-1.5 py-0.5 -mx-1.5 transition-colors duration-150 cursor-default ${
+                                            rule.met
+                                                ? 'text-emerald-600 font-medium hover:bg-emerald-50 dark:hover:bg-emerald-950/40'
+                                                : 'text-slate-400 hover:bg-slate-100 hover:text-slate-600 dark:hover:bg-slate-800 dark:hover:text-slate-300'
                                         }`}
                                     >
                                         {rule.met ? <Check className="size-3.5"/> : <X className="size-3.5"/>}
@@ -203,7 +205,7 @@ export default function SecurityPage({t, working, onSave, locale}) {
                         <Button
                             type="submit"
                             disabled={working}
-                            className="bg-violet-700 hover:bg-violet-800 text-white font-semibold text-xs"
+                            className="bg-violet-700 hover:bg-violet-800 hover:shadow-md active:scale-[0.98] transition-all duration-150 text-white font-semibold text-xs disabled:opacity-60 disabled:hover:shadow-none"
                         >
                             {working ? '…' : (
                                 <>
@@ -218,10 +220,10 @@ export default function SecurityPage({t, working, onSave, locale}) {
 
             {/* Account Security Overview */}
             <div className="grid gap-4 sm:grid-cols-3">
-                <Card className="p-4">
+                <Card className="group p-4 cursor-default transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md hover:border-emerald-200 dark:hover:border-emerald-800">
                     <div className="flex items-center gap-3">
                         <span
-                            className="grid size-9 place-items-center rounded-lg bg-emerald-50 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300">
+                            className="grid size-9 place-items-center rounded-lg bg-emerald-50 text-emerald-700 transition-transform duration-200 group-hover:scale-110 dark:bg-emerald-950 dark:text-emerald-300">
                             <ShieldCheck className="size-5"/>
                         </span>
                         <div>
@@ -231,10 +233,10 @@ export default function SecurityPage({t, working, onSave, locale}) {
                     </div>
                 </Card>
 
-                <Card className="p-4">
+                <Card className="group p-4 cursor-default transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md hover:border-violet-200 dark:hover:border-violet-800">
                     <div className="flex items-center gap-3">
                         <span
-                            className="grid size-9 place-items-center rounded-lg bg-violet-50 text-violet-700 dark:bg-violet-950 dark:text-violet-300">
+                            className="grid size-9 place-items-center rounded-lg bg-violet-50 text-violet-700 transition-transform duration-200 group-hover:scale-110 dark:bg-violet-950 dark:text-violet-300">
                             <Lock className="size-5"/>
                         </span>
                         <div>
@@ -244,10 +246,10 @@ export default function SecurityPage({t, working, onSave, locale}) {
                     </div>
                 </Card>
 
-                <Card className="p-4">
+                <Card className="group p-4 cursor-default transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md hover:border-blue-200 dark:hover:border-blue-800">
                     <div className="flex items-center gap-3">
                         <span
-                            className="grid size-9 place-items-center rounded-lg bg-blue-50 text-blue-700 dark:bg-blue-950 dark:text-blue-300">
+                            className="grid size-9 place-items-center rounded-lg bg-blue-50 text-blue-700 transition-transform duration-200 group-hover:scale-110 dark:bg-blue-950 dark:text-blue-300">
                             <Info className="size-5"/>
                         </span>
                         <div>

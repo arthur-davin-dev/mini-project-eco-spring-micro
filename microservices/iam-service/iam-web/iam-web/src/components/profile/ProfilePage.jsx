@@ -21,6 +21,21 @@ import {Badge} from '../ui/badge'
 const card = 'rounded-xl border border-[var(--color-line)] bg-white p-5 shadow-sm dark:border-slate-700 dark:bg-slate-900'
 const button = 'inline-flex h-9 items-center justify-center gap-2 rounded-lg border border-slate-200 bg-white px-3 text-xs font-semibold text-slate-600 hover:bg-slate-50 disabled:opacity-50 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200'
 
+const fieldHover =
+    'rounded-lg transition-shadow duration-200 ' +
+    '[&_input]:transition-all [&_input]:duration-200 ' +
+    '[&_input:not(:disabled):hover]:border-violet-300 [&_input:not(:disabled):hover]:shadow-sm ' +
+    '[&_input:focus]:border-violet-500 [&_input:focus]:ring-2 [&_input:focus]:ring-violet-200 ' +
+    'dark:[&_input:not(:disabled):hover]:border-violet-700 dark:[&_input:focus]:ring-violet-900'
+
+function HoverField(props) {
+    return (
+        <div className={fieldHover}>
+            <Field {...props} />
+        </div>
+    )
+}
+
 export const PRESET_AVATARS = [
     'https://i.pinimg.com/736x/57/a9/7d/57a97ddfd303d50b8678930f2897fc4e.jpg',
     'https://i.pinimg.com/1200x/02/1b/97/021b970e3a3e67fe6f64f7990bdaae54.jpg',
@@ -133,32 +148,32 @@ export default function ProfilePage({user, identities, roleNames, locale, t, wor
 
                 {editing ? (
                     <form className="grid grid-cols-1 gap-4 sm:grid-cols-2" onSubmit={submitProfile}>
-                        <Field
+                        <HoverField
                             label={t.firstName || 'First name'}
                             value={form.givenName}
                             onChange={(givenName) => setForm({...form, givenName})}
                         />
-                        <Field
+                        <HoverField
                             label={t.lastName || 'Last name'}
                             value={form.familyName}
                             onChange={(familyName) => setForm({...form, familyName})}
                         />
-                        <Field
+                        <HoverField
                             label={t.nickname || 'Display name / Nickname'}
                             value={form.nickname}
                             onChange={(nickname) => setForm({...form, nickname})}
                         />
-                        <Field
+                        <HoverField
                             label={t.username || 'Username'}
                             value={user.username}
                             disabled
                         />
-                        <Field
+                        <HoverField
                             label={t.email || 'Email address'}
                             value={user.email}
                             disabled
                         />
-                        <Field
+                        <HoverField
                             label={t.phone || 'Phone number'}
                             value={form.phoneNumber}
                             placeholder="+855 12 345 678"
@@ -167,7 +182,7 @@ export default function ProfilePage({user, identities, roleNames, locale, t, wor
 
                         {/* Profile Picture Input & Presets */}
                         <div className="sm:col-span-2 grid gap-2">
-                            <Field
+                            <HoverField
                                 label="Profile picture URL"
                                 value={form.pictureUrl}
                                 placeholder="https://example.com/avatar.jpg"
@@ -193,7 +208,7 @@ export default function ProfilePage({user, identities, roleNames, locale, t, wor
                         <div className="grid gap-1.5 text-xs font-medium text-slate-600 dark:text-slate-300">
                             <span>{t.language || 'Language'}</span>
                             <Select value={form.locale} onValueChange={(nextLocale) => setForm({...form, locale: nextLocale})}>
-                                <SelectTrigger className="h-10 w-full rounded-lg border-slate-200 bg-white px-3 text-sm dark:border-slate-700 dark:bg-slate-950">
+                                <SelectTrigger className="h-10 w-full rounded-lg border-slate-200 bg-white px-3 text-sm transition-all hover:border-violet-300 hover:shadow-sm focus:border-violet-500 focus:ring-2 focus:ring-violet-200 dark:border-slate-700 dark:bg-slate-950 dark:hover:border-violet-700 dark:focus:ring-violet-900">
                                     <SelectValue />
                                 </SelectTrigger>
                                 <SelectContent>
