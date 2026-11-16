@@ -54,3 +54,4 @@ docs/*
 test-integration.sh
 Dockerfile
 .dockerignore
+microservices/iam-service/.env.properties
