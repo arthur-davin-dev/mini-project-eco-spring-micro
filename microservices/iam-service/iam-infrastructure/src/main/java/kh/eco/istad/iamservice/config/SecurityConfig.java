@@ -254,18 +254,9 @@ public class SecurityConfig {
             if ("0:0:0:0:0:0:0:1".equals(ip) || "::1".equals(ip)) {
                 ip = "127.0.0.1";
             }
-            String ua = request.getHeader("User-Agent");
-            String browser = "Chrome";
-            if (ua != null) {
-                if (ua.contains("Firefox")) browser = "Firefox";
-                else if (ua.contains("Edg")) browser = "Edge";
-                else if (ua.contains("Safari") && !ua.contains("Chrome")) browser = "Safari";
-                else if (ua.contains("Chrome")) browser = "Chrome";
-            }
-            String device = "Desktop (" + browser + " Session)";
-            if (ua != null && (ua.contains("Mobile") || ua.contains("Android") || ua.contains("iPhone"))) {
-                device = "Mobile (" + browser + ")";
-            }
+            String[] bd = detectBrowserAndDevice(request);
+            String browser = bd[0];
+            String device = bd[1];
 
             UUID userUuid = null;
             var rows = jdbcTemplate.queryForList("SELECT uuid FROM users WHERE username = ? OR email = ?", username, username);
@@ -290,6 +281,98 @@ public class SecurityConfig {
         } catch (Exception ex) {
             LOGGER.warn("Failed to log login event for user '{}': {}", username, ex.getMessage());
         }
+    }
+
+    private String[] detectBrowserAndDevice(jakarta.servlet.http.HttpServletRequest request) {
+        if (request == null) return new String[]{"Chrome", "Desktop (Browser Session)"};
+
+        String paramBrowser = request.getParameter("client_browser");
+        if (paramBrowser == null || paramBrowser.isBlank()) {
+            paramBrowser = request.getParameter("browser");
+        }
+        String paramDevice = request.getParameter("client_device");
+        String headerBrowser = request.getHeader("X-Client-Browser");
+
+        String cookieBrowser = null;
+        String cookieDevice = null;
+        if (request.getCookies() != null) {
+            for (var cookie : request.getCookies()) {
+                if ("client_browser".equals(cookie.getName())) {
+                    try {
+                        cookieBrowser = java.net.URLDecoder.decode(cookie.getValue(), java.nio.charset.StandardCharsets.UTF_8);
+                    } catch (Exception ignored) {}
+                } else if ("client_device".equals(cookie.getName())) {
+                    try {
+                        cookieDevice = java.net.URLDecoder.decode(cookie.getValue(), java.nio.charset.StandardCharsets.UTF_8);
+                    } catch (Exception ignored) {}
+                }
+            }
+        }
+
+        String browser = null;
+        if (paramBrowser != null && !paramBrowser.isBlank()) browser = paramBrowser.trim();
+        else if (headerBrowser != null && !headerBrowser.isBlank()) browser = headerBrowser.trim();
+        else if (cookieBrowser != null && !cookieBrowser.isBlank()) browser = cookieBrowser.trim();
+
+        String ua = request.getHeader("User-Agent");
+        String secChUa = request.getHeader("Sec-CH-UA");
+        String secGpc = request.getHeader("Sec-GPC");
+
+        if (browser == null || "Chrome".equalsIgnoreCase(browser) || "Web Browser".equalsIgnoreCase(browser)) {
+            if (secChUa != null) {
+                String lowerCh = secChUa.toLowerCase();
+                if (lowerCh.contains("brave")) browser = "Brave";
+                else if (lowerCh.contains("edg")) browser = "Edge";
+                else if (lowerCh.contains("opera") || lowerCh.contains("opr")) browser = "Opera";
+                else if (lowerCh.contains("vivaldi")) browser = "Vivaldi";
+            }
+
+            if ((browser == null || "Chrome".equalsIgnoreCase(browser)) && "1".equals(secGpc)) {
+                browser = "Brave";
+            }
+
+            if (browser == null || "Web Browser".equalsIgnoreCase(browser)) {
+                if (ua != null) {
+                    String lowerUa = ua.toLowerCase();
+                    if (lowerUa.contains("brave")) browser = "Brave";
+                    else if (lowerUa.contains("edg")) browser = "Edge";
+                    else if (lowerUa.contains("opr") || lowerUa.contains("opera")) browser = "Opera";
+                    else if (lowerUa.contains("vivaldi")) browser = "Vivaldi";
+                    else if (lowerUa.contains("firefox")) browser = "Firefox";
+                    else if (lowerUa.contains("samsungbrowser")) browser = "Samsung Internet";
+                    else if (lowerUa.contains("safari") && !lowerUa.contains("chrome")) browser = "Safari";
+                    else if (lowerUa.contains("chrome")) browser = "Chrome";
+                    else browser = "Chrome";
+                } else {
+                    browser = "Chrome";
+                }
+            }
+        }
+
+        if (browser == null || browser.isBlank()) {
+            browser = "Chrome";
+        }
+
+        String device = null;
+        if (paramDevice != null && !paramDevice.isBlank()) {
+            device = paramDevice.trim();
+        } else if (cookieDevice != null && !cookieDevice.isBlank()) {
+            device = cookieDevice.trim();
+        } else {
+            String os = "Desktop";
+            if (ua != null) {
+                if (ua.contains("Android")) os = "Android";
+                else if (ua.contains("iPhone")) os = "iPhone";
+                else if (ua.contains("iPad")) os = "iPad";
+                else if (ua.contains("Macintosh") || ua.contains("Mac OS")) os = "macOS";
+                else if (ua.contains("Windows")) os = "Windows PC";
+                else if (ua.contains("Linux")) os = "Linux";
+                else if (ua.contains("CrOS")) os = "Chrome OS";
+            }
+            device = os + " (" + browser + " Session)";
+        }
+
+        return new String[]{browser, device};
     }
 
     private OAuth2AuthorizationRequestResolver authorizationRequestResolver() {

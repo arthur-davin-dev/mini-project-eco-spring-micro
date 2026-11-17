@@ -140,7 +140,7 @@ Spring Authorization Server persists registered clients, authorizations, and con
 
 ## Web pages and localization
 
-The React/Vite app in `iam-web/iam-web` serves login, registration, consent, connected applications, and the account experience. Spring serves the built app under `/react`; the API and server form endpoints remain in the IAM modules. Refer to the [web and i18n implementation notes](../../docs/iam-service/05-web-and-i18n.md) for routes and localization details.
+The React/Vite app in `iam-web/frontend` serves login, registration, consent, connected applications, and the account experience. Spring serves the built app under `/react`; the API and server form endpoints remain in the IAM modules. Refer to the [web and i18n implementation notes](../../docs/iam-service/05-web-and-i18n.md) for routes and localization details.
 
 ## Verification and delivery
 

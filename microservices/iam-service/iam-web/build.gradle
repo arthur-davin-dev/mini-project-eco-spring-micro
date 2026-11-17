@@ -5,7 +5,7 @@ plugins {
 
 node {
     download = false
-    nodeProjectDir = file('iam-web')
+    nodeProjectDir = file('frontend')
 }
 
 tasks.register('buildReactFrontend', com.github.gradle.node.npm.task.NpmTask) {

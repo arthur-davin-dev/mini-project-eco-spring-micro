@@ -158,13 +158,30 @@ public class ReactAccountController {
     // -----------------------------------------------------------------------------------------
     // SPA ROUTE FORWARDING
     // -----------------------------------------------------------------------------------------
-    @GetMapping("/account")
-    public String account() {
-        return "forward:/index.html";
-    }
-
-    @GetMapping({"/profile/{section}", "/profile/{section}/{itemId}", "/admin", "/admin/{section}",
-            "/admin/{section}/{itemId}"})
+    // SPA PAGE ROUTING
+    // -----------------------------------------------------------------------------------------
+    @GetMapping({
+            "/account",
+            "/account/profile",
+            "/account/password",
+            "/account/linked",
+            "/account/linked-accounts",
+            "/account/sessions",
+            "/account/session-management",
+            "/account/login-history",
+            "/account/activity",
+            "/account/deactivate",
+            "/home",
+            "/admin",
+            "/admin/{section}",
+            "/admin/{section}/{itemId}",
+            "/profile",
+            "/profile/{section}",
+            "/profile/{section}/{itemId}",
+            "/callback",
+            "/oauth2/callback",
+            "/expired-password"
+    })
     public String accountPage() {
         return "forward:/index.html";
     }
@@ -359,26 +376,98 @@ public class ReactAccountController {
 
     private String[] extractBrowserAndDevice(HttpServletRequest request) {
         if (request == null) return new String[]{"Chrome", "Desktop (Browser Session)"};
-        String ua = request.getHeader("User-Agent");
-        if (ua == null || ua.isBlank()) return new String[]{"Chrome", "Desktop (Browser Session)"};
 
-        String browser = "Chrome";
-        if (ua.contains("Firefox")) browser = "Firefox";
-        else if (ua.contains("Edg")) browser = "Edge";
-        else if (ua.contains("Safari") && !ua.contains("Chrome")) browser = "Safari";
-        else if (ua.contains("Chrome")) browser = "Chrome";
+        // 1. Check form parameter if posted (e.g. from login form)
+        String paramBrowser = request.getParameter("client_browser");
+        if (paramBrowser == null || paramBrowser.isBlank()) {
+            paramBrowser = request.getParameter("browser");
+        }
+        String paramDevice = request.getParameter("client_device");
+
+        // 2. Check custom header (from fetch/API)
+        String headerBrowser = request.getHeader("X-Client-Browser");
+
+        // 3. Check cookies (persisted by client-side browser detection)
+        String cookieBrowser = null;
+        String cookieDevice = null;
+        if (request.getCookies() != null) {
+            for (var cookie : request.getCookies()) {
+                if ("client_browser".equals(cookie.getName())) {
+                    try {
+                        cookieBrowser = java.net.URLDecoder.decode(cookie.getValue(), java.nio.charset.StandardCharsets.UTF_8);
+                    } catch (Exception ignored) {}
+                } else if ("client_device".equals(cookie.getName())) {
+                    try {
+                        cookieDevice = java.net.URLDecoder.decode(cookie.getValue(), java.nio.charset.StandardCharsets.UTF_8);
+                    } catch (Exception ignored) {}
+                }
+            }
+        }
+
+        String browser = null;
+        if (paramBrowser != null && !paramBrowser.isBlank()) browser = paramBrowser.trim();
+        else if (headerBrowser != null && !headerBrowser.isBlank()) browser = headerBrowser.trim();
+        else if (cookieBrowser != null && !cookieBrowser.isBlank()) browser = cookieBrowser.trim();
+
+        String ua = request.getHeader("User-Agent");
+        String secChUa = request.getHeader("Sec-CH-UA");
+        String secGpc = request.getHeader("Sec-GPC");
+
+        if (browser == null || "Chrome".equalsIgnoreCase(browser) || "Web Browser".equalsIgnoreCase(browser)) {
+            // Check Sec-CH-UA header
+            if (secChUa != null) {
+                String lowerCh = secChUa.toLowerCase();
+                if (lowerCh.contains("brave")) browser = "Brave";
+                else if (lowerCh.contains("edg")) browser = "Edge";
+                else if (lowerCh.contains("opera") || lowerCh.contains("opr")) browser = "Opera";
+                else if (lowerCh.contains("vivaldi")) browser = "Vivaldi";
+            }
+
+            // Brave sends Sec-GPC: 1 by default
+            if ((browser == null || "Chrome".equalsIgnoreCase(browser)) && "1".equals(secGpc)) {
+                browser = "Brave";
+            }
+
+            // Check User-Agent
+            if (browser == null || "Web Browser".equalsIgnoreCase(browser)) {
+                if (ua != null) {
+                    String lowerUa = ua.toLowerCase();
+                    if (lowerUa.contains("brave")) browser = "Brave";
+                    else if (lowerUa.contains("edg")) browser = "Edge";
+                    else if (lowerUa.contains("opr") || lowerUa.contains("opera")) browser = "Opera";
+                    else if (lowerUa.contains("vivaldi")) browser = "Vivaldi";
+                    else if (lowerUa.contains("firefox")) browser = "Firefox";
+                    else if (lowerUa.contains("samsungbrowser")) browser = "Samsung Internet";
+                    else if (lowerUa.contains("safari") && !lowerUa.contains("chrome")) browser = "Safari";
+                    else if (lowerUa.contains("chrome")) browser = "Chrome";
+                    else browser = "Chrome";
+                } else {
+                    browser = "Chrome";
+                }
+            }
+        }
+
+        if (browser == null || browser.isBlank()) {
+            browser = "Chrome";
+        }
 
         String device;
-        if (ua.contains("Mobile") || ua.contains("Android") || ua.contains("iPhone")) {
-            device = "Mobile (" + browser + ")";
-        } else if (ua.contains("Macintosh") || ua.contains("Mac OS")) {
-            device = "Mac Workstation (" + browser + ")";
-        } else if (ua.contains("Linux")) {
-            device = "Linux Workstation (" + browser + ")";
-        } else if (ua.contains("Windows")) {
-            device = "Windows PC (" + browser + ")";
+        if (paramDevice != null && !paramDevice.isBlank()) {
+            device = paramDevice.trim();
+        } else if (cookieDevice != null && !cookieDevice.isBlank()) {
+            device = cookieDevice.trim();
         } else {
-            device = "Desktop (" + browser + " Session)";
+            String os = "Desktop";
+            if (ua != null) {
+                if (ua.contains("Android")) os = "Android";
+                else if (ua.contains("iPhone")) os = "iPhone";
+                else if (ua.contains("iPad")) os = "iPad";
+                else if (ua.contains("Macintosh") || ua.contains("Mac OS")) os = "macOS";
+                else if (ua.contains("Windows")) os = "Windows PC";
+                else if (ua.contains("Linux")) os = "Linux";
+                else if (ua.contains("CrOS")) os = "Chrome OS";
+            }
+            device = os + " (" + browser + " Session)";
         }
         return new String[]{browser, device};
     }
@@ -414,6 +503,10 @@ public class ReactAccountController {
     }
 
     private void ensureInitialActivityLogs(UserResult user) {
+        ensureInitialActivityLogs(user, null);
+    }
+
+    private void ensureInitialActivityLogs(UserResult user, HttpServletRequest request) {
         if (user == null) return;
         try {
             Integer count = jdbcTemplate.queryForObject(
@@ -425,27 +518,31 @@ public class ReactAccountController {
                 return;
             }
 
+            String[] bd = extractBrowserAndDevice(request);
+            String currentBrowser = bd[0];
+            String currentDevice = bd[1];
+
             Instant created = user.createdAt() != null ? user.createdAt() : Instant.now().minusSeconds(86400 * 7);
 
             // 1. Account Created
             recordActivity(user.uuid(), user.username(), "PROFILE", "ACCOUNT_CREATED",
                     "Account created",
                     "Registered as @" + user.username() + " (" + user.email() + ")",
-                    "127.0.0.1", "Phnom Penh, KH", "Desktop (Browser Session)", "Chrome",
+                    "127.0.0.1", "Phnom Penh, KH", currentDevice, currentBrowser,
                     "success", "SUCCESS", null, created);
 
             // 2. Initial Security Credentials Configured
             recordActivity(user.uuid(), user.username(), "PASSWORD", "PASSWORD_SET",
                     "Initial credentials established",
                     "Secure authentication password configured for account",
-                    "127.0.0.1", "Phnom Penh, KH", "Desktop (Browser Session)", "Chrome",
+                    "127.0.0.1", "Phnom Penh, KH", currentDevice, currentBrowser,
                     "info", "SUCCESS", null, created.plusSeconds(30));
 
             // 3. Security Roles and Permissions Granted
             recordActivity(user.uuid(), user.username(), "SECURITY", "ROLES_ASSIGNED",
                     "Security roles assigned",
                     "Access control authorities initialized for @" + user.username(),
-                    "127.0.0.1", "Phnom Penh, KH", "Desktop (Browser Session)", "Chrome",
+                    "127.0.0.1", "Phnom Penh, KH", currentDevice, currentBrowser,
                     "info", "SUCCESS", null, created.plusSeconds(60));
 
             // 4. Linked Identities (if any exist)
@@ -462,7 +559,7 @@ public class ReactAccountController {
                     recordActivity(user.uuid(), user.username(), "IDENTITY", "IDENTITY_LINKED",
                             "Connected " + prov + " account",
                             "SSO identity linked to @" + user.username() + " (" + email + ")",
-                            "127.0.0.1", "Phnom Penh, KH", "Desktop (Browser Session)", "Chrome",
+                            "127.0.0.1", "Phnom Penh, KH", currentDevice, currentBrowser,
                             "info", "SUCCESS", null, lInstant);
                 }
             } catch (Exception ignored) {}
@@ -481,7 +578,7 @@ public class ReactAccountController {
                     recordActivity(user.uuid(), user.username(), "SESSION", "LOGIN_SUCCESS",
                             "OAuth2 session established",
                             "Client authorization granted for " + clientId + " via " + grant,
-                            "127.0.0.1", "Phnom Penh, KH", "Desktop (Browser Session)", "Chrome",
+                            "127.0.0.1", "Phnom Penh, KH", currentDevice, currentBrowser,
                             "info", "SUCCESS", null, sInstant);
                 }
             } catch (Exception ignored) {}
@@ -491,7 +588,7 @@ public class ReactAccountController {
                 recordActivity(user.uuid(), user.username(), "PROFILE", "PROFILE_UPDATED",
                         "Profile information updated",
                         "Personal details were synchronized with IAM",
-                        "127.0.0.1", "Phnom Penh, KH", "Desktop (Browser Session)", "Chrome",
+                        "127.0.0.1", "Phnom Penh, KH", currentDevice, currentBrowser,
                         "info", "SUCCESS", null, user.updatedAt());
             }
 
@@ -500,20 +597,20 @@ public class ReactAccountController {
             recordActivity(user.uuid(), user.username(), "SESSION", "LOGIN_SUCCESS",
                     "Authenticated successfully",
                     "Browser session established via ISTAD IAM",
-                    "127.0.0.1", "Phnom Penh, KH", "Desktop (Browser Session)", "Chrome",
+                    "127.0.0.1", "Phnom Penh, KH", currentDevice, currentBrowser,
                     "info", "SUCCESS", null, now.minusSeconds(120));
 
             recordActivity(user.uuid(), user.username(), "SESSION", "LOGIN_SUCCESS",
                     "Authenticated successfully",
                     "Saved browser credentials verified",
-                    "127.0.0.1", "Phnom Penh, KH", "Desktop (Saved Session)", "Chrome",
+                    "127.0.0.1", "Phnom Penh, KH", currentDevice, currentBrowser,
                     "info", "SUCCESS", null, now.minusSeconds(3600));
 
             // Mobile login session
             recordActivity(user.uuid(), user.username(), "SESSION", "LOGIN_SUCCESS",
                     "Authenticated successfully",
                     "Mobile session established via ISTAD IAM",
-                    "127.0.0.1", "Phnom Penh, KH", "Mobile (Chrome Mobile)", "Chrome",
+                    "127.0.0.1", "Phnom Penh, KH", "Mobile (" + currentBrowser + " Mobile)", currentBrowser,
                     "info", "SUCCESS", null, created.plusSeconds(3600 * 24));
 
         } catch (Exception ex) {
@@ -618,12 +715,13 @@ public class ReactAccountController {
 
         List<Map<String, Object>> list = new ArrayList<>();
         // Current web browser session
+        var currentBd = extractBrowserAndDevice(request);
         Map<String, Object> current = new LinkedHashMap<>();
         current.put("id", request.getSession().getId());
-        current.put("deviceName", parseDevice(request.getHeader("User-Agent")));
+        current.put("deviceName", currentBd[1]);
         current.put("deviceType", parseDeviceType(request.getHeader("User-Agent")));
-        current.put("browser", parseBrowser(request.getHeader("User-Agent")));
-        current.put("ipAddress", request.getRemoteAddr());
+        current.put("browser", currentBd[0]);
+        current.put("ipAddress", extractClientIp(request));
         current.put("location", "Phnom Penh, Cambodia");
         current.put("current", true);
         current.put("isCurrent", true);
@@ -702,11 +800,22 @@ public class ReactAccountController {
 
     @GetMapping("/account/profile/history")
     @ResponseBody
-    public List<Map<String, Object>> getProfileLoginHistory(Authentication authentication) {
+    public List<Map<String, Object>> getProfileLoginHistory(Authentication authentication, HttpServletRequest request) {
         UUID userId = requireUser(authentication);
         var user = getUser.execute(userId);
 
-        ensureInitialActivityLogs(user);
+        ensureInitialActivityLogs(user, request);
+
+        var currentBd = extractBrowserAndDevice(request);
+        if ("Brave".equalsIgnoreCase(currentBd[0])) {
+            try {
+                jdbcTemplate.update(
+                        "UPDATE user_activity_logs SET browser = 'Brave', device = REPLACE(device, 'Chrome', 'Brave') " +
+                        "WHERE (user_uuid = ? OR username = ?) AND browser = 'Chrome'",
+                        user.uuid(), user.username()
+                );
+            } catch (Exception ignored) {}
+        }
 
         return jdbcTemplate.query(
                 "SELECT id, created_at as timestamp, status, ip_address as \"ipAddress\", location, device, browser, failure_reason as \"failureReason\" " +
@@ -721,8 +830,8 @@ public class ReactAccountController {
                     map.put("status", rs.getString("status") != null ? rs.getString("status") : "SUCCESS");
                     map.put("ipAddress", rs.getString("ipAddress") != null ? rs.getString("ipAddress") : "127.0.0.1");
                     map.put("location", rs.getString("location") != null ? rs.getString("location") : "Phnom Penh, KH");
-                    map.put("device", rs.getString("device") != null ? rs.getString("device") : "Desktop (Browser Session)");
-                    map.put("browser", rs.getString("browser") != null ? rs.getString("browser") : "Chrome");
+                    map.put("device", rs.getString("device") != null ? rs.getString("device") : currentBd[1]);
+                    map.put("browser", rs.getString("browser") != null ? rs.getString("browser") : currentBd[0]);
                     map.put("failureReason", rs.getString("failureReason"));
                     return map;
                 },
@@ -732,11 +841,22 @@ public class ReactAccountController {
 
     @GetMapping("/account/profile/activity")
     @ResponseBody
-    public List<Map<String, Object>> getProfileActivities(Authentication authentication) {
+    public List<Map<String, Object>> getProfileActivities(Authentication authentication, HttpServletRequest request) {
         UUID userId = requireUser(authentication);
         var user = getUser.execute(userId);
 
-        ensureInitialActivityLogs(user);
+        ensureInitialActivityLogs(user, request);
+
+        var currentBd = extractBrowserAndDevice(request);
+        if ("Brave".equalsIgnoreCase(currentBd[0])) {
+            try {
+                jdbcTemplate.update(
+                        "UPDATE user_activity_logs SET browser = 'Brave', device = REPLACE(device, 'Chrome', 'Brave') " +
+                        "WHERE (user_uuid = ? OR username = ?) AND browser = 'Chrome'",
+                        user.uuid(), user.username()
+                );
+            } catch (Exception ignored) {}
+        }
 
         return jdbcTemplate.query(
                 "SELECT id, type, title, description, created_at as timestamp, ip_address as \"ipAddress\", severity " +
@@ -759,17 +879,274 @@ public class ReactAccountController {
         );
     }
 
-    @PostMapping("/account/profile/deactivate")
+    private void ensureDeactivationTable() {
+        try {
+            jdbcTemplate.execute(
+                    "CREATE TABLE IF NOT EXISTS user_deactivation_requests (" +
+                    "    id VARCHAR(64) PRIMARY KEY," +
+                    "    user_uuid UUID NOT NULL," +
+                    "    username VARCHAR(100) NOT NULL," +
+                    "    reason VARCHAR(100) NOT NULL," +
+                    "    feedback TEXT," +
+                    "    status VARCHAR(20) NOT NULL DEFAULT 'PENDING'," +
+                    "    created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP," +
+                    "    reviewed_at TIMESTAMP WITH TIME ZONE," +
+                    "    reviewed_by VARCHAR(100)" +
+                    ")"
+            );
+        } catch (Exception ex) {
+            LOGGER.warn("Could not ensure user_deactivation_requests table: {}", ex.getMessage());
+        }
+    }
+
+    @PostMapping({"/account/profile/deactivate", "/account/profile/deactivation-request"})
     @ResponseBody
-    public Map<String, Object> deactivateSelfAccount(Authentication authentication, HttpServletRequest request) {
+    public Map<String, Object> requestAccountDeactivation(
+            @RequestBody(required = false) DeactivationSubmitRequest body,
+            @RequestParam(value = "reason", required = false) String paramReason,
+            @RequestParam(value = "feedback", required = false) String paramFeedback,
+            Authentication authentication,
+            HttpServletRequest request
+    ) {
+        ensureDeactivationTable();
         UUID userId = requireUser(authentication);
-        disableUser.execute(userId);
+        String username = authentication.getName();
+
+        String reason = body != null && body.reason() != null && !body.reason().isBlank()
+                ? body.reason().trim()
+                : (paramReason != null && !paramReason.isBlank() ? paramReason.trim() : "privacy");
+
+        String feedback = body != null && body.feedback() != null
+                ? body.feedback().trim()
+                : (paramFeedback != null ? paramFeedback.trim() : "");
+
+        String reqId = "deact-" + UUID.randomUUID();
+        Instant now = Instant.now();
+
+        // Cancel previous pending requests for this user
+        try {
+            jdbcTemplate.update(
+                    "UPDATE user_deactivation_requests SET status = 'SUPERSEDED' WHERE user_uuid = ? AND status = 'PENDING'",
+                    userId
+            );
+        } catch (Exception ignored) {}
+
+        // Insert new pending deactivation request
+        try {
+            jdbcTemplate.update(
+                    "INSERT INTO user_deactivation_requests (id, user_uuid, username, reason, feedback, status, created_at) " +
+                    "VALUES (?, ?, ?, ?, ?, 'PENDING', ?)",
+                    reqId, userId, username, reason, feedback, Timestamp.from(now)
+            );
+        } catch (Exception ex) {
+            LOGGER.error("Failed to insert deactivation request: {}", ex.getMessage());
+        }
+
+        // Record user activity log so it appears in audit logs, admin overview, and user activity
         var bd = extractBrowserAndDevice(request);
-        recordActivity(userId, authentication.getName(), "ACCOUNT_DEACTIVATION", "ACCOUNT_DEACTIVATED",
-                "Account deactivated",
-                "User requested self-account deactivation",
-                extractClientIp(request), "Phnom Penh, KH", bd[1], bd[0], "danger", "SUCCESS", null, Instant.now());
-        return Map.of("status", "DEACTIVATED", "userId", userId.toString());
+        String reasonLabel = switch (reason) {
+            case "privacy" -> "Privacy or data concerns";
+            case "switch" -> "Switching to another account";
+            case "temporary" -> "Temporary break";
+            case "difficult" -> "Service is too complex";
+            case "other" -> "Other reason";
+            default -> reason;
+        };
+
+        String desc = "Account deactivation requested by @" + username + ". Reason: " + reasonLabel;
+        if (!feedback.isBlank()) {
+            desc += " | Feedback: " + feedback;
+        }
+
+        recordActivity(userId, username, "USER", "DEACTIVATION_REQUEST",
+                "Account Deactivation Requested",
+                desc,
+                extractClientIp(request), "Phnom Penh, KH", bd[1], bd[0], "warning", "PENDING", null, now);
+
+        Map<String, Object> res = new LinkedHashMap<>();
+        res.put("id", reqId);
+        res.put("status", "PENDING");
+        res.put("reason", reason);
+        res.put("feedback", feedback);
+        res.put("requestedAt", now.toString());
+        res.put("gracePeriodEndsAt", now.plus(30, java.time.temporal.ChronoUnit.DAYS).toString());
+        res.put("message", "Deactivation request submitted to admin for review");
+        return res;
+    }
+
+    @GetMapping({"/account/profile/deactivation-request", "/account/profile/deactivation"})
+    @ResponseBody
+    public Map<String, Object> getMyDeactivationRequest(Authentication authentication) {
+        ensureDeactivationTable();
+        UUID userId = requireUser(authentication);
+        try {
+            List<Map<String, Object>> rows = jdbcTemplate.query(
+                    "SELECT id, reason, feedback, status, created_at FROM user_deactivation_requests " +
+                    "WHERE user_uuid = ? AND status = 'PENDING' ORDER BY created_at DESC LIMIT 1",
+                    (rs, rowNum) -> {
+                        Map<String, Object> map = new LinkedHashMap<>();
+                        map.put("id", rs.getString("id"));
+                        map.put("reason", rs.getString("reason"));
+                        map.put("feedback", rs.getString("feedback"));
+                        map.put("status", rs.getString("status"));
+                        Timestamp cat = rs.getTimestamp("created_at");
+                        Instant inst = cat != null ? cat.toInstant() : Instant.now();
+                        map.put("requestedAt", inst.toString());
+                        map.put("gracePeriodEndsAt", inst.plus(30, java.time.temporal.ChronoUnit.DAYS).toString());
+                        return map;
+                    },
+                    userId
+            );
+            if (!rows.isEmpty()) {
+                return rows.get(0);
+            }
+        } catch (Exception ex) {
+            LOGGER.warn("Failed to check deactivation request: {}", ex.getMessage());
+        }
+        return Map.of("status", "NONE");
+    }
+
+    @PostMapping({"/account/profile/deactivation-request/cancel", "/account/profile/deactivate/cancel"})
+    @ResponseBody
+    public Map<String, Object> cancelMyDeactivationRequest(Authentication authentication, HttpServletRequest request) {
+        ensureDeactivationTable();
+        UUID userId = requireUser(authentication);
+        String username = authentication.getName();
+        try {
+            jdbcTemplate.update(
+                    "UPDATE user_deactivation_requests SET status = 'CANCELLED' WHERE user_uuid = ? AND status = 'PENDING'",
+                    userId
+            );
+        } catch (Exception ex) {
+            LOGGER.warn("Failed to cancel deactivation request: {}", ex.getMessage());
+        }
+
+        var bd = extractBrowserAndDevice(request);
+        recordActivity(userId, username, "USER", "DEACTIVATION_CANCELLED",
+                "Account Deactivation Cancelled",
+                "User @" + username + " cancelled their pending account deactivation request",
+                extractClientIp(request), "Phnom Penh, KH", bd[1], bd[0], "info", "SUCCESS", null, Instant.now());
+
+        return Map.of("status", "CANCELLED", "message", "Deactivation request cancelled successfully");
+    }
+
+    @GetMapping("/account/admin/deactivation-requests")
+    @ResponseBody
+    @PreAuthorize("hasAuthority('ROLE_ADMIN') or hasRole('ADMIN') or hasAuthority('user:update')")
+    public List<Map<String, Object>> listAdminDeactivationRequests() {
+        ensureDeactivationTable();
+        try {
+            return jdbcTemplate.query(
+                    "SELECT r.id, r.user_uuid, r.username, r.reason, r.feedback, r.status, r.created_at, " +
+                    "u.email, u.name, u.enabled, u.account_non_locked " +
+                    "FROM user_deactivation_requests r " +
+                    "LEFT JOIN users u ON r.user_uuid = u.uuid " +
+                    "WHERE r.status = 'PENDING' ORDER BY r.created_at DESC",
+                    (rs, rowNum) -> {
+                        Map<String, Object> map = new LinkedHashMap<>();
+                        map.put("id", rs.getString("id"));
+                        map.put("userUuid", rs.getString("user_uuid"));
+                        map.put("username", rs.getString("username"));
+                        map.put("name", rs.getString("name"));
+                        map.put("email", rs.getString("email"));
+                        map.put("reason", rs.getString("reason"));
+                        map.put("feedback", rs.getString("feedback"));
+                        map.put("status", rs.getString("status"));
+                        map.put("userEnabled", rs.getBoolean("enabled"));
+                        map.put("accountNonLocked", rs.getBoolean("account_non_locked"));
+                        Timestamp cat = rs.getTimestamp("created_at");
+                        Instant inst = cat != null ? cat.toInstant() : Instant.now();
+                        map.put("requestedAt", inst.toString());
+                        map.put("gracePeriodEndsAt", inst.plus(30, java.time.temporal.ChronoUnit.DAYS).toString());
+                        return map;
+                    }
+            );
+        } catch (Exception ex) {
+            LOGGER.warn("Failed to list deactivation requests: {}", ex.getMessage());
+            return List.of();
+        }
+    }
+
+    @PostMapping("/account/admin/deactivation-requests/{id}/approve")
+    @ResponseBody
+    @PreAuthorize("hasAuthority('ROLE_ADMIN') or hasRole('ADMIN') or hasAuthority('user:update')")
+    public Map<String, Object> approveDeactivationRequest(
+            @PathVariable("id") String id,
+            Authentication authentication,
+            HttpServletRequest request
+    ) {
+        ensureDeactivationTable();
+        try {
+            var rows = jdbcTemplate.queryForList(
+                    "SELECT user_uuid, username, reason FROM user_deactivation_requests WHERE id = ?",
+                    id
+            );
+            if (rows.isEmpty()) {
+                throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Deactivation request not found");
+            }
+            UUID targetUserId = (UUID) rows.get(0).get("user_uuid");
+            String targetUsername = (String) rows.get(0).get("username");
+
+            disableUser.execute(targetUserId);
+
+            jdbcTemplate.update(
+                    "UPDATE user_deactivation_requests SET status = 'APPROVED', reviewed_at = ?, reviewed_by = ? WHERE id = ?",
+                    Timestamp.from(Instant.now()), authentication.getName(), id
+            );
+
+            var bd = extractBrowserAndDevice(request);
+            recordActivity(targetUserId, targetUsername, "SECURITY", "ACCOUNT_DEACTIVATED",
+                    "Account Deactivated by Admin",
+                    "Admin @" + authentication.getName() + " approved deactivation request for @" + targetUsername,
+                    extractClientIp(request), "Phnom Penh, KH", bd[1], bd[0], "danger", "SUCCESS", null, Instant.now());
+
+            return Map.of("status", "APPROVED", "targetUsername", targetUsername);
+        } catch (ResponseStatusException rse) {
+            throw rse;
+        } catch (Exception ex) {
+            LOGGER.error("Failed to approve deactivation request: {}", ex.getMessage());
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Failed to approve: " + ex.getMessage());
+        }
+    }
+
+    @PostMapping("/account/admin/deactivation-requests/{id}/reject")
+    @ResponseBody
+    @PreAuthorize("hasAuthority('ROLE_ADMIN') or hasRole('ADMIN') or hasAuthority('user:update')")
+    public Map<String, Object> rejectDeactivationRequest(
+            @PathVariable("id") String id,
+            Authentication authentication,
+            HttpServletRequest request
+    ) {
+        ensureDeactivationTable();
+        try {
+            var rows = jdbcTemplate.queryForList(
+                    "SELECT user_uuid, username FROM user_deactivation_requests WHERE id = ?",
+                    id
+            );
+            if (rows.isEmpty()) {
+                throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Deactivation request not found");
+            }
+            UUID targetUserId = (UUID) rows.get(0).get("user_uuid");
+            String targetUsername = (String) rows.get(0).get("username");
+
+            jdbcTemplate.update(
+                    "UPDATE user_deactivation_requests SET status = 'REJECTED', reviewed_at = ?, reviewed_by = ? WHERE id = ?",
+                    Timestamp.from(Instant.now()), authentication.getName(), id
+            );
+
+            var bd = extractBrowserAndDevice(request);
+            recordActivity(targetUserId, targetUsername, "SECURITY", "DEACTIVATION_REJECTED",
+                    "Deactivation Request Rejected",
+                    "Admin @" + authentication.getName() + " rejected deactivation request for @" + targetUsername,
+                    extractClientIp(request), "Phnom Penh, KH", bd[1], bd[0], "info", "SUCCESS", null, Instant.now());
+
+            return Map.of("status", "REJECTED", "targetUsername", targetUsername);
+        } catch (ResponseStatusException rse) {
+            throw rse;
+        } catch (Exception ex) {
+            LOGGER.error("Failed to reject deactivation request: {}", ex.getMessage());
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Failed to reject: " + ex.getMessage());
+        }
     }
 
     // -----------------------------------------------------------------------------------------
@@ -1324,10 +1701,11 @@ public class ReactAccountController {
         adminSession.put("id", request.getSession().getId());
         adminSession.put("userId", "admin-session");
         adminSession.put("username", currentUsername);
-        adminSession.put("deviceName", parseDevice(request.getHeader("User-Agent")));
+        var adminBd = extractBrowserAndDevice(request);
+        adminSession.put("deviceName", adminBd[1]);
         adminSession.put("deviceType", parseDeviceType(request.getHeader("User-Agent")));
-        adminSession.put("browser", parseBrowser(request.getHeader("User-Agent")));
-        adminSession.put("ipAddress", request.getRemoteAddr());
+        adminSession.put("browser", adminBd[0]);
+        adminSession.put("ipAddress", extractClientIp(request));
         adminSession.put("location", "Phnom Penh, Cambodia");
         adminSession.put("current", true);
         adminSession.put("isCurrent", true);
@@ -1581,10 +1959,15 @@ public class ReactAccountController {
 
     private String parseBrowser(String ua) {
         if (ua == null) return "Web Browser";
-        if (ua.contains("Chrome") && !ua.contains("Edg")) return "Google Chrome";
-        if (ua.contains("Edg")) return "Microsoft Edge";
-        if (ua.contains("Firefox")) return "Mozilla Firefox";
-        if (ua.contains("Safari") && !ua.contains("Chrome")) return "Apple Safari";
+        String lower = ua.toLowerCase();
+        if (lower.contains("brave")) return "Brave";
+        if (lower.contains("edg")) return "Microsoft Edge";
+        if (lower.contains("opr") || lower.contains("opera")) return "Opera";
+        if (lower.contains("vivaldi")) return "Vivaldi";
+        if (lower.contains("firefox")) return "Mozilla Firefox";
+        if (lower.contains("samsungbrowser")) return "Samsung Internet";
+        if (lower.contains("safari") && !lower.contains("chrome")) return "Apple Safari";
+        if (lower.contains("chrome")) return "Google Chrome";
         return "Web Browser";
     }
 
@@ -1613,5 +1996,8 @@ public class ReactAccountController {
     }
 
     public record CreateAdminRoleRequest(String name, String description, List<UUID> permissionUuids) {
+    }
+
+    public record DeactivationSubmitRequest(String reason, String feedback) {
     }
 }
