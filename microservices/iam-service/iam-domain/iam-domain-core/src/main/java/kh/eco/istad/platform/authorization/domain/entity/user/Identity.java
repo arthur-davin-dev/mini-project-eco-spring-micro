@@ -96,6 +96,24 @@ public class Identity extends AuditableEntity {
         recordSoftDelete(actor, now);
     }
 
+    public void relink(String email, boolean emailVerified, String displayName,
+                       String username, String pictureUrl, String actor, Instant now) {
+        String normalizedEmail = normalizeEmail(email);
+        if (emailVerified && normalizedEmail == null) {
+            throw new DomainException("A verified identity email must be present");
+        }
+        String normalizedDisplayName = boundedText(displayName, 150, "Display name");
+        String normalizedUsername = boundedText(username, 100, "Provider username");
+        String normalizedPictureUrl = boundedText(pictureUrl, 500, "Picture URL");
+        recordRestore(actor, now);
+        this.email = normalizedEmail;
+        this.emailVerified = emailVerified;
+        this.displayName = normalizedDisplayName;
+        this.username = normalizedUsername;
+        this.pictureUrl = normalizedPictureUrl;
+        this.lastLoginAt = now;
+    }
+
     public UUID getUuid() {
         return uuid;
     }

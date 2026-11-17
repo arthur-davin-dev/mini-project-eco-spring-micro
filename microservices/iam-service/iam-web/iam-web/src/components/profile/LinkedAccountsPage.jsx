@@ -55,7 +55,8 @@ function getProviderIcon(provider) {
 
 const card = 'rounded-xl border border-[var(--color-line)] bg-white p-5 shadow-sm dark:border-slate-700 dark:bg-slate-900'
 
-export default function LinkedAccountsPage({identities, working, t, onUnlink, onLink}) {
+export default function LinkedAccountsPage({identities = [], working, t, onUnlink, onLink}) {
+    const list = Array.isArray(identities) ? identities : []
     return (
         <section className={card}>
             <header className="mb-4 flex items-center gap-3">
@@ -69,7 +70,7 @@ export default function LinkedAccountsPage({identities, working, t, onUnlink, on
             </header>
             <div className="divide-y divide-slate-100 dark:divide-slate-800">
                 {providers.map((provider) => {
-                    const identity = identities.find((item) => String(item.provider).toLowerCase() === provider)
+                    const identity = list.find((item) => String(item.provider).toLowerCase() === provider)
                     return (
                         <div className="flex flex-wrap items-center gap-3 py-4 first:pt-2" key={provider}>
                             <div className="grid size-10 shrink-0 place-items-center rounded-xl border border-slate-200 bg-white text-sm font-medium text-slate-700 dark:border-slate-700 dark:bg-slate-800 dark:text-white shadow-xs">
@@ -94,15 +95,15 @@ export default function LinkedAccountsPage({identities, working, t, onUnlink, on
                                     {t.unlink}
                                 </button>
                             ) : (
-                                <form onSubmit={(event) => onLink(event, provider)}>
-                                    <button
-                                        className="inline-flex h-9 items-center gap-1.5 rounded-lg border border-slate-200 px-3 text-xs font-medium text-slate-600 hover:bg-slate-50 dark:border-slate-700 dark:text-slate-200 dark:hover:bg-slate-800 cursor-pointer"
-                                        type="submit"
-                                    >
-                                        <Plus className="size-3.5" />
-                                        {t.connect}
-                                    </button>
-                                </form>
+                                <button
+                                    className="inline-flex h-9 items-center gap-1.5 rounded-lg border border-slate-200 px-3 text-xs font-medium text-slate-600 hover:bg-slate-50 dark:border-slate-700 dark:text-slate-200 dark:hover:bg-slate-800 cursor-pointer disabled:opacity-50"
+                                    type="button"
+                                    onClick={(event) => onLink(event, provider)}
+                                    disabled={working}
+                                >
+                                    <Plus className="size-3.5" />
+                                    {t.connect || 'Connect'}
+                                </button>
                             )}
                         </div>
                     )

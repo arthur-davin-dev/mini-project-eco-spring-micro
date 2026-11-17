@@ -59,6 +59,20 @@ public abstract class AuditableEntity {
         this.updatedBy = actor;
     }
 
+    /** Restores a soft-deleted record so it becomes active again. */
+    protected void recordRestore(String actor, Instant now) {
+        requireActor(actor);
+        Objects.requireNonNull(now, "now");
+        if (now.isBefore(createdAt) || now.isBefore(updatedAt)) {
+            throw new DomainException("Restore time cannot be before existing audit timestamps");
+        }
+        this.deleted = false;
+        this.deletedAt = null;
+        this.deletedBy = null;
+        this.updatedAt = now;
+        this.updatedBy = actor;
+    }
+
     /** Rehydrates persisted audit state; adapters should call this only while mapping rows. */
     protected final void restoreAudit(String createdBy, Instant createdAt, String updatedBy,
                                       Instant updatedAt, boolean deleted, Instant deletedAt,

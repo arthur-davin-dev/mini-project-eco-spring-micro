@@ -11,6 +11,7 @@ import kh.eco.istad.platform.authorization.domain.entity.user.User;
 
 import java.time.Clock;
 import java.time.Instant;
+import java.util.Optional;
 import java.util.UUID;
 import kh.eco.istad.platform.authorization.domain.mapper.DomainDtoMapper;
 
@@ -28,15 +29,15 @@ public class LinkIdentityUseCase {
 
     public IdentityResult execute(UUID userUuid, FederatedIdentityCommand command) {
         User user = Rules.loadUser(users, userUuid);
-        if (users.findByIdentity(command.provider(), command.providerSubject()).isPresent()) {
-            throw new ConflictException("This " + command.provider() + " account is already linked to a user");
+        Optional<User> existingOwner = users.findByIdentity(command.provider(), command.providerSubject());
+        if (existingOwner.isPresent() && !existingOwner.get().getUuid().equals(userUuid)) {
+            throw new ConflictException("This " + command.provider() + " account is already linked to another user");
         }
         String actor = actors.currentActor();
         Instant now = clock.instant();
-        Identity identity = Identity.link(UUID.randomUUID(), command.provider(), command.providerSubject(),
+        Identity identity = user.linkOrRelinkIdentity(command.provider(), command.providerSubject(),
                 command.email(), command.emailVerified(), command.displayName(), command.username(),
                 command.pictureUrl(), actor, now);
-        user.linkIdentity(identity, actor, now);
         users.save(user);
         return DomainDtoMapper.toIdentityResult(identity);
     }

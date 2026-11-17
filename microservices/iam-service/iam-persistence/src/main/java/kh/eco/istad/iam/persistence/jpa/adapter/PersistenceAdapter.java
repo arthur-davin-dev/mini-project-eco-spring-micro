@@ -120,11 +120,18 @@ public class PersistenceAdapter {
         user.synchronizeVersion(entity.getVersion());
         for (Identity identity : user.getIdentities()) {
             IdentityEntity identityEntity = identities.findByUuid(identity.getUuid())
+                    .or(() -> identities.findByProviderAndProviderSubject(identity.getProvider().name(), identity.getProviderSubject()))
                     .orElseGet(IdentityEntity::new);
-            if (identityEntity.getId() != null && identityEntity.getVersion() != identity.getVersion()) {
+            long dbVersion = identityEntity.getVersion();
+            if (identityEntity.getId() != null
+                    && identity.getUuid().equals(identityEntity.getUuid())
+                    && dbVersion != identity.getVersion()) {
                 throw stale("identity", identity.getUuid());
             }
             DomainMapper.copyTo(identity, identityEntity, entity.getId());
+            if (identityEntity.getId() != null && !identity.getUuid().equals(identityEntity.getUuid())) {
+                identityEntity.setVersion(dbVersion);
+            }
             identityEntity = identities.saveAndFlush(identityEntity);
             identity.synchronizeVersion(identityEntity.getVersion());
         }

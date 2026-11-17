@@ -93,33 +93,9 @@ export const profileApi = {
         if (!response.ok) throw new Error('Failed to load linked accounts')
         return await response.json()
     },
+    getIdentities: (token) => profileApi.getLinkedAccounts(token),
     linkAccount: async (token, provider) => {
-        const csrfResponse = await fetch('/account/csrf', {credentials: 'same-origin'})
-        if (!csrfResponse.ok) throw new Error('Could not prepare account link')
-        const csrf = await csrfResponse.json()
-        const response = await fetch(`/account/profile/identities/link/${provider}`, {
-            method: 'POST',
-            credentials: 'same-origin',
-            headers: {[csrf.headerName]: csrf.token},
-        })
-        if (!response.ok) throw new Error(`Account link failed (${response.status})`)
-        const result = await response.json()
-        iamDataStore.recordActivity({
-            type: 'IDENTITY',
-            title: 'Account linked',
-            description: `Linked ${provider} account`,
-            ipAddress: '127.0.0.1',
-            severity: 'success',
-        })
-        iamDataStore.logAuditEvent({
-            category: 'USER',
-            action: 'LINK_IDENTITY',
-            actor: 'current_user',
-            target: provider,
-            status: 'SUCCESS',
-            details: `Linked provider ${provider}`,
-        })
-        return result
+        window.location.href = `/profile/accounts/link/${provider}`
     },
     unlinkAccount: async (token, identityUuid) => {
         let result

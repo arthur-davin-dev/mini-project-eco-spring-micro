@@ -177,6 +177,34 @@ public class User extends AuditableEntity {
         identities.add(identity);
     }
 
+    public Identity linkOrRelinkIdentity(IdentityProvider provider, String providerSubject, String email,
+                                         boolean emailVerified, String displayName, String username,
+                                         String pictureUrl, String actor, Instant now) {
+        Objects.requireNonNull(provider, "provider");
+        if (providerSubject == null || providerSubject.isBlank()) {
+            throw new DomainException("Provider subject must not be blank");
+        }
+        boolean alreadyLinked = getActiveIdentities().stream()
+                .anyMatch(existing -> existing.getProvider() == provider);
+        if (alreadyLinked) {
+            throw new DomainException("A " + provider + " account is already linked");
+        }
+        recordUpdate(actor, now);
+        Optional<Identity> existingMatch = identities.stream()
+                .filter(id -> id.getProvider() == provider && id.getProviderSubject().equals(providerSubject))
+                .findFirst();
+        if (existingMatch.isPresent()) {
+            Identity identity = existingMatch.get();
+            identity.relink(email, emailVerified, displayName, username, pictureUrl, actor, now);
+            return identity;
+        } else {
+            Identity identity = Identity.link(UUID.randomUUID(), provider, providerSubject, email,
+                    emailVerified, displayName, username, pictureUrl, actor, now);
+            identities.add(identity);
+            return identity;
+        }
+    }
+
     public void unlinkIdentity(UUID identityUuid, String actor, Instant now) {
         Identity target = findActiveIdentity(identityUuid)
                 .orElseThrow(() -> new NotFoundException("Identity not found"));

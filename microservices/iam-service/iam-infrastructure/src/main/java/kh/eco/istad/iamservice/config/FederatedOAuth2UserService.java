@@ -38,9 +38,11 @@ public class FederatedOAuth2UserService implements OAuth2UserService<OAuth2UserR
         try {
             mapped = targetUser == null ? mapper.provision(registrationId, attributes)
                                         : mapper.link(registrationId, attributes, targetUser);
-        } catch (kh.eco.istad.platform.authorization.domain.exception.ConflictException exception) {
+        } catch (OAuth2AuthenticationException exception) {
+            throw exception;
+        } catch (Exception exception) {
             throw new OAuth2AuthenticationException(
-                    new OAuth2Error("access_denied", exception.getMessage(), null), exception.getMessage(), exception);
+                    new OAuth2Error("server_error", exception.getMessage(), null), exception.getMessage(), exception);
         }
         if (targetUser != null) {
             linkIntent.clearCurrentRequest();

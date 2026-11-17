@@ -106,6 +106,26 @@ export default function AccountPage({dark, setDark}) {
         }
     }, [page])
 
+    useEffect(() => {
+        const searchParams = new URLSearchParams(window.location.search)
+        const linked = searchParams.get('linked')
+        const linkError = searchParams.get('link_error')
+        if (linked) {
+            notify(`${formatProvider(linked)} connected successfully.`)
+            profileApi.getLinkedAccounts(token).then((data) => {
+                if (Array.isArray(data)) setIdentities(data)
+            }).catch(() => {})
+            window.history.replaceState(null, '', '/profile/linked-accounts')
+        } else if (linkError) {
+            if (linkError === 'already_linked') {
+                setError('This provider account is already linked to another user.')
+            } else {
+                setError('Failed to connect provider. Please try again.')
+            }
+            window.history.replaceState(null, '', '/profile/linked-accounts')
+        }
+    }, [token, setIdentities, setError])
+
     function navigate(section, options = null) {
         if (!accountSections.includes(section) || (managementSections.includes(section) && !isAdmin)) {
             section = 'profile'
@@ -230,38 +250,11 @@ export default function AccountPage({dark, setDark}) {
         }
     }
 
-    async function beginProviderLink(event, provider) {
+    function beginProviderLink(event, provider) {
         event?.preventDefault?.()
         setWorking(true)
         setError('')
-        try {
-            const newIdentity = await profileApi.linkAccount(token, provider)
-            setIdentities((current) => [
-                ...current.filter((item) => String(item.provider).toUpperCase() !== String(provider).toUpperCase()),
-                newIdentity,
-            ])
-            notify(`${formatProvider(provider)} connected successfully.`)
-        } catch {
-            try {
-                const response = await fetch('/account/csrf', {credentials: 'same-origin'})
-                if (!response.ok) throw new Error('Could not prepare secure provider link')
-                const csrf = await response.json()
-                const form = document.createElement('form')
-                form.method = 'post'
-                form.action = `/profile/accounts/link/${provider}`
-                const input = document.createElement('input')
-                input.type = 'hidden'
-                input.name = csrf.parameterName
-                input.value = csrf.token
-                form.append(input)
-                document.body.append(form)
-                form.submit()
-            } catch {
-                setError(t.notSaved || 'Provider link failed.')
-            }
-        } finally {
-            setWorking(false)
-        }
+        window.location.href = `/profile/accounts/link/${provider}`
     }
 
     let content

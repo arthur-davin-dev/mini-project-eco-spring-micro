@@ -71,6 +71,10 @@ import org.springframework.security.web.authentication.SavedRequestAwareAuthenti
 import org.springframework.security.web.savedrequest.HttpSessionRequestCache;
 import org.springframework.security.web.authentication.SimpleUrlAuthenticationFailureHandler;
 import org.springframework.security.web.util.matcher.MediaTypeRequestMatcher;
+import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository;
+import org.springframework.security.oauth2.client.web.DefaultOAuth2AuthorizationRequestResolver;
+import org.springframework.security.oauth2.client.web.OAuth2AuthorizationRequestResolver;
+import org.springframework.security.oauth2.core.endpoint.OAuth2ParameterNames;
 import tools.jackson.databind.json.JsonMapper;
 import tools.jackson.databind.jsontype.BasicPolymorphicTypeValidator;
 
@@ -89,6 +93,7 @@ public class SecurityConfig {
     private final FederatedLinkIntent federatedLinkIntent;
     private final RecordLoginAttemptUseCase recordLoginAttempt;
     private final HostAwareLogoutSuccessHandler hostAwareLogoutSuccessHandler;
+    private final ClientRegistrationRepository clientRegistrationRepository;
 
     @Value("${spring.security.oauth2.authorizationserver.issuer}")
     private String issuer;
@@ -177,10 +182,21 @@ public class SecurityConfig {
                 // authorization server filter chain
                 .oauth2Login(config
                         -> config.loginPage("/login")
+                        .authorizationEndpoint(auth -> auth.authorizationRequestResolver(authorizationRequestResolver()))
                         .defaultSuccessUrl("/account", false)
                         .successHandler((request, response, authentication) -> {
                             recordLoginAttempt.execute(authentication.getName(), true);
                             logLoginEvent(authentication.getName(), true, null, request);
+                            var session = request.getSession(false);
+                            String returnTo = (session != null) ? (String) session.getAttribute("iam.link-return-to") : null;
+                            if (session != null) {
+                                session.removeAttribute("iam.link-return-to");
+                                session.removeAttribute("iam.link-provider");
+                            }
+                            if (returnTo != null && !returnTo.isBlank()) {
+                                response.sendRedirect(returnTo);
+                                return;
+                            }
                             response.sendRedirect("/account");
                         })
                         .permitAll()
@@ -276,19 +292,42 @@ public class SecurityConfig {
         }
     }
 
+    private OAuth2AuthorizationRequestResolver authorizationRequestResolver() {
+        DefaultOAuth2AuthorizationRequestResolver resolver =
+                new DefaultOAuth2AuthorizationRequestResolver(
+                        this.clientRegistrationRepository, "/oauth2/authorization");
+        resolver.setAuthorizationRequestCustomizer(builder ->
+                builder.attributes(attrs -> {
+                    String regId = (String) attrs.get(OAuth2ParameterNames.REGISTRATION_ID);
+                    if ("google".equalsIgnoreCase(regId)) {
+                        builder.additionalParameters(params -> params.put("prompt", "select_account"));
+                    }
+                })
+        );
+        return resolver;
+    }
+
     private AuthenticationFailureHandler oauthLoginFailureHandler() {
         return (request, response, exception) -> {
             String requestPath = request.getRequestURI();
             String provider = requestPath.substring(requestPath.lastIndexOf('/') + 1);
-            boolean accountLink = federatedLinkIntent.targetForCurrentRequest() != null;
+            var session = request.getSession(false);
+            boolean accountLink = federatedLinkIntent.targetForCurrentRequest() != null
+                    || (session != null && session.getAttribute("iam.link-return-to") != null);
             boolean alreadyLinked = hasCause(exception,
-                    kh.eco.istad.platform.authorization.domain.exception.ConflictException.class);
+                    kh.eco.istad.platform.authorization.domain.exception.ConflictException.class)
+                    || hasCause(exception,
+                    kh.eco.istad.platform.authorization.domain.exception.DomainException.class);
             LOGGER.error("Federated sign-in failed for provider '{}' at callback '{}': {}", provider, requestPath,
                     exception.getMessage(), exception);
             federatedLinkIntent.clear(request);
+            if (session != null) {
+                session.removeAttribute("iam.link-return-to");
+                session.removeAttribute("iam.link-provider");
+            }
             if (accountLink) {
-                response.sendRedirect(alreadyLinked ? "/profile/accounts?link_error=already_linked"
-                        : "/profile/accounts?link_error=failed");
+                response.sendRedirect(alreadyLinked ? "/profile/linked-accounts?link_error=already_linked"
+                        : "/profile/linked-accounts?link_error=failed");
             } else {
                 response.sendRedirect("/login?oauth_error");
             }

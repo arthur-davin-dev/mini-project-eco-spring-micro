@@ -9,8 +9,11 @@ import kh.eco.istad.platform.authorization.domain.usecase.user.LoadUserForAuthen
 import org.springframework.security.core.Authentication;
 import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository;
 import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 @Controller
@@ -28,9 +31,14 @@ public class AccountLinkController {
         this.linkIdentity = linkIdentity;
     }
 
-    @PostMapping("/profile/accounts/link/{provider}")
+    @RequestMapping(
+            value = {"/profile/accounts/link/{provider}", "/profile/linked-accounts/link/{provider}"},
+            method = {RequestMethod.GET, RequestMethod.POST})
     public String beginLink(
             Authentication authentication, HttpSession session, @PathVariable String provider, RedirectAttributes flash) {
+        if (authentication == null || !authentication.isAuthenticated()) {
+            return "redirect:/login";
+        }
         var user = loadUser.execute(authentication.getName())
                 .orElseThrow(() -> new IllegalStateException("Authenticated IAM user was not found"));
 
@@ -45,6 +53,8 @@ public class AccountLinkController {
 
         if (hasRealCredentials) {
             session.setAttribute(FederatedLinkIntent.SESSION_ATTRIBUTE, user.uuid().toString());
+            session.setAttribute("iam.link-provider", provider);
+            session.setAttribute("iam.link-return-to", "/profile/linked-accounts?linked=" + provider);
             return "redirect:/oauth2/authorization/" + provider;
         }
 
@@ -78,6 +88,6 @@ public class AccountLinkController {
             ));
         } catch (Exception ignored) {
         }
-        return "redirect:/profile/linked-accounts";
+        return "redirect:/profile/linked-accounts?linked=" + provider;
     }
 }

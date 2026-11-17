@@ -94,8 +94,9 @@ public class FindOrProvisionFederatedUserUseCase {
         Optional<User> sameEmail = users.findByUsernameOrEmail(email.value());
         if (sameEmail.isPresent() && command.emailVerified()) {
             User existing = sameEmail.get();
-            Identity identity = newIdentity(command, actor, now);
-            existing.linkIdentity(identity, actor, now);
+            existing.linkOrRelinkIdentity(command.provider(), command.providerSubject(),
+                    command.email(), command.emailVerified(), command.displayName(),
+                    command.username(), command.pictureUrl(), actor, now);
             return existing;
         }
         if (sameEmail.isPresent()) {
