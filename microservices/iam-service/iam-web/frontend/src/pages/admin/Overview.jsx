@@ -21,7 +21,12 @@ export default function Overview() {
                 else if (page === 'systemConfig' || page === 'system') navigate('/admin/system-config');
                 else navigate('/admin/' + page);
             }}
-            onSelectUser={(user) => navigate(`/admin/users/${user.uuid || user.id}`)}
+            onSelectUser={(user) => {
+                const id = typeof user === 'string' ? user : (user?.uuid || user?.id);
+                if (id && id !== 'undefined') {
+                    navigate(`/admin/users/${id}`);
+                }
+            }}
         />
     );
 }

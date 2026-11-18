@@ -11,7 +11,12 @@ export default function RoleList() {
             token={token}
             locale={locale}
             t={t}
-            onSelectRole={(role) => navigate(`/admin/roles/${role.uuid || role.id}`)}
+            onSelectRole={(role) => {
+                const id = typeof role === 'string' ? role : (role?.uuid || role?.id);
+                if (id && id !== 'undefined') {
+                    navigate(`/admin/roles/${id}`);
+                }
+            }}
         />
     );
 }

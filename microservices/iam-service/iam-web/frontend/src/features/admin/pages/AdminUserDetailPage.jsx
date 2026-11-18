@@ -587,6 +587,11 @@ export default function AdminUserDetailPage({token, userId, onBack, t, locale}) 
     const [userSessions, setUserSessions] = useState([])
 
     const loadDetail = useCallback(async () => {
+        if (!userId || userId === 'undefined') {
+            setError(locale === 'km' ? 'រកមិនឃើញអត្តសញ្ញាណអ្នកប្រើប្រាស់' : 'Invalid user identifier.')
+            setLoading(false)
+            return
+        }
         setLoading(true)
         setError('')
         try {

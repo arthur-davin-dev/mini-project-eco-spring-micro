@@ -246,7 +246,7 @@ export default function AdminUsersPage({token, locale, t, selectedUserId, onSele
                                             <div className="min-w-0">
                                                 <button
                                                     type="button"
-                                                    onClick={() => onSelectUser(user.uuid)}
+                                                    onClick={() => onSelectUser(user.uuid || user.id || user)}
                                                     className="max-w-56 truncate text-left font-medium text-slate-800 hover:text-violet-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-violet-600 dark:text-slate-100 dark:hover:text-violet-300"
                                                 >
                                                     {displayName(user)}

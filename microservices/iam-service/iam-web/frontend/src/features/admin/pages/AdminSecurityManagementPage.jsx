@@ -349,7 +349,7 @@ export default function AdminSecurityManagementPage({token, locale, t, onSelectU
                                 <TableCell className="text-xs font-bold">
                                     <button
                                         type="button"
-                                        onClick={() => onSelectUser?.(user.uuid)}
+                                        onClick={() => onSelectUser?.(user.uuid || user.id || user)}
                                         className="text-left hover:text-violet-700"
                                     >
                                         <span>@{user.username}</span>

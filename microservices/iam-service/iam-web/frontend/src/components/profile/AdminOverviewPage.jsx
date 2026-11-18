@@ -279,7 +279,7 @@ export default function AdminOverviewPage({token, locale, t, setPage, onSelectUs
                             overview.newestUsers.slice(0, 5).map((user) => (
                                 <div
                                     key={user.uuid || user.id}
-                                    onClick={() => onSelectUser?.(user.uuid || user.id)}
+                                    onClick={() => onSelectUser?.(user.uuid || user.id || user)}
                                     className="flex items-center justify-between gap-3 px-5 py-3 transition hover:bg-slate-50/70 dark:hover:bg-slate-800/40 cursor-pointer"
                                 >
                                     <div className="flex items-center gap-3 min-w-0">

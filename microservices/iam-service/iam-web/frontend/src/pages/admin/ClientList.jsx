@@ -10,7 +10,12 @@ export default function ClientList() {
         <AdminClientsPage
             locale={locale}
             t={t}
-            onSelectClient={(client) => navigate(`/admin/clients/${client.clientId || client.id}`)}
+            onSelectClient={(client) => {
+                const id = typeof client === 'string' ? client : (client?.clientId || client?.id);
+                if (id && id !== 'undefined') {
+                    navigate(`/admin/clients/${id}`);
+                }
+            }}
         />
     );
 }

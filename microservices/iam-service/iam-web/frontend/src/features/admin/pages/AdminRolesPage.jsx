@@ -602,7 +602,7 @@ export default function AdminRolesPage({token, t, selectedRoleId, onSelectRole, 
                         {result?.content?.map((role) => (
                             <TableRow
                                 key={role.uuid}
-                                onClick={() => onSelectRole?.(role.uuid)}
+                                onClick={() => onSelectRole?.(role.uuid || role.id || role)}
                                 className="cursor-pointer hover:bg-slate-50/70 dark:hover:bg-slate-800/40"
                             >
                                 <TableCell className="font-bold text-xs">
