@@ -175,7 +175,7 @@ spring:
   datasource:
     url: ${DB_URL:jdbc:postgresql://localhost:9543/db_oauth2}
     username: ${DB_USERNAME:iteuser}
-    password: ${DB_PASSWORD}
+    password: ${DB_PASSWORD:qwerqwer}
     driver-class-name: org.postgresql.Driver
   jpa:
     hibernate:

@@ -24,7 +24,7 @@ import {
     UsersRound,
 } from 'lucide-react'
 import {hasAdminRole, managementSections, personalSections} from '../../utils/accountFormat'
-import Avatar from '../common/Avatar'
+import Avatar from '../shared/Avatar'
 import {
     Sidebar,
     SidebarContent,

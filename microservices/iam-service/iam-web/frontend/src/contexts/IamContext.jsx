@@ -1,7 +1,7 @@
 import {createContext, useCallback, useContext, useEffect, useMemo, useState} from 'react'
 import en from '../i18n/en.json'
 import km from '../i18n/km.json'
-import {profileApi} from '../features/profile/api/profileApi'
+import {accountApi as profileApi} from '../features/account/api/accountApi'
 import {preferenceStorage, sessionStorageService} from '../services/storage/sessionStorage'
 
 const IamContext = createContext(null)

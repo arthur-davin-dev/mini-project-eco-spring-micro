@@ -2,6 +2,7 @@ plugins {
     alias(libs.plugins.java.common.conventions)
 }
 
+
 group = 'kh.eco.istad'
 version = '1.0-SNAPSHOT'
 

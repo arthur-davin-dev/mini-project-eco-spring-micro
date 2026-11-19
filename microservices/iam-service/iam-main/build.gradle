@@ -24,7 +24,7 @@ dependencies {
     runtimeOnly 'org.postgresql:postgresql'
 }
 
-tasks.named('bootRun') {
+def loadEnvFiles = { task ->
     [
         file('.env'),
         file('../.env'),
@@ -37,9 +37,17 @@ tasks.named('bootRun') {
                 line = line.trim()
                 if (line && !line.startsWith('#') && line.contains('=')) {
                     def parts = line.split('=', 2)
-                    environment parts[0].trim(), parts[1].trim()
+                    task.environment parts[0].trim(), parts[1].trim()
                 }
             }
         }
     }
+}
+
+tasks.named('bootRun') {
+    loadEnvFiles(it)
+}
+
+tasks.withType(Test).configureEach {
+    loadEnvFiles(it)
 }

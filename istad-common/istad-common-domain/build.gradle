@@ -1,11 +1,38 @@
 plugins {
     alias(libs.plugins.java.common.conventions)
+//    id "java-publications"
+    id("maven-publish")
 }
-
+version = '1.0.5'
 group = 'kh.eco.istad'
 
-dependencies {
-    testImplementation platform(libs.junit.bom)
-    testImplementation libs.junit.jupiter
-    testRuntimeOnly libs.junit.platform.launcher
+publishing {
+    publications {
+        mavenJava(MavenPublication) {
+            from components.java
+        }
+    }
+
+    repositories {
+        maven {
+            name = "Nexus"
+
+            url = uri(
+                    "http://localhost:8081/repository/maven-releases/"
+            )
+
+            credentials {
+                username = providers.gradleProperty("nexusUser").get()
+                password = providers.gradleProperty("nexusPassword").get()
+            }
+
+            allowInsecureProtocol = true
+        }
+    }
 }
+
+//dependencies {
+//    testImplementation platform(libs.junit.bom)
+//    testImplementation libs.junit.jupiter
+//    testRuntimeOnly libs.junit.platform.launcher
+//}

@@ -1,5 +1,5 @@
 import {Moon, Sun} from 'lucide-react'
-import Avatar from '../common/Avatar'
+import Avatar from '../shared/Avatar'
 import {SidebarTrigger} from '../ui/sidebar'
 import {Select, SelectContent, SelectItem, SelectTrigger} from '../ui/select'
 

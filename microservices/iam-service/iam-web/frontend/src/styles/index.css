@@ -1,0 +1,233 @@
+@import "tailwindcss";
+@custom-variant dark (&:where(.dark, .dark *));
+
+@font-face {
+    font-family: 'Google Sans';
+    src: local('Google Sans'), local('GoogleSans'), url('/fonts/GoogleSans-Variable.ttf') format('truetype');
+    font-style: normal;
+    font-weight: 100 900;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'Google Sans';
+    src: local('Google Sans Italic'), local('GoogleSans-Italic'), url('/fonts/GoogleSans-Italic-Variable.ttf') format('truetype');
+    font-style: italic;
+    font-weight: 100 900;
+    font-display: swap;
+}
+
+:root {
+    font-family: 'Google Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    color: #20252c;
+    background: #f7f8fa;
+    font-synthesis: none;
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    --color-ink: #20252c;
+    --color-muted: #78818d;
+    --color-line: #e9ebef;
+    --color-paper: #fff;
+    --color-canvas: #f7f8fa;
+    --color-purple: #7259d8;
+    --color-purple-dark: #634bc8;
+    --color-soft-purple: #f0edff;
+    --color-green: #21946d;
+    --color-soft-green: #e6f5ef;
+    --color-danger: #c85d5d;
+    --sidebar: #ffffff;
+    --sidebar-foreground: #20252c;
+    --sidebar-primary: #7259d8;
+    --sidebar-primary-foreground: #ffffff;
+    --sidebar-accent: #f0edff;
+    --sidebar-accent-foreground: #634bc8;
+    --sidebar-border: #e9ebef;
+    --sidebar-ring: #a794ff;
+    --background: #ffffff;
+    --foreground: #20252c;
+    --primary: #7259d8;
+    --primary-foreground: #ffffff;
+    --accent: #f0edff;
+    --accent-foreground: #634bc8;
+    --muted: #f3f4f6;
+    --muted-foreground: #78818d;
+    --border: #e9ebef;
+    --input: #e9ebef;
+    --ring: #a794ff;
+    --destructive: #c85d5d;
+    --popover: #ffffff;
+    --popover-foreground: #20252c;
+    --secondary: #f3f4f6;
+    --secondary-foreground: #20252c;
+    --radius: 0.625rem;
+}
+
+.dark {
+    color-scheme: dark;
+    color: #f8fafc;
+    background: #0f172a;
+    --color-ink: #f8fafc;
+    --color-muted: #94a3b8;
+    --color-line: #334155;
+    --color-paper: #1e293b;
+    --color-canvas: #0f172a;
+    --color-purple: #a794ff;
+    --color-purple-dark: #8b78ed;
+    --color-soft-purple: #241d42;
+    --color-green: #34d399;
+    --color-soft-green: #064e3b;
+    --color-danger: #f87171;
+    --sidebar: #0f172a;
+    --sidebar-foreground: #f8fafc;
+    --sidebar-primary: #8b78ed;
+    --sidebar-primary-foreground: #ffffff;
+    --sidebar-accent: #241d42;
+    --sidebar-accent-foreground: #ddd6fe;
+    --sidebar-border: #334155;
+    --sidebar-ring: #8b78ed;
+    --background: #0f172a;
+    --foreground: #f8fafc;
+    --primary: #8b78ed;
+    --primary-foreground: #ffffff;
+    --accent: #241d42;
+    --accent-foreground: #ddd6fe;
+    --muted: #1e293b;
+    --muted-foreground: #94a3b8;
+    --border: #334155;
+    --input: #334155;
+    --ring: #8b78ed;
+    --destructive: #ef4444;
+    --popover: #0f172a;
+    --popover-foreground: #f8fafc;
+    --secondary: #1e293b;
+    --secondary-foreground: #f8fafc;
+}
+
+.dark input:not([type="checkbox"]), .dark select, .dark textarea {
+    color-scheme: dark;
+    background-color: #0f172a;
+    color: #f8fafc;
+    border-color: #334155;
+}
+.dark input::placeholder, .dark textarea::placeholder { color: #94a3b8; }
+
+* { box-sizing: border-box; }
+html, body { min-height: 100%; background: var(--color-canvas); color: var(--color-ink); }
+body { margin: 0; min-width: 320px; min-height: 100vh; }
+button, input, select { font: inherit; }
+button { cursor: pointer; }
+button:disabled { cursor: not-allowed; }
+a { color: inherit; text-decoration: none; }
+#root { min-height: 100vh; }
+
+html, body, #root, button, input, select, textarea, optgroup {
+    font-family: 'Google Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important;
+}
+
+html:lang(en), html:lang(en) *,
+html:lang(km), html:lang(km) * {
+    font-family: 'Google Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important;
+}
+
+@theme inline {
+    --font-sans: 'Google Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    --font-heading: 'Google Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    --color-background: var(--background);
+    --color-foreground: var(--foreground);
+    --color-primary: var(--primary);
+    --color-primary-foreground: var(--primary-foreground);
+    --color-accent: var(--accent);
+    --color-accent-foreground: var(--accent-foreground);
+    --color-muted: var(--muted);
+    --color-muted-foreground: var(--muted-foreground);
+    --color-border: var(--border);
+    --color-input: var(--input);
+    --color-ring: var(--ring);
+    --color-destructive: var(--destructive);
+    --color-popover: var(--popover);
+    --color-popover-foreground: var(--popover-foreground);
+    --color-secondary: var(--secondary);
+    --color-secondary-foreground: var(--secondary-foreground);
+    --color-sidebar: var(--sidebar);
+    --color-sidebar-foreground: var(--sidebar-foreground);
+    --color-sidebar-primary: var(--sidebar-primary);
+    --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+    --color-sidebar-accent: var(--sidebar-accent);
+    --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+    --color-sidebar-border: var(--sidebar-border);
+    --color-sidebar-ring: var(--sidebar-ring);
+
+    --text-2xs: 15px;
+    --text-2xs--line-height: 1.45;
+    --text-xs: 15px;
+    --text-xs--line-height: 1.45;
+    --text-sm: 16px;
+    --text-sm--line-height: 1.5;
+    --text-base: 18px;
+    --text-base--line-height: 1.55;
+    --text-lg: 20px;
+    --text-lg--line-height: 1.4;
+    --text-xl: 22px;
+    --text-xl--line-height: 1.35;
+    --text-2xl: 26px;
+    --text-2xl--line-height: 1.3;
+    --text-3xl: 30px;
+    --text-3xl--line-height: 1.25;
+}
+
+/* =========================================================================
+   Typography Overrides: Minimum font size 15px & Non-bold Titles
+   ========================================================================= */
+
+html {
+    font-size: 16px;
+}
+
+body {
+    font-size: 16px;
+    line-height: 1.5;
+}
+
+/* Ensure no element renders smaller than 15px across the UI */
+small,
+caption,
+th,
+td,
+.badge,
+[data-slot="badge"],
+.text-xs,
+[class*="text-[9px]"],
+[class*="text-[10px]"],
+[class*="text-[11px]"],
+[class*="text-[12px]"],
+[class*="text-[13px]"],
+[class*="text-[14px]"],
+[class*="text-[0.75rem]"],
+[class*="text-[0.8rem]"],
+[class*="text-[0.875rem]"] {
+    font-size: 15px !important;
+    line-height: 1.45 !important;
+}
+
+.text-sm {
+    font-size: 16px !important;
+    line-height: 1.5 !important;
+}
+
+.text-base {
+    font-size: 18px !important;
+    line-height: 1.55 !important;
+}
+
+/* Titles and headings must not use bold (use regular/medium weight) */
+h1, h2, h3, h4, h5, h6,
+h1.font-bold, h2.font-bold, h3.font-bold, h4.font-bold, h5.font-bold, h6.font-bold,
+h1.font-semibold, h2.font-semibold, h3.font-semibold, h4.font-semibold,
+h1.font-extrabold, h2.font-extrabold,
+[data-slot="card-title"],
+.page-title,
+.section-title,
+header h1, header h2, header h3 {
+    font-weight: 500 !important;
+}
